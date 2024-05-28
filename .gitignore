@@ -1,0 +1,53 @@
+# macOS
+.DS_Store
+
+# Python
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+*.pdb
+*.egg
+*.egg-info/
+dist/
+build/
+*.egg-info/
+pip-wheel-metadata/
+wheels/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+.ENV/
+
+# Lighthouse storage API key
+lighthouse_api_key.txt
+
+# Hive private key
+private_key.txt
+
+# Log files
+*.log
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+coverage.xml
+*.cover
+*.py,cover
+
+# MySQL
+*.sql
+
+# Visual Studio Code
+.vscode/
+
+# JetBrains IDEs
+.idea/
