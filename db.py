@@ -8,8 +8,12 @@ import requests
 
 
 def create_database(databasename, version):
-    db_path = os.path.join(os.path.dirname(__file__), 'database')
-    client = chromadb.PersistentClient(path=db_path)
+    # db_path = os.path.join(os.path.dirname(__file__), 'database')
+    # client = chromadb.PersistentClient(path=db_path)
+
+    client = chromadb.HttpClient(
+        host='localhost', port=8000)  # Server IP and port
+
     collection = client.get_or_create_collection(
         name=f"{databasename}v{version}")
     return collection
