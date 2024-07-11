@@ -3,7 +3,7 @@ import chromadb
 import subprocess
 import sys
 import json
-import OpenAI
+import openai
 import requests
 
 
@@ -21,14 +21,9 @@ def chunk_document(document):
 
 
 def pargaraph_to_openai_input(paragraph, model="text-embedding-ada-002"):
-
-    client = OpenAI.Client(api_key="OPENAI_API_KEY")
-
-    response = client.embeddings.create(model=model,
-                                        input=[paragraph])
-
-    embedding = response.data[0].embedding
-
+    response = openai.Embedding.create(
+        model=model, input=[paragraph], api_key="OPENAI_API_KEY")
+    embedding = response['data'][0]['embedding']
     return embedding
 
 
