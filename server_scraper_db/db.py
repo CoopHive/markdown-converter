@@ -1,10 +1,14 @@
+import requests
 import os
 import chromadb
 import subprocess
 import sys
 import json
-import openai
-import requests
+from openai import OpenAI
+
+OPENAI_API_KEY = "OEPANAI_API_KEY"
+
+client = OpenAI(api_key=OPENAI_API_KEY)
 
 
 def create_database(databasename, version):
@@ -12,7 +16,7 @@ def create_database(databasename, version):
     # client = chromadb.PersistentClient(path=db_path)
 
     client = chromadb.HttpClient(
-        host='localhost', port=8000)  # Server IP and port
+        host='localhost', port=8000)  # Server IP and port of the database in docker container
 
     collection = client.get_or_create_collection(
         name=f"{databasename}v{version}")
@@ -25,9 +29,8 @@ def chunk_document(document):
 
 
 def pargaraph_to_openai_input(paragraph, model="text-embedding-ada-002"):
-    response = openai.Embedding.create(
-        model=model, input=[paragraph], api_key="OPENAI_API_KEY")
-    embedding = response['data'][0]['embedding']
+    response = client.embeddings.create(model=model, input=[paragraph])
+    embedding = response.data[0].embedding
     return embedding
 
 
