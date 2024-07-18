@@ -2,4 +2,6 @@ flask
 requests
 chromadb
 openai
+stripe
+asyncio
 
