@@ -5,7 +5,7 @@ import os
 import subprocess
 import re
 import json
-from db import create_database, insert_document
+from document_database import DocumentDatabase
 
 
 def scrape_arxiv(category='physics:cond-mat', date_from='2024-05-13', date_until='2024-05-14'):
@@ -50,11 +50,7 @@ def execute_hive_command(cid, private_key):
 def extract_path(output):
     pattern = r"/tmp/coophive/data/downloaded-files/Qm[a-zA-Z0-9]+"
     match = re.search(pattern, output)
-
-    if match:
-        return match.group(0)
-    else:
-        return None
+    return match.group(0) if match else None
 
 
 def upload_markdown_to_ipfs(markdown_path, api_key):
@@ -112,8 +108,7 @@ def scrape_and_download_papers(config_file):
 
                 papers_info[arxiv_id] = paper_info
         except requests.RequestException as e:
-            print(
-                f"Failed to process arXiv ID: {arxiv_id}. Error: {e}")
+            print(f"Failed to process arXiv ID: {arxiv_id}. Error: {e}")
         except subprocess.CalledProcessError as e:
             print(
                 f"Error executing command for arXiv ID: {arxiv_id}. Error: {e}")
@@ -122,7 +117,8 @@ def scrape_and_download_papers(config_file):
         except FileNotFoundError as e:
             print(f"File not found: {e}")
 
-    collection = create_database("chroma_vector_database", "1.0")
+    db_instance = DocumentDatabase(api_key)
+    db_instance.create_database("chroma_vector_database", "1.0")
 
     for paper_id, info in papers_info.items():
         metadata = {
@@ -137,7 +133,7 @@ def scrape_and_download_papers(config_file):
             'markdown_cid': info['markdown_cid']
         }
 
-        insert_document(collection, info['file_contents'], paper_id, metadata)
+        db_instance.insert_document(info['file_contents'], paper_id, metadata)
 
 
 def process_downloaded_papers(api_key, private_key, papers_directory="papers"):
@@ -169,8 +165,7 @@ def process_downloaded_papers(api_key, private_key, papers_directory="papers"):
 
                     papers_info[filename] = paper_info
             except requests.RequestException as e:
-                print(
-                    f"Failed to upload PDF for file: {filename}. Error: {e}")
+                print(f"Failed to upload PDF for file: {filename}. Error: {e}")
             except subprocess.CalledProcessError as e:
                 print(
                     f"Error executing command for file: {filename}. Error: {e}")
@@ -179,11 +174,18 @@ def process_downloaded_papers(api_key, private_key, papers_directory="papers"):
             except FileNotFoundError as e:
                 print(f"File not found: {e}")
 
+    db_instance = DocumentDatabase(api_key)
+    collection = db_instance.create_database("chroma_vector_database", "1.0")
+
     for filename, info in papers_info.items():
-        print(f"Filename: {filename}")
-        for key, value in info.items():
-            print(f"{key}: {value}")
-        print("\n")
+        metadata = {
+            'file_contents': info['file_contents'],
+            'source': 'academic_paper',
+            'pdf_cid': info['pdf_cid'],
+            'markdown_cid': info['markdown_cid']
+        }
+
+        db_instance.insert_document(info['file_contents'], filename, metadata)
 
 
 def main():

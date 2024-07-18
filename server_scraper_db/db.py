@@ -6,55 +6,49 @@ import sys
 import json
 from openai import OpenAI
 
-OPENAI_API_KEY = "OEPANAI_API_KEY"
 
-client = OpenAI(api_key=OPENAI_API_KEY)
+class DocumentDatabase:
+    def __init__(self, openai_api_key, db_host='localhost', db_port=8000):
+        self.openai_api_key = openai_api_key
+        self.client = OpenAI(api_key=self.openai_api_key)
+        self.db_client = chromadb.HttpClient(host=db_host, port=db_port)
 
+    def create_database(self, databasename, version):
+        self.collection = self.db_client.get_or_create_collection(
+            name=f"{databasename}v{version}")
+        return self.collection
 
-def create_database(databasename, version):
-    # db_path = os.path.join(os.path.dirname(__file__), 'database')
-    # client = chromadb.PersistentClient(path=db_path)
+    @staticmethod
+    def chunk_document(document):
+        paragraphs = document.split('\n\n')
+        return paragraphs
 
-    client = chromadb.HttpClient(
-        host='localhost', port=8000)  # Server IP and port of the database in docker container
+    def paragraph_to_openai_input(self, paragraph, model="text-embedding-ada-002"):
+        response = self.client.embeddings.create(
+            model=model, input=[paragraph])
+        embedding = response.data[0].embedding
+        return embedding
 
-    collection = client.get_or_create_collection(
-        name=f"{databasename}v{version}")
-    return collection
+    def insert_document(self, document, doc_id, metadata):
+        chunked_document = self.chunk_document(document)
 
+        for i, paragraph in enumerate(chunked_document):
+            embedded_paragraph = self.paragraph_to_openai_input(paragraph)
+            chunk_metadata = {**metadata, 'chunk_index': i}
+            self.collection.add(
+                documents=[embedded_paragraph],
+                ids=[f"{doc_id}_{i}"],
+                metadatas=[chunk_metadata]
+            )
 
-def chunk_document(document):
-    paragraphs = document.split('\n\n')
-    return paragraphs
+        print(
+            f"Document with id {doc_id} added to the collection successfully.")
 
+    def print_all_documents(self):
+        documents = self.collection.get(include=["documents", "metadatas"])
 
-def pargaraph_to_openai_input(paragraph, model="text-embedding-ada-002"):
-    response = client.embeddings.create(model=model, input=[paragraph])
-    embedding = response.data[0].embedding
-    return embedding
-
-
-def insert_document(collection, document, id, metadata):
-
-    chunked_document = chunk_document(document)
-
-    for i, paragraph in enumerate(chunked_document):
-        embedded_paragraph = pargaraph_to_openai_input(paragraph)
-        chunk_metadata = {**metadata, 'chunk_index': i}
-        collection.add(
-            documents=[embedded_paragraph],
-            ids=[f"{id}_{i}"],
-            metadatas=[chunk_metadata]
-        )
-
-    print(f"Document with id {id} added to the collection successfully.")
-
-
-def print_all_documents(collection):
-    documents = collection.get(include=["documents", "metadatas"])
-
-    for doc_id, doc, meta in zip(documents['ids'], documents['documents'], documents['metadatas']):
-        print(f"ID: {doc_id}")
-        print(f"Document: {doc}")
-        print(f"Metadata: {meta}")
-        print("------")
+        for doc_id, doc, meta in zip(documents['ids'], documents['documents'], documents['metadatas']):
+            print(f"ID: {doc_id}")
+            print(f"Document: {doc}")
+            print(f"Metadata: {meta}")
+            print("------")

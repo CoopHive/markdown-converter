@@ -9,17 +9,6 @@ app = Flask(__name__)
 
 @app.route('/collections/<collection_name>/query', methods=['POST'])
 def query_collection(collection_name):
-    print(" ")
-    print(" ")
-    print(" ")
-    print(" ")
-
-    print(OPENAI_API_KEY)
-    print("process request")
-    print(" ")
-    print(" ")
-    print(" ")
-
     openaiClient = OpenAI(api_key=OPENAI_API_KEY)
 
     data = request.json
@@ -41,7 +30,6 @@ def query_collection(collection_name):
         n_results=2,
     )
 
-    print(values)
     return jsonify(values)
 
 
