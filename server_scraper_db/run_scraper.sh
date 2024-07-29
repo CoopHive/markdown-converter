@@ -4,33 +4,34 @@ update_config() {
   cat <<EOF > config.json
 {
     "api_key": "$1",
-    "private_key": "$2",
-    "category": "$3",
-    "date_from": "$4",
-    "date_until": "$5",
-    "num_pdfs": $6,
-    "download": $7
+    "category": "$2",
+    "date_from": "$3",
+    "date_until": "$4",
+    "num_pdfs": $5,
+    "download": $6
 }
 EOF
 }
 
 # Read parameters
 API_KEY=$1
-PRIVATE_KEY=$2
-CATEGORY=$3
-DATE_FROM=$4
-DATE_UNTIL=$5
-NUM_PDFS=$6
-DOWNLOAD=$7
+CATEGORY=$2
+DATE_FROM=$3
+DATE_UNTIL=$4
+NUM_PDFS=$5
+DOWNLOAD=$6
 
 # Update the config file with the provided parameters
-update_config "$API_KEY" "$PRIVATE_KEY" "$CATEGORY" "$DATE_FROM" "$DATE_UNTIL" "$NUM_PDFS" "$DOWNLOAD"
+update_config "$API_KEY" "$CATEGORY" "$DATE_FROM" "$DATE_UNTIL" "$NUM_PDFS" "$DOWNLOAD"
 
 # Activate the virtual environment if needed
 # Uncomment and modify the line below according to your virtual environment setup
 
-source env/bin/activate
+# source env/bin/activate
 
 python3 scraper.py
 
-deactivate
+# Deactivate the virtual environment if needed
+# Uncomment the line below if you activated a virtual environment above
+
+# deactivate

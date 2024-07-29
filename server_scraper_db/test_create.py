@@ -2,7 +2,7 @@ import os
 import chromadb
 from openai import OpenAI
 
-OPENAI_API_KEY = "openai_api_key"
+OPENAI_API_KEY = "sk-proj-"
 
 client = OpenAI(api_key=OPENAI_API_KEY)
 

@@ -1,9 +1,9 @@
 from coophive_sdk import CoopHiveClient
 
-# Initialize the client
-client = CoopHiveClient()
+api_key = "sfnlsdn"
 
-# Test the query function
+client = CoopHiveClient(api_key=api_key)
+
 database_name = "fruitdb"
 user_query = "What is the fact about apples?"
 response = client.queries.query_database(database_name, user_query)

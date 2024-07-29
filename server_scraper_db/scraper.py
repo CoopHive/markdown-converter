@@ -3,9 +3,9 @@ import pandas as pd
 import requests
 import os
 import subprocess
-import re
 import json
-from document_database import DocumentDatabase
+import shutil
+from db import DocumentDatabase
 
 
 def scrape_arxiv(category='physics:cond-mat', date_from='2024-05-13', date_until='2024-05-14'):
@@ -36,29 +36,19 @@ def upload_to_lighthouse(filepath, api_key):
         return response.json()['Hash']
 
 
-def execute_hive_command(cid, private_key):
-    command = f"""
-        hive run marker:de3ebcd -i input=/inputs/{cid} -i url=https://gateway.lighthouse.storage/ipfs/{cid}
-    """
-    env_var = os.environ.copy()
-    env_var["WEB3_PRIVATE_KEY"] = private_key
-    result = subprocess.run(command, shell=True, env=env_var, check=True,
-                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    return result
-
-
-def extract_path(output):
-    pattern = r"/tmp/coophive/data/downloaded-files/Qm[a-zA-Z0-9]+"
-    match = re.search(pattern, output)
-    return match.group(0) if match else None
-
-
-def upload_markdown_to_ipfs(markdown_path, api_key):
+def execute_marker_module(pdf_file, output_dir):
     try:
-        cid = upload_to_lighthouse(markdown_path, api_key)
-        return cid
-    except requests.RequestException as e:
-        print(f"Failed to upload markdown to IPFS. Error: {e}")
+        os.makedirs(output_dir, exist_ok=True)
+        command = [
+            "marker_single",
+            pdf_file,
+            output_dir,
+            "--langs", "English"
+        ]
+        subprocess.run(command, check=True)
+        return output_dir
+    except subprocess.CalledProcessError as e:
+        print(f"Error running marker for {pdf_file}: {e}")
         return None
 
 
@@ -67,13 +57,16 @@ def scrape_and_download_papers(config_file):
         config = json.load(file)
 
     api_key = config.get('api_key')
-    private_key = config.get('private_key')
     category = config.get('category', 'physics:cond-mat')
     date_from = config.get('date_from', '2024-05-13')
     date_until = config.get('date_until', '2024-05-14')
     num_pdfs = config.get('num_pdfs', 2)
 
     papers_info = {}
+    output_base_dir = "output"
+    inputs_base_dir = "inputs"
+    os.makedirs(output_base_dir, exist_ok=True)
+    os.makedirs(inputs_base_dir, exist_ok=True)
 
     df = scrape_arxiv(category, date_from, date_until)
     valid_indices = df['id'].dropna().index[:num_pdfs]
@@ -83,14 +76,23 @@ def scrape_and_download_papers(config_file):
     for idx in valid_indices:
         arxiv_id = df.loc[idx, 'id']
         try:
-            filename = f"paper_{idx}.pdf"
+            filename = os.path.join(inputs_base_dir, f"paper_{idx}.pdf")
             download_pdf(arxiv_id, filename)
-            pdf_cid = upload_to_lighthouse(filename, api_key)
-            result = execute_hive_command(pdf_cid, private_key)
-            path = extract_path(result.stdout)
-            if path:
-                markdown_path = os.path.join(path, "outputs", "output.md")
-                markdown_cid = upload_markdown_to_ipfs(markdown_path, api_key)
+
+            output_dir = execute_marker_module(filename, output_base_dir)
+            if output_dir:
+                subdir_name = os.path.splitext(os.path.basename(filename))[0]
+                markdown_filename = f"{subdir_name}.md"
+                markdown_path = os.path.join(
+                    output_dir, subdir_name, markdown_filename)
+
+                if not os.path.exists(markdown_path):
+                    raise FileNotFoundError(
+                        f"Markdown file not found: {markdown_path}")
+
+                markdown_cid = upload_to_lighthouse(markdown_path, api_key)
+                pdf_cid = upload_to_lighthouse(filename, api_key)
+
                 with open(markdown_path, 'r') as file:
                     file_contents = file.read()
 
@@ -136,73 +138,35 @@ def scrape_and_download_papers(config_file):
         db_instance.insert_document(info['file_contents'], paper_id, metadata)
 
 
-def process_downloaded_papers(api_key, private_key, papers_directory="papers"):
-    papers_info = {}
+def cleanup_directory(directory):
+    try:
+        if os.path.exists(directory):
+            shutil.rmtree(directory)
+            print(f"Deleted directory: {directory}")
+    except Exception as e:
+        print(f"Error deleting directory {directory}: {e}")
 
-    for filename in os.listdir(papers_directory):
-        if filename.endswith(".pdf"):
-            filepath = os.path.join(papers_directory, filename)
-            print(f"Processing file: {filename}")
-            try:
-                pdf_cid = upload_to_lighthouse(filepath, api_key)
-                print(f"Uploaded file to Lighthouse. CID: {pdf_cid}")
-                result = execute_hive_command(pdf_cid, private_key)
-                print(f"Executed Hive command for file: {filename}")
-                print(str(result.stderr))
-                path = extract_path(result.stdout)
-                if path:
-                    markdown_path = os.path.join(path, "outputs", "output.md")
-                    markdown_cid = upload_markdown_to_ipfs(
-                        markdown_path, api_key)
-                    with open(markdown_path, 'r') as file:
-                        file_contents = file.read()
 
-                    paper_info = {
-                        "file_contents": file_contents,
-                        "pdf_cid": pdf_cid,
-                        "markdown_cid": markdown_cid
-                    }
-
-                    papers_info[filename] = paper_info
-            except requests.RequestException as e:
-                print(f"Failed to upload PDF for file: {filename}. Error: {e}")
-            except subprocess.CalledProcessError as e:
-                print(
-                    f"Error executing command for file: {filename}. Error: {e}")
-                print(f"Command output: {e.output}")
-                print(f"Command stderr: {e.stderr}")
-            except FileNotFoundError as e:
-                print(f"File not found: {e}")
-
-    db_instance = DocumentDatabase(api_key)
-    collection = db_instance.create_database("chroma_vector_database", "1.0")
-
-    for filename, info in papers_info.items():
-        metadata = {
-            'file_contents': info['file_contents'],
-            'source': 'academic_paper',
-            'pdf_cid': info['pdf_cid'],
-            'markdown_cid': info['markdown_cid']
-        }
-
-        db_instance.insert_document(info['file_contents'], filename, metadata)
+def cleanup_file(file_path):
+    try:
+        if os.path.exists(file_path):
+            os.remove(file_path)
+            print(f"Deleted file: {file_path}")
+    except Exception as e:
+        print(f"Error deleting file {file_path}: {e}")
 
 
 def main():
     config_file = "config.json"
-    with open(config_file, 'r') as file:
-        config = json.load(file)
-
-    api_key = config.get('api_key')
-    private_key = config.get('private_key')
-    download = config.get('download', False)
 
     print("Starting script...")
 
-    if download:
-        process_downloaded_papers(api_key, private_key)
-    else:
-        scrape_and_download_papers(config_file)
+    scrape_and_download_papers(config_file)
+
+    # Clean up the input and output directories
+    cleanup_directory("inputs")
+    cleanup_directory("output")
+    cleanup_file("arxiv_preprints_may_2024.csv")
 
 
 if __name__ == "__main__":
