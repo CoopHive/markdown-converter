@@ -5,7 +5,7 @@ import secrets
 import sqlite3
 from functools import wraps
 
-OPENAI_API_KEY = "sk-proj-"
+OPENAI_API_KEY = "sk-proj-OqH5ok75imwtsbJKZrH7T3BlbkFJK9fL3mmdg5e4uryrf9vd"
 
 app = Flask(__name__)
 
@@ -49,20 +49,24 @@ def query_collection(collection_name):
     user_query = data.get('user_query')
 
     client = chromadb.HttpClient(
-        host='localhost', port=8000)  # Server IP and port of the database in docker container
+        host='localhost', port=8000)
 
     collection = client.get_or_create_collection(
-        name=f"{collection_name}v{'1.0'}")
+        name=f"{collection_name}")
 
-    model = "text-embedding-ada-002"
+    model_name = "text-embedding-3-small"
 
-    response = openaiClient.embeddings.create(model=model, input=[user_query])
+    response = openaiClient.embeddings.create(
+        model=model_name, input=[user_query])
     embedding = response.data[0].embedding
 
     values = collection.query(
         query_embeddings=[embedding],
         n_results=2,
     )
+
+    all_documents = collection.get(include=['documents', 'metadatas'])
+    print(f"All documents in collection: {all_documents}")
 
     return jsonify(values)
 
