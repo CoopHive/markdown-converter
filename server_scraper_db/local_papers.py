@@ -4,6 +4,8 @@ import shutil
 import requests
 from db import DocumentDatabase
 import json
+import PyPDF2
+from openai import OpenAI
 
 
 def execute_marker_module(pdf_file, output_dir):
@@ -44,7 +46,47 @@ def get_metadata_for_paper(metadata_file, paper_id):
     return {}
 
 
-def process_papers(papers_directory, metadata_file, config_file, max_papers=2):
+def upload_pdf(file_path):
+    pdf_reader = PyPDF2.PdfReader(file_path)
+    text_content = ""
+
+    for page_num in range(len(pdf_reader.pages)):
+        page = pdf_reader.pages[page_num]
+        text_content += page.extract_text()
+
+    return text_content
+
+
+def chunk_text(text, chunk_size=10000):
+    return [text[i:i + chunk_size] for i in range(0, len(text), chunk_size)]
+
+
+def convert_pdf_to_markdown_openai(file_content, api_key):
+    client = OpenAI(api_key=api_key)
+    chunks = chunk_text(file_content)
+    markdown_chunks = []
+
+    for chunk in chunks:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {
+                    "role": "user",
+                    "content": f"Convert the following text to Markdown:\n\n{chunk}",
+                }
+            ]
+        )
+
+        if response and response.choices:
+            markdown_chunks.append(response.choices[0].message.content)
+        else:
+            print('Failed to convert chunk to Markdown.')
+            markdown_chunks.append('')
+
+    return '\n'.join(markdown_chunks)
+
+
+def process_papers(papers_directory, metadata_file, config_file, processed_papers_file="processed_papers.txt", max_papers=1):
     with open(config_file, 'r') as file:
         config = json.load(file)
 
@@ -52,45 +94,73 @@ def process_papers(papers_directory, metadata_file, config_file, max_papers=2):
     output_base_dir = "output"
     os.makedirs(output_base_dir, exist_ok=True)
 
-    OPENAI_API_KEY = "sk-proj-OqH5ok75imwtsbJKZrH7T3BlbkFJK9fL3mmdg5e4uryrf9vd"
+    OPENAI_API_KEY = ""
 
     db_instance = DocumentDatabase(OPENAI_API_KEY)
-    para_nvidia_dvd, para_openai_dvd = db_instance.create_database(
-        "dvd_paragraph")
 
-    db_instance.print_all_documents(para_openai_dvd)
+    para_marker_nvidia_dvd, para_marker_openai_dvd = db_instance.create_database(
+        "dvd_paragraph_marker")
 
-    sentence_nvidia_dvd, sentence_openai_dvd = db_instance.create_database(
-        "dvd_sentence")
+    para_llm_nvidia_dvd, para_llm_openai_dvd = db_instance.create_database(
+        "dvd_paragraph_llm")
 
-    processed_count = 0
+    sentence_marker_nvidia_dvd, sentence_marker_openai_dvd = db_instance.create_database(
+        "dvd_sentence_marker")
+
+    sentence_llm_nvidia_dvd, sentence_llm_openai_dvd = db_instance.create_database(
+        "dvd_sentence_llm")
+
+    if os.path.exists(processed_papers_file):
+        with open(processed_papers_file, 'r') as file:
+            processed_papers = set(file.read().splitlines())
+    else:
+        processed_papers = set()
+
     for filename in os.listdir(papers_directory):
         if filename.endswith(".pdf"):
             paper_id = filename[:-4]
+
+            if paper_id in processed_papers:
+                print(
+                    f"Paper {paper_id} has already been processed. Skipping.")
+                continue
+
             pdf_file = os.path.join(papers_directory, filename)
+            metadata = get_metadata_for_paper(metadata_file, paper_id)
+            pdf_cid = upload_to_lighthouse(pdf_file, api_key)
             try:
-                metadata = get_metadata_for_paper(metadata_file, paper_id)
-
                 output_dir = execute_marker_module(pdf_file, output_base_dir)
-                if output_dir:
-                    subdir_name = os.path.splitext(
-                        os.path.basename(pdf_file))[0]
-                    markdown_filename = f"{subdir_name}.md"
-                    markdown_path = os.path.join(
-                        output_dir, subdir_name, markdown_filename)
+                subdir_name = os.path.splitext(
+                    os.path.basename(pdf_file))[0]
+                markdown_filename = f"{subdir_name}.md"
+                markdown_path = os.path.join(
+                    output_dir, subdir_name, markdown_filename)
 
-                    if not os.path.exists(markdown_path):
-                        raise FileNotFoundError(
-                            f"Markdown file not found: {markdown_path}")
+                if not os.path.exists(markdown_path):
+                    raise FileNotFoundError(
+                        f"Markdown file not found: {markdown_path}")
 
-                    markdown_cid = upload_to_lighthouse(markdown_path, api_key)
-                    pdf_cid = upload_to_lighthouse(pdf_file, api_key)
+                markdown_cid = upload_to_lighthouse(markdown_path, api_key)
 
-                    with open(markdown_path, 'r') as file:
-                        file_contents = file.read()
+                with open(markdown_path, 'r') as file:
+                    file_contents_marker = file.read()
+
+                # # Step 2: Execute openai converter
+
+                pdf_text = upload_pdf(pdf_file)
+                file_contents_openai = convert_pdf_to_markdown_openai(
+                    pdf_text, OPENAI_API_KEY)
+
+                openai_markdown_path = os.path.join(
+                    output_dir, subdir_name, f"{subdir_name}_openai.md")
+
+                with open(openai_markdown_path, 'w') as openai_md_file:
+                    openai_md_file.write(file_contents_openai)
+
+                openai_markdown_cid = upload_to_lighthouse(
+                    openai_markdown_path, api_key)
 
                 paper_info = {
-                    "file_contents": file_contents,
                     "pdf_cid": pdf_cid,
                     "markdown_cid": markdown_cid,
                     "title": metadata.get("title", "Unknown Title"),
@@ -100,42 +170,106 @@ def process_papers(papers_directory, metadata_file, config_file, max_papers=2):
                     "doi": metadata.get("doi", "No DOI available")
                 }
 
+                paper_info_openai = {
+                    "pdf_cid": pdf_cid,
+                    "markdown_cid": openai_markdown_cid,
+                    "title": metadata.get("title", "Unknown Title"),
+                    "authors": metadata.get("authors", "Unknown Authors"),
+                    "categories": metadata.get("categories", "Unknown Categories"),
+                    "abstract": metadata.get("abstract", "No abstract available."),
+                    "doi": metadata.get("doi", "No DOI available")
+                }
+
                 db_instance.insert_document(
-                    document=file_contents,
-                    collection=para_nvidia_dvd,
+                    document=file_contents_marker,
+                    collection=para_marker_nvidia_dvd,
                     doc_id=filename,
                     metadata=paper_info,
                     chunk_strategy='paragraph',
                     embed_strategy='nvidia'
                 )
 
-                # db_instance.insert_document(
-                #     document=file_contents,
-                #     collection=para_openai_dvd,
-                #     doc_id=filename,
-                #     metadata=paper_info,
-                #     chunk_strategy='paragraph'
-                # )
+                print("Inserted document into para_marker_nvidia_dvd")
 
-                # db_instance.insert_document(
-                #     document=file_contents,
-                #     collection=sentence_nvidia_dvd,
-                #     doc_id=filename,
-                #     metadata=paper_info,
-                #     chunk_strategy='sentence',
-                # )
+                db_instance.insert_document(
+                    document=file_contents_marker,
+                    collection=para_marker_openai_dvd,
+                    doc_id=filename,
+                    metadata=paper_info,
+                    chunk_strategy='paragraph'
+                )
 
-                # db_instance.insert_document(
-                #     document=file_contents,
-                #     collection=sentence_openai_dvd,
-                #     doc_id=filename,
-                #     metadata=paper_info,
-                #     chunk_strategy='sentence'
-                # )
+                print("Inserted document into para_marker_openai_dvd")
 
-                processed_count += 1
-                if processed_count >= 1:
-                    break
+                db_instance.insert_document(
+                    document=file_contents_marker,
+                    collection=sentence_marker_nvidia_dvd,
+                    doc_id=filename,
+                    metadata=paper_info,
+                    chunk_strategy='sentence',
+                    embed_strategy='nvidia'
+                )
+
+                print("Inserted document into sentence_marker_nvidia_dvd")
+
+                db_instance.insert_document(
+                    document=file_contents_marker,
+                    collection=sentence_marker_openai_dvd,
+                    doc_id=filename,
+                    metadata=paper_info,
+                    chunk_strategy='sentence'
+                )
+
+                print("Inserted document into sentence_marker_openai_dvd")
+
+                db_instance.insert_document(
+                    document=file_contents_openai,
+                    collection=para_llm_nvidia_dvd,
+                    doc_id=filename,
+                    metadata=paper_info_openai,
+                    chunk_strategy='paragraph',
+                    embed_strategy='nvidia'
+                )
+
+                print("Inserted document into para_llm_nvidia_dvd")
+
+                db_instance.insert_document(
+                    document=file_contents_openai,
+                    collection=para_llm_openai_dvd,
+                    doc_id=filename,
+                    metadata=paper_info_openai,
+                    chunk_strategy='paragraph'
+                )
+
+                print("Inserted document into para_llm_openai_dvd")
+
+                db_instance.insert_document(
+                    document=file_contents_openai,
+                    collection=sentence_llm_nvidia_dvd,
+                    doc_id=filename,
+                    metadata=paper_info_openai,
+                    chunk_strategy='sentence',
+                    embed_strategy='nvidia'
+                )
+
+                print("Inserted document into sentence_llm_nvidia_dvd")
+
+                db_instance.insert_document(
+                    document=file_contents_openai,
+                    collection=sentence_llm_openai_dvd,
+                    doc_id=filename,
+                    metadata=paper_info_openai,
+                    chunk_strategy='sentence'
+                )
+
+                print("Inserted document into sentence_llm_openai_dvd")
+                print("-----------------------------")
+                print("-----------------------------")
+                print("-----------------------------")
+                print("-----------------------------")
+
+                with open(processed_papers_file, 'a') as file:
+                    file.write(f"{paper_id}\n")
 
             except subprocess.CalledProcessError as e:
                 print(

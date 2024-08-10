@@ -4,8 +4,13 @@ from openai import OpenAI
 import secrets
 import sqlite3
 from functools import wraps
+import torch
+import torch.nn.functional as F
+from transformers import AutoTokenizer, AutoModel
+import os
+import chromadb.utils.embedding_functions as embedding_functions
 
-OPENAI_API_KEY = "sk-proj-OqH5ok75imwtsbJKZrH7T3BlbkFJK9fL3mmdg5e4uryrf9vd"
+OPENAI_API_KEY = ""
 
 app = Flask(__name__)
 
@@ -48,25 +53,40 @@ def query_collection(collection_name):
     data = request.json
     user_query = data.get('user_query')
 
-    client = chromadb.HttpClient(
-        host='localhost', port=8000)
-
-    collection = client.get_or_create_collection(
-        name=f"{collection_name}")
-
-    model_name = "text-embedding-3-small"
-
-    response = openaiClient.embeddings.create(
-        model=model_name, input=[user_query])
-    embedding = response.data[0].embedding
-
-    values = collection.query(
-        query_embeddings=[embedding],
-        n_results=2,
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    db_path = os.path.abspath(os.path.join(
+        script_dir, '../server_scraper_db/database'))
+    client = chromadb.PersistentClient(path=db_path)
+    openai_ef = embedding_functions.OpenAIEmbeddingFunction(
+        api_key="",
+        model_name="text-embedding-3-small"
     )
+    collection = client.get_collection(
+        name=f"{collection_name}", embedding_function=openai_ef)
 
-    all_documents = collection.get(include=['documents', 'metadatas'])
-    print(f"All documents in collection: {all_documents}")
+    if "nvidia" in collection_name.lower():
+        task_name_to_instruct = {
+            "example": "Given a question, retrieve passages that answer the question", }
+        query_prefix = "Instruct: " + \
+            task_name_to_instruct["example"]+"\nQuery: "
+        user_query_list = [user_query]
+        max_length = 4096
+        model = AutoModel.from_pretrained(
+            'nvidia/NV-Embed-v1', trust_remote_code=True)
+        query_embeddings = model.encode(
+            user_query_list, instruction=query_prefix, max_length=max_length).tolist()
+        values = collection.query(
+            query_embeddings=query_embeddings, n_results=2)
+
+    else:
+        model_name = "text-embedding-3-small"
+        response = openaiClient.embeddings.create(
+            model=model_name, input=[user_query])
+        embedding = response.data[0].embedding
+        values = collection.query(
+            query_embeddings=[embedding],
+            n_results=2,
+        )
 
     return jsonify(values)
 

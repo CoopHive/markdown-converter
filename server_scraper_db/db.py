@@ -22,15 +22,14 @@ class DocumentDatabase:
         self.nvidia_tokenizer = None
 
     def create_database(self, databasename):
-        return self.create_openai_db(databasename), self.create_nvidia_db(databasename)
+        return self.create_nvidia_db(databasename), self.create_openai_db(databasename)
 
     def chunk_document(self, document, strategy='paragraph'):
-        print(f"Chunking strategy received: {strategy}")  # Debugging line
         if strategy == 'paragraph':
             chunks = document.split('\n\n')
         elif strategy == 'sentence':
-            chunks = re.split(
-                r'(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?)\s', document)
+            chunks = [document[i:i + 400]
+                      for i in range(0, len(document), 400)]
         else:
             raise ValueError(f"Unknown chunking strategy: {strategy}")
 
@@ -47,31 +46,27 @@ class DocumentDatabase:
 
     def create_openai_db(self, databasename):
         openai_ef = embedding_functions.OpenAIEmbeddingFunction(
-            api_key="sk-proj-OqH5ok75imwtsbJKZrH7T3BlbkFJK9fL3mmdg5e4uryrf9vd",
+            api_key="",
             model_name="text-embedding-3-small"
         )
         return self.db_client.get_or_create_collection(name=f"{databasename}_openai", embedding_function=openai_ef)
 
     def create_nvidia_db(self, databasename):
         nvidia_ef = embedding_functions.HuggingFaceEmbeddingFunction(
-            api_key="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",
+            api_key="",
             model_name="nvidia/NV-Embed-v1"
         )
-        return self.db_client.get_or_create_collection(name=f"{databasename}_openai", embedding_function=nvidia_ef)
+        return self.db_client.get_or_create_collection(name=f"{databasename}_nvidia", embedding_function=nvidia_ef)
 
-    def paragraph_to_nvidia_input(self, paragraph, model_name='nvidia/NV-Embed-v1'):
-        if self.nvidia_model is None or self.nvidia_tokenizer is None:
-            self.nvidia_model = AutoModel.from_pretrained(
-                model_name, trust_remote_code=True)
-            self.nvidia_tokenizer = AutoTokenizer.from_pretrained(
-                model_name, trust_remote_code=True)
-
-        inputs = self.nvidia_tokenizer(
-            paragraph, return_tensors="pt", padding=True, truncation=True)
-        outputs = self.nvidia_model(**inputs)
-        embeddings = outputs.last_hidden_state.mean(dim=1)
-        normalized_embeddings = F.normalize(embeddings, p=2, dim=1)
-        return normalized_embeddings[0].detach().numpy()
+    def paragraph_to_nvidia_input(self, paragraph):
+        passage_prefix = ""
+        paragraph_list = [paragraph]
+        model = AutoModel.from_pretrained(
+            'nvidia/NV-Embed-v1', trust_remote_code=True)
+        max_length = 4096
+        passage_embeddings = model.encode(
+            paragraph_list, instruction=passage_prefix, max_length=max_length)
+        return passage_embeddings.tolist()
 
     def insert_document(self, document, collection, doc_id, metadata, chunk_strategy='paragraph', embed_strategy='openai'):
         # Split the document into chunks based on the provided strategy
@@ -90,21 +85,13 @@ class DocumentDatabase:
             chunk_metadata = {key: (value if value is not None else 'N/A')
                               for key, value in metadata.items()}
             chunk_metadata['chunk_index'] = i
-            # print(f"Chunk metadata: {chunk_metadata}")
-            # print(doc_id)
-            # print("-------------------------------------------------")
-            # print("-------------------------------------------------")
-            # print("-------------------------------------------------")
 
             collection.add(
                 documents=[chunk],
-                embeddings=[embedded_chunk],
+                embeddings=embedded_chunk,
                 ids=[f"{doc_id}_{i}"],
                 metadatas=[chunk_metadata]
             )
-
-        print(
-            f"Document with id {doc_id} added to the collection successfully.")
 
     def print_all_documents(self, collection):
 

@@ -1,76 +1,50 @@
 import os
-import chromadb
+import PyPDF2
+import requests
 from openai import OpenAI
-import sqlite3
-from db import DocumentDatabase
-
-OPENAI_API_KEY = "sk-proj-OqH5ok75imwtsbJKZrH7T3BlbkFJK9fL3mmdg5e4uryrf9vd"
-DB_HOST = "localhost"
-DB_PORT = 8000
-DATABASE_NAME = "dvd_sentence_openai"
-
-# Initialize the DocumentDatabase
-doc_db = DocumentDatabase(openai_api_key=OPENAI_API_KEY,
-                          db_host=DB_HOST, db_port=DB_PORT)
-
-# Create or retrieve the collections
-collection_openai, collection_nvidia = doc_db.create_database(DATABASE_NAME)
-
-# Print all documents in the OpenAI collection
-print("OpenAI Collection:")
-doc_db.print_all_documents(embed_strategy='openai')
 
 
-# client = OpenAI(api_key=OPENAI_API_KEY)
+api_key = ""
+
+client = OpenAI(api_key=api_key)
 
 
-# def create_database(databasename, version):
-#     client = chromadb.HttpClient(
-#         host='localhost', port=8000)  # Server IP and port
-#     collection = client.get_or_create_collection(
-#         name=f"{databasename}v{version}")
-#     return collection
+def upload_pdf(file_path):
+    pdf_reader = PyPDF2.PdfReader(file_path)
+    text_content = ""
+
+    for page_num in range(len(pdf_reader.pages)):
+        page = pdf_reader.pages[page_num]
+        text_content += page.extract_text()
+
+    return text_content
 
 
-# def paragraph_to_openai_input(paragraph, model="text-embedding-ada-002"):
-#     response = client.embeddings.create(model=model, input=[paragraph])
-#     embedding = response.data[0].embedding
-#     return embedding
+def convert_pdf_to_markdown(file_content):
+    response = client.chat.completions.create(model="gpt-3.5-turbo",
+                                              messages=[
+                                                  {
+                                                      "role": "user",
+                                                      "content": f"Convert the content of the following file to Markdown:\n\n{file_content}",
+                                                  }
+                                              ])
+
+    if response and response.choices:
+        return response.choices[0].message.content
+    else:
+        print('Failed to convert PDF to Markdown.')
+        return None
 
 
-# def insert_fruit_facts(collection, facts):
-#     for i, fact in enumerate(facts):
-#         embedded_fact = paragraph_to_openai_input(fact)
-#         collection.add(
-#             documents=[fact],
-#             embeddings=[embedded_fact],
-#             ids=[f"fact_{i}"],
-#             metadatas=[{"fact_index": i}]
-#         )
-#     print("Fruit facts added to the collection successfully.")
+def main():
+    file_path = 'test.pdf'
+    file_content = upload_pdf(file_path)
+
+    if file_content:
+        markdown_content = convert_pdf_to_markdown(file_content)
+        if markdown_content:
+            print(markdown_content)
 
 
-# def main():
-#     # Create the database/collection
-#     collection = create_database(databasename="fruitdb", version="1.0")
-
-#     # Define some random facts about different fruits
-#     fruit_facts = [
-#         "Apples are made of 25% air, which is why they float.",
-#         "Bananas are berries, but strawberries aren't.",
-#         "Cherries are a member of the rose family.",
-#         "Grapes explode when you put them in the microwave.",
-#         "Lemons contain more sugar than strawberries.",
-#         "Oranges are not naturally occurring fruits but are hybrids.",
-#         "Pineapples take about two years to grow.",
-#         "A strawberry has about 200 seeds on its surface.",
-#         "Watermelons are 92% water.",
-#         "Peaches and nectarines are essentially the same fruit, one with fuzz and one without."
-#     ]
-
-#     # Insert fruit facts into the collection
-#     insert_fruit_facts(collection, fruit_facts)
-
-
-# if __name__ == "__main__":
-#     main()
+if __name__ == "__main__":
+    main()
