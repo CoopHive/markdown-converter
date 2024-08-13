@@ -18,8 +18,8 @@ Before running the script, ensure that you have the following:
 1. **Clone the Repository:**
 
    ```bash
-   git clone https://github.com/your-repository-url.git
-   cd your-repository-url
+   git clone https://github.com/CoopHive/markdown-converter/tree/local-marker
+   cd markdown-converter
    ```
 
 2. **Install Required Packages:**
