@@ -94,7 +94,7 @@ def process_papers(papers_directory, metadata_file, config_file, processed_paper
     output_base_dir = "output"
     os.makedirs(output_base_dir, exist_ok=True)
 
-    OPENAI_API_KEY = ""
+    OPENAI_API_KEY = config.get('openai_api_key')
 
     db_instance = DocumentDatabase(OPENAI_API_KEY)
 
