@@ -36,17 +36,17 @@ Before running the script, ensure that you have the following:
 
    The `requirements.txt` should include:
 
-   - `requests`
-   - `PyPDF2`
-   - `openai`
-   - `chroma`
-   - `torch`
+   - requests
+   - PyPDF2
+   - openai
+   - chroma
+   - torch
 
 3. **Prepare Your Config Files:**
 
-   - **`config.json`:** This file should contain your API keys and other configurations.
+   - **config.json:** This file should contain your API keys and other configurations.
 
-   Example `config.json`:
+   Example config.json:
 
    ```json
    {
@@ -55,9 +55,9 @@ Before running the script, ensure that you have the following:
    }
    ```
 
-   - **`metadata.json`:** A JSON file containing metadata for your papers. Each line in the file should be a JSON object representing a single paper.
+   - **metadata.json:** A JSON file containing metadata for your papers. A sample file has been created, containing the metadata of large volume of papers. Hence, this config file can be ignored, unless adding custom or proprietary data.
 
-   Example `metadata.json`:
+   Example metadata.json:
 
    ```json
    {
@@ -84,20 +84,44 @@ Before running the script, ensure that you have the following:
    python local_papers.py
    ```
 
-   The script will process each paper in the `papers` directory, extract metadata from the corresponding entry in `metadata.json`, and upload the PDF and markdown files to Lighthouse. It will then store the documents in the following databases:
+   The script will process each paper in the `papers` directory, extract metadata from the corresponding entry in `metadata.json`, and upload the PDF and markdown files to Lighthouse.
+
+   ### Step 1: Choose Your Processing Options
+
+   The script supports three options for processing research papers, creating a total of eight different databases:
+
+   1. **Text Marking Level:**
+
+      - **Paragraph Level:** Processes and embeds the text at the paragraph level.
+      - **Sentence Level:** Processes and embeds the text at the sentence level.
+
+   2. **Conversion Method:**
+
+      - **OpenAI Model:** Uses OpenAI's model to convert PDFs to markdown.
+      - **Marker Library:** Uses the marker library/repository to convert PDFs to markdown.
+
+   3. **Embedding Model:**
+      - **NVIDIA Model:** Uses NVIDIA's model for text embedding.
+      - **OpenAI Model:** Uses OpenAI's model for text embedding.
+
+   Each combination of these options results in a different database, allowing for flexibility in how the text is processed and queried.
+
+   ### Step 2: Databases Created
+
+   Based on the options chosen in Step 1, the following databases are created:
 
    - **Paragraph Level:**
 
-     - `para_marker_nvidia_dvd`: NVIDIA-based embedding for paragraph-marked text.
-     - `para_marker_openai_dvd`: OpenAI-based embedding for paragraph-marked text.
-     - `para_llm_nvidia_dvd`: NVIDIA-based embedding for LLM-processed paragraph-marked text.
-     - `para_llm_openai_dvd`: OpenAI-based embedding for LLM-processed paragraph-marked text.
+     - `para_marker_nvidia_dvd`: Uses the marker library to convert PDFs to markdown and NVIDIA-based embedding for paragraph-marked text.
+     - `para_marker_openai_dvd`: Uses the marker library to convert PDFs to markdown and OpenAI-based embedding for paragraph-marked text.
+     - `para_llm_nvidia_dvd`: Uses the OpenAI model to convert PDFs to markdown and NVIDIA-based embedding for LLM-processed paragraph-marked text.
+     - `para_llm_openai_dvd`: Uses the OpenAI model to convert PDFs to markdown and OpenAI-based embedding for LLM-processed paragraph-marked text.
 
    - **Sentence Level:**
-     - `sentence_marker_nvidia_dvd`: NVIDIA-based embedding for sentence-marked text.
-     - `sentence_marker_openai_dvd`: OpenAI-based embedding for sentence-marked text.
-     - `sentence_llm_nvidia_dvd`: NVIDIA-based embedding for LLM-processed sentence-marked text.
-     - `sentence_llm_openai_dvd`: OpenAI-based embedding for LLM-processed sentence-marked text.
+     - `sentence_marker_nvidia_dvd`: Uses the marker library to convert PDFs to markdown and NVIDIA-based embedding for sentence-marked text.
+     - `sentence_marker_openai_dvd`: Uses the marker library to convert PDFs to markdown and OpenAI-based embedding for sentence-marked text.
+     - `sentence_llm_nvidia_dvd`: Uses the OpenAI model to convert PDFs to markdown and NVIDIA-based embedding for LLM-processed sentence-marked text.
+     - `sentence_llm_openai_dvd`: Uses the OpenAI model to convert PDFs to markdown and OpenAI-based embedding for LLM-processed sentence-marked text.
 
 2. **Processed Papers:**
 
@@ -106,6 +130,27 @@ Before running the script, ensure that you have the following:
 3. **Cleanup (Optional):**
 
    After processing, you can delete the output directory by uncommenting the `cleanup_directory("output")` line in the `main()` function.
+
+### Value of the Databases
+
+Each of the eight databases generated through this process provides unique insights depending on the combination of text marking level, conversion method, and embedding model used:
+
+### 1. Measuring Different Query Results
+
+- **Tailored Query Responses:** By having databases with different configurations, you can compare how different processing methods affect the retrieval of information. For example, you can evaluate whether paragraph-level embedding provides more accurate or relevant results compared to sentence-level embedding for certain types of queries.
+- **Domain-Specific Optimization:** If your research papers belong to a highly specialized domain, you can experiment with different embeddings and conversion methods to see which combination yields the most relevant results. This allows for domain-specific optimization, particularly valuable in fields like medicine, law, or technical research.
+
+### 2. Understanding Model Performance
+
+- **Data-Driven Model Fine-Tuning:** By using both NVIDIA and OpenAI models for embedding, you can determine which model performs better for your specific dataset. This can be particularly useful for tasks that require high precision in text retrieval or when working with specialized content.
+- **Transfer Learning Opportunities:** The insights gained from comparing results across different databases can inform transfer learning strategies. For example, findings from sentence-level databases might be applied to enhance paragraph-level models, or vice versa, creating a more robust overall system.
+
+### 3. Conversion Method Impact
+
+- **Multiple Perspectives on Data:** The choice between using the OpenAI model and the marker library for converting PDFs to markdown can influence the structure and quality of the extracted text. By comparing results across databases that use different conversion methods, you can identify the strengths and weaknesses of each approach.
+- **Redundancy for Critical Applications:** In mission-critical applications, having multiple databases provides redundancy, ensuring that even if one method or model fails, others can provide backup, increasing the reliability and robustness of your system.
+
+These databases collectively offer a robust framework for experimenting with and fine-tuning the text processing and retrieval pipeline, enabling you to make data-driven decisions about which methods to deploy in production.
 
 ## Part 2: Querying the Database with CoopHive SDK
 
@@ -151,7 +196,6 @@ client = CoopHiveClient(api_key=api_key)
 database_name = "your_database_name_here"
 user_query = "your_query_here"
 response = client.queries.query_database(database_name, user_query)
-
 ```
 
 #### Explanation
@@ -162,3 +206,7 @@ response = client.queries.query_database(database_name, user_query)
 ### Step 4: Review the Results
 
 The `response` variable will contain the information retrieved from the database based on your query. You can print or manipulate this data as needed for your application.
+
+---
+
+This guide provides a complete walkthrough from processing research papers into databases to querying those databases using the CoopHive SDK. Ensure you follow each step carefully to set up your environment and execute your queries successfully. For more advanced usage and customization, refer to the official SDK documentation.
