@@ -90,19 +90,19 @@ Before running the script, ensure that you have the following:
 
    The script supports three options for processing research papers, creating a total of eight different databases:
 
-   1. **Text Marking Level:**
+   1. **Conversion Method:**
 
-      - **Paragraph Level:** Processes and embeds the text at the paragraph level.
-      - **Sentence Level:** Processes and embeds the text at the sentence level.
+   - **OpenAI Model:** Uses OpenAI's model to convert PDFs to markdown.
+   - **Marker Library:** Uses the marker library/repository to convert PDFs to markdown.
 
-   2. **Conversion Method:**
+   2. **Text Marking Level:**
 
-      - **OpenAI Model:** Uses OpenAI's model to convert PDFs to markdown.
-      - **Marker Library:** Uses the marker library/repository to convert PDFs to markdown.
+      - **Paragraph Level:** Processes and chunks the text at the paragraph level.
+      - **Sentence Level:** Processes and chunks the text at the sentence level.
 
-   3. **Embedding Model:**
-      - **NVIDIA Model:** Uses NVIDIA's model for text embedding.
-      - **OpenAI Model:** Uses OpenAI's model for text embedding.
+   3. **Chunking Model:**
+      - **NVIDIA Model:** Uses NVIDIA's model for text chunking.
+      - **OpenAI Model:** Uses OpenAI's model for text chunking.
 
    Each combination of these options results in a different database, allowing for flexibility in how the text is processed and queried.
 
@@ -112,16 +112,16 @@ Before running the script, ensure that you have the following:
 
    - **Paragraph Level:**
 
-     - `para_marker_nvidia_dvd`: Uses the marker library to convert PDFs to markdown and NVIDIA-based embedding for paragraph-marked text.
-     - `para_marker_openai_dvd`: Uses the marker library to convert PDFs to markdown and OpenAI-based embedding for paragraph-marked text.
-     - `para_llm_nvidia_dvd`: Uses the OpenAI model to convert PDFs to markdown and NVIDIA-based embedding for LLM-processed paragraph-marked text.
-     - `para_llm_openai_dvd`: Uses the OpenAI model to convert PDFs to markdown and OpenAI-based embedding for LLM-processed paragraph-marked text.
+     - `para_marker_nvidia_dvd`: Uses the marker library to convert PDFs to markdown and NVIDIA-based chunking for paragraph-marked text.
+     - `para_marker_openai_dvd`: Uses the marker library to convert PDFs to markdown and OpenAI-based chunking for paragraph-marked text.
+     - `para_llm_nvidia_dvd`: Uses the OpenAI model to convert PDFs to markdown and NVIDIA-based chunking for LLM-processed paragraph-marked text.
+     - `para_llm_openai_dvd`: Uses the OpenAI model to convert PDFs to markdown and OpenAI-based chunking for LLM-processed paragraph-marked text.
 
    - **Sentence Level:**
-     - `sentence_marker_nvidia_dvd`: Uses the marker library to convert PDFs to markdown and NVIDIA-based embedding for sentence-marked text.
-     - `sentence_marker_openai_dvd`: Uses the marker library to convert PDFs to markdown and OpenAI-based embedding for sentence-marked text.
-     - `sentence_llm_nvidia_dvd`: Uses the OpenAI model to convert PDFs to markdown and NVIDIA-based embedding for LLM-processed sentence-marked text.
-     - `sentence_llm_openai_dvd`: Uses the OpenAI model to convert PDFs to markdown and OpenAI-based embedding for LLM-processed sentence-marked text.
+     - `sentence_marker_nvidia_dvd`: Uses the marker library to convert PDFs to markdown and NVIDIA-based chunking for sentence-marked text.
+     - `sentence_marker_openai_dvd`: Uses the marker library to convert PDFs to markdown and OpenAI-based chunking for sentence-marked text.
+     - `sentence_llm_nvidia_dvd`: Uses the OpenAI model to convert PDFs to markdown and NVIDIA-based chunking for LLM-processed sentence-marked text.
+     - `sentence_llm_openai_dvd`: Uses the OpenAI model to convert PDFs to markdown and OpenAI-based chunking for LLM-processed sentence-marked text.
 
 2. **Processed Papers:**
 
@@ -133,16 +133,16 @@ Before running the script, ensure that you have the following:
 
 ### Value of the Databases
 
-Each of the eight databases generated through this process provides unique insights depending on the combination of text marking level, conversion method, and embedding model used:
+Each of the eight databases generated through this process provides unique insights depending on the combination of text marking level, conversion method, and chunking model used:
 
 ### 1. Measuring Different Query Results
 
-- **Tailored Query Responses:** By having databases with different configurations, you can compare how different processing methods affect the retrieval of information. For example, you can evaluate whether paragraph-level embedding provides more accurate or relevant results compared to sentence-level embedding for certain types of queries.
-- **Domain-Specific Optimization:** If your research papers belong to a highly specialized domain, you can experiment with different embeddings and conversion methods to see which combination yields the most relevant results. This allows for domain-specific optimization, particularly valuable in fields like medicine, law, or technical research.
+- **Tailored Query Responses:** By having databases with different configurations, you can compare how different processing methods affect the retrieval of information. For example, you can evaluate whether paragraph-level chunking provides more accurate or relevant results compared to sentence-level chunking for certain types of queries.
+- **Domain-Specific Optimization:** If your research papers belong to a highly specialized domain, you can experiment with different chunking and conversion methods to see which combination yields the most relevant results. This allows for domain-specific optimization, particularly valuable in fields like medicine, law, or technical research.
 
 ### 2. Understanding Model Performance
 
-- **Data-Driven Model Fine-Tuning:** By using both NVIDIA and OpenAI models for embedding, you can determine which model performs better for your specific dataset. This can be particularly useful for tasks that require high precision in text retrieval or when working with specialized content.
+- **Data-Driven Model Fine-Tuning:** By using both NVIDIA and OpenAI models for chunking, you can determine which model performs better for your specific dataset. This can be particularly useful for tasks that require high precision in text retrieval or when working with specialized content.
 - **Transfer Learning Opportunities:** The insights gained from comparing results across different databases can inform transfer learning strategies. For example, findings from sentence-level databases might be applied to enhance paragraph-level models, or vice versa, creating a more robust overall system.
 
 ### 3. Conversion Method Impact
