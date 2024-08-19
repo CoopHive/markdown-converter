@@ -55,7 +55,7 @@ Before running the script, ensure that you have the following:
    }
    ```
 
-   - **metadata.json:** A JSON file containing metadata for your papers. A sample file has been created, containing the metadata of large volume of papers. Hence, this config file can be ignored, unless adding custom or proprietary data.
+   - **metadata.json:** A JSON file containing metadata for your papers. A sample file has been created, containing the metadata of arXiv papers. Hence, unless using arXiv papers, a custom metadata file would have to be created in the format below.
 
    Example metadata.json:
 
