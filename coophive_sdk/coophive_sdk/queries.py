@@ -6,5 +6,4 @@ class Queries:
         data = {
             "user_query": user_query
         }
-
         return self.client._request('POST', f'/collections/{collection_name}/query', json=data)
