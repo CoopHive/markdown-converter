@@ -1,8 +1,5 @@
-import requests
 import os
 import chromadb
-import subprocess
-import sys
 import json
 from openai import OpenAI
 from transformers import AutoModel, AutoTokenizer
@@ -10,6 +7,11 @@ import torch
 import torch.nn.functional as F
 import re
 import chromadb.utils.embedding_functions as embedding_functions
+from postgres import PostgresDBManager
+from web3 import Web3
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class DocumentDatabase:
@@ -18,8 +20,12 @@ class DocumentDatabase:
         self.client = OpenAI(api_key=self.openai_api_key)
         db_path = os.path.join(os.path.dirname(__file__), 'database')
         self.db_client = chromadb.PersistentClient(path=db_path)
-        self.nvidia_model = None
-        self.nvidia_tokenizer = None
+        self.postgres_db_manager = PostgresDBManager(
+            host="localhost", port=5432, user="vardhanshorewala", password="password")
+
+    def load_contract_abi(self, abi_path):
+        with open(abi_path, 'r') as abi_file:
+            return json.load(abi_file)
 
     def create_database(self, databasename):
         return self.create_nvidia_db(databasename), self.create_openai_db(databasename)
@@ -33,7 +39,6 @@ class DocumentDatabase:
         else:
             raise ValueError(f"Unknown chunking strategy: {strategy}")
 
-        # Filter out empty or whitespace-only chunks
         chunks = [chunk.strip() for chunk in chunks if chunk.strip()]
         chunks = [str(chunk) for chunk in chunks if chunk]
         return chunks
@@ -68,8 +73,7 @@ class DocumentDatabase:
             paragraph_list, instruction=passage_prefix, max_length=max_length)
         return passage_embeddings.tolist()
 
-    def insert_document(self, document, collection, doc_id, metadata, chunk_strategy='paragraph', embed_strategy='openai'):
-        # Split the document into chunks based on the provided strategy
+    def insert_document(self, document, collection, doc_id, metadata, chunk_strategy='paragraph', embed_strategy='openai', postgresdb='papers', author="invalid"):
         chunked_document = self.chunk_document(
             document=document, strategy=chunk_strategy)
 
@@ -86,20 +90,15 @@ class DocumentDatabase:
                               for key, value in metadata.items()}
             chunk_metadata['chunk_index'] = i
 
+            self.postgres_db_manager.insert_data(
+                db_name=postgresdb,
+                data=[(author, metadata['title'], chunk,
+                       embedded_chunk, json.dumps(chunk_metadata), False)]  # False for 'rewarded' field
+            )
+
             collection.add(
                 documents=[chunk],
                 embeddings=embedded_chunk,
                 ids=[f"{doc_id}_{i}"],
                 metadatas=[chunk_metadata]
             )
-
-    def print_all_documents(self, collection):
-
-        documents = collection.get(include=["documents", "metadatas"])
-
-        for doc_id, doc, meta in zip(documents['ids'], documents['documents'], documents['metadatas']):
-            print(f"ID: {doc}")
-            # print(f"Metadata: {meta}")
-            print("-------------------------------------------------")
-            print("-------------------------------------------------")
-            print("-------------------------------------------------")

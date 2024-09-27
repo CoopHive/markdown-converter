@@ -91,6 +91,7 @@ def process_papers(papers_directory, metadata_file, config_file, processed_paper
         config = json.load(file)
 
     api_key = config.get('api_key')
+    author_public_key = config.get('author_key')
     output_base_dir = "output"
     os.makedirs(output_base_dir, exist_ok=True)
 
@@ -186,7 +187,9 @@ def process_papers(papers_directory, metadata_file, config_file, processed_paper
                     doc_id=filename,
                     metadata=paper_info,
                     chunk_strategy='paragraph',
-                    embed_strategy='nvidia'
+                    embed_strategy='nvidia',
+                    postgresdb='dvd_paragraph_marker_nvidia',
+                    author=author_public_key
                 )
 
                 print("Inserted document into para_marker_nvidia_dvd")
@@ -196,7 +199,9 @@ def process_papers(papers_directory, metadata_file, config_file, processed_paper
                     collection=para_marker_openai_dvd,
                     doc_id=filename,
                     metadata=paper_info,
-                    chunk_strategy='paragraph'
+                    chunk_strategy='paragraph',
+                    postgresdb='dvd_paragraph_marker_openai',
+                    author=author_public_key
                 )
 
                 print("Inserted document into para_marker_openai_dvd")
@@ -207,7 +212,9 @@ def process_papers(papers_directory, metadata_file, config_file, processed_paper
                     doc_id=filename,
                     metadata=paper_info,
                     chunk_strategy='sentence',
-                    embed_strategy='nvidia'
+                    embed_strategy='nvidia',
+                    postgresdb='dvd_sentence_marker_nvidia',
+                    author=author_public_key
                 )
 
                 print("Inserted document into sentence_marker_nvidia_dvd")
@@ -217,7 +224,9 @@ def process_papers(papers_directory, metadata_file, config_file, processed_paper
                     collection=sentence_marker_openai_dvd,
                     doc_id=filename,
                     metadata=paper_info,
-                    chunk_strategy='sentence'
+                    chunk_strategy='sentence',
+                    postgresdb='dvd_sentence_marker_openai',
+                    author=author_public_key
                 )
 
                 print("Inserted document into sentence_marker_openai_dvd")
@@ -228,7 +237,9 @@ def process_papers(papers_directory, metadata_file, config_file, processed_paper
                     doc_id=filename,
                     metadata=paper_info_openai,
                     chunk_strategy='paragraph',
-                    embed_strategy='nvidia'
+                    embed_strategy='nvidia',
+                    postgresdb='dvd_paragraph_llm_nvidia',
+                    author=author_public_key
                 )
 
                 print("Inserted document into para_llm_nvidia_dvd")
@@ -238,7 +249,9 @@ def process_papers(papers_directory, metadata_file, config_file, processed_paper
                     collection=para_llm_openai_dvd,
                     doc_id=filename,
                     metadata=paper_info_openai,
-                    chunk_strategy='paragraph'
+                    chunk_strategy='paragraph',
+                    postgresdb='dvd_paragraph_llm_openai',
+                    author=author_public_key
                 )
 
                 print("Inserted document into para_llm_openai_dvd")
@@ -249,7 +262,9 @@ def process_papers(papers_directory, metadata_file, config_file, processed_paper
                     doc_id=filename,
                     metadata=paper_info_openai,
                     chunk_strategy='sentence',
-                    embed_strategy='nvidia'
+                    embed_strategy='nvidia',
+                    postgresdb='dvd_sentence_llm_nvidia',
+                    author=author_public_key
                 )
 
                 print("Inserted document into sentence_llm_nvidia_dvd")
@@ -259,7 +274,9 @@ def process_papers(papers_directory, metadata_file, config_file, processed_paper
                     collection=sentence_llm_openai_dvd,
                     doc_id=filename,
                     metadata=paper_info_openai,
-                    chunk_strategy='sentence'
+                    chunk_strategy='sentence',
+                    postgresdb='dvd_sentence_llm_openai',
+                    author=author_public_key
                 )
 
                 print("Inserted document into sentence_llm_openai_dvd")
@@ -300,7 +317,7 @@ def main():
 
     process_papers(papers_directory, metadata_file, config_file)
 
-    # cleanup_directory("output")
+    cleanup_directory("output")
 
 
 if __name__ == "__main__":
