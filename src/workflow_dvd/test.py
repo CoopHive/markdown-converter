@@ -1,5 +1,4 @@
 import os
-import json
 from processor import Processor
 from vectordb import VectorDatabaseManager
 

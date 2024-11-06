@@ -4,9 +4,7 @@ from openai import OpenAI
 import secrets
 import sqlite3
 from functools import wraps
-import torch
-import torch.nn.functional as F
-from transformers import AutoTokenizer, AutoModel
+from transformers import AutoModel
 import os
 import chromadb.utils.embedding_functions as embedding_functions
 

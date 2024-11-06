@@ -2,13 +2,9 @@ import os
 import chromadb
 import json
 from openai import OpenAI
-from transformers import AutoModel, AutoTokenizer
-import torch
-import torch.nn.functional as F
-import re
+from transformers import AutoModel
 import chromadb.utils.embedding_functions as embedding_functions
 from postgres import PostgresDBManager
-from web3 import Web3
 from dotenv import load_dotenv
 
 load_dotenv()

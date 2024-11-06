@@ -3,7 +3,6 @@ from psycopg2 import sql
 from typing import List, Tuple
 import numpy as np
 import pickle
-import pickle
 
 
 class PostgresDBManager:

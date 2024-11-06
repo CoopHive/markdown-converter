@@ -28,20 +28,13 @@ Before running the script, ensure that you have the following:
 
 2. **Install Required Packages:**
 
-   Install the necessary Python packages using `pip`:
+   Install the necessary Python packages using `uv`:
 
    ```bash
-   pip install -r requirements.txt
+   make uv-download
+   make install
    ```
-
-   The `requirements.txt` should include:
-
-   - requests
-   - PyPDF2
-   - openai
-   - chroma
-   - torch
-
+   
 3. **Prepare Your Config Files:**
 
    - **config.json:** This file should contain your API keys and other configurations.

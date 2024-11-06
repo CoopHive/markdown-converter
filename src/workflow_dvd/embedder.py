@@ -1,7 +1,5 @@
-import numpy as np
-from transformers import AutoModel, AutoTokenizer
+from transformers import AutoModel
 from openai import OpenAI
-import torch
 
 
 class Embedder:

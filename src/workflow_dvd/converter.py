@@ -1,6 +1,5 @@
 import os
 import subprocess
-from typing import List
 from openai import OpenAI
 import PyPDF2
 
