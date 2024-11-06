@@ -2,8 +2,8 @@
 .DS_Store
 
 # Python
-*.py[cod]       # Matches .pyc, .pyo, .pyd, .pdb files
-__pycache__/    # Matches __pycache__ directories
+*.py[cod]
+__pycache__/
 
 # Distribution / packaging
 .Python
@@ -127,3 +127,5 @@ private_key.txt
 
 # JetBrains IDEs
 .idea/
+
+.db
