@@ -120,7 +120,7 @@ class TokenRewarder:
             conn.close()
 
     def _create_schema_and_table(self, db_name):
-        """Creates the schema and 'user_rewards' table in the given database."""
+        """Creates the schema and 'user_rewards' table in the given database, if they don't already exist."""
         conn = self._connect(db_name)
         if conn is None:
             print(f"Unable to connect to the database '{db_name}'.")
@@ -131,15 +131,29 @@ class TokenRewarder:
             # Create schema if it doesn't exist
             cursor.execute("CREATE SCHEMA IF NOT EXISTS default_schema")
 
-            # Create the 'user_rewards' table if it doesn't exist
+            # Check if 'user_rewards' table exists
             cursor.execute("""
-                CREATE TABLE IF NOT EXISTS default_schema.user_rewards (
-                    public_key TEXT PRIMARY KEY,
-                    job_count INT DEFAULT 0,
-                    token_balance INT DEFAULT 0
+                SELECT EXISTS (
+                    SELECT FROM information_schema.tables 
+                    WHERE table_schema = 'default_schema' 
+                    AND table_name = 'user_rewards'
                 )
             """)
-            print(f"Initialized 'user_rewards' table in '{db_name}'.")
+            table_exists = cursor.fetchone()[0]
+
+            if not table_exists:
+                # Create the 'user_rewards' table if it doesn't exist
+                cursor.execute("""
+                    CREATE TABLE default_schema.user_rewards (
+                        public_key TEXT PRIMARY KEY,
+                        job_count INT DEFAULT 0,
+                        token_balance INT DEFAULT 0
+                    )
+                """)
+                print(f"Initialized 'user_rewards' table in '{db_name}'.")
+            else:
+                print(
+                    f"'user_rewards' table already exists in '{db_name}', skipping creation.")
 
         except Exception as e:
             print(f"Error creating schema or table: {e}")
@@ -217,6 +231,7 @@ class TokenRewarder:
 
     def reward_users(self):
         """Rewards users and resets their job counts."""
+        print("Rewarding users...")
         for db_name in self.db_names:
             conn = self._connect(db_name)
             if conn is None:
