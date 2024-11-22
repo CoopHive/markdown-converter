@@ -7,8 +7,9 @@ from functools import wraps
 from transformers import AutoModel
 import os
 import chromadb.utils.embedding_functions as embedding_functions
+from dotenv import load_dotenv
 
-OPENAI_API_KEY = ""
+load_dotenv()
 
 app = Flask(__name__)
 
@@ -46,7 +47,7 @@ def require_api_key(func):
 @app.route('/collections/<collection_name>/query', methods=['POST'])
 @require_api_key
 def query_collection(collection_name):
-    openaiClient = OpenAI(api_key=OPENAI_API_KEY)
+    openaiClient = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
     data = request.json
     user_query = data.get('user_query')

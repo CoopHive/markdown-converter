@@ -1,8 +1,5 @@
 from TokenRewarder import TokenRewarder
 
-# */1 * * * * path/to/directory/TokenScheduler.sh -- cron job
-
-
 def run_reward_users():
     databases = [
         {
@@ -26,7 +23,7 @@ def run_reward_users():
     rewarder = TokenRewarder(
         network='test_base',
         contract_address='0x14436f6895B8EC34e0E4994Df29D1856b665B490',
-        contract_abi_path='CoopHiveV1.json',
+        contract_abi_path='../contracts/CoopHiveV1.json',
         db_components=components,
         host="localhost",
         port=5432,

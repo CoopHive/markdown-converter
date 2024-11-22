@@ -10,8 +10,7 @@ This section explains how to automate the conversion of research papers (PDFs) i
 
 Before running the script, ensure that you have the following:
 
-- **Python 3.6+** installed
-- Required Python libraries installed (see below)
+- **Python 3.12** installed
 - Access to OpenAI API (with an API key)
 - Lighthouse API key for file storage
 - A set of research papers in PDF format

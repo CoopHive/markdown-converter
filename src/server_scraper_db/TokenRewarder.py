@@ -8,7 +8,7 @@ load_dotenv()
 
 
 class TokenRewarder:
-    def __init__(self, network='test_base', contract_address='0x14436f6895B8EC34e0E4994Df29D1856b665B490', contract_abi_path='CoopHiveV1.json'):
+    def __init__(self, network='test_base', contract_address='0x14436f6895B8EC34e0E4994Df29D1856b665B490', contract_abi_path='../contracts/CoopHiveV1.json'):
         if network == 'optimism':
             self.rpc_url = 'https://mainnet.optimism.io'
             self.chain_id = 10

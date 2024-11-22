@@ -11,7 +11,7 @@ load_dotenv()
 
 class TokenRewarder:
     def __init__(self, network='test_base', contract_address='0x14436f6895B8EC34e0E4994Df29D1856b665B490',
-                 contract_abi_path='CoopHiveV1.json', db_components=None,
+                 contract_abi_path='../contracts/CoopHiveV1.json', db_components=None,
                  host="localhost", port=5432, user="", password=""):
         """Initializes the TokenRewarder class and sets up blockchain and database connections."""
         self._initialize_network(network)
