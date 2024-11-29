@@ -128,3 +128,5 @@ private_key.txt
 
 # JetBrains IDEs
 .idea/
+
+*.lock

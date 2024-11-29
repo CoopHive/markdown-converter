@@ -7,7 +7,7 @@ from TokenRewarder import TokenRewarder
 
 
 def test_processor_with_real_data():
-    papers_directory = "papers"
+    papers_directory = "../papers"
     metadata_file = "metadata.json"
     max_papers = 2
 

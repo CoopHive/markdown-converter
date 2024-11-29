@@ -5,4 +5,9 @@ uv-download:
 .PHONY: install
 install:
 	rm -rf .venv && uv venv
-	uv pip install .[dev]
+	. .venv/bin/activate && \
+	uv pip install .
+
+.PHONY: test
+test:
+	uv run pytest -c pyproject.toml tests/

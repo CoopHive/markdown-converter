@@ -311,7 +311,7 @@ def cleanup_directory(directory):
 def main():
     config_file = "config.json"
     metadata_file = "metadata.json"
-    papers_directory = "papers"
+    papers_directory = "../papers"
 
     print("Starting script...")
 

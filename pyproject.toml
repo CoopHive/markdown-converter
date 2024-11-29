@@ -1,13 +1,13 @@
 [project]
 name = "markdown-converter"
-version = "0.0.1"
-description = "Hello World."
+version = "0.0.2"
+description = "A comprehensive pipeline for processing research papers into custom databases, supporting conversion, metadata extraction, and querying."
+authors = [
+    { name = "Vardhan Shorewala" },
+    { name = "Matteo Manzi" },
+]
 requires-python = ">=3.12"
 readme = "README.md"
-authors = [
-    { name = "Vardhan Shorewala" }
-]
-
 dependencies = [
     "requests>=2.31.0,<3.0",
     "chromadb>=0.3.23,<1.0",
@@ -19,5 +19,9 @@ dependencies = [
     "psycopg2>=2.6,<3.0",
     "pandas>=2.1.0,<2.3.0",
     "arxivscraper>=0.0.5,<1.0",
-    "web3>=7.4,<8.0"
+    "web3>=7.4,<8.0",
+    "pytest>=8.3.0,<8.4.0",
 ]
+
+[tool.setuptools]
+packages = ["descidb"]
