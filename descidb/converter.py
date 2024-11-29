@@ -1,11 +1,16 @@
 import os
-import subprocess
 
 import PyPDF2
 from dotenv import load_dotenv
+from marker.config.parser import ConfigParser
+from marker.converters.pdf import PdfConverter
+from marker.logger import configure_logging
+from marker.models import create_model_dict
+from marker.output import save_output
 from openai import OpenAI
 
 load_dotenv(override=True)
+configure_logging()
 
 
 class Converter:
@@ -20,25 +25,30 @@ class Converter:
             output_dir = "output_marker"
             os.makedirs(output_dir, exist_ok=True)
 
-            # Command to execute the marker module, passing the file path directly
-            command = ["marker_single", input_path, output_dir, "--langs", "English"]
-            subprocess.run(command, check=True)
+            models = create_model_dict()
+            config_parser = ConfigParser(
+                {
+                    "output_dir": output_dir,
+                    "languages": "English",
+                    "output_format": "markdown",
+                }
+            )
 
-            # Assuming marker module outputs a file in the output_dir
-            output_file_path = os.path.join(output_dir, "marker_output.txt")
-            if os.path.exists(output_file_path):
-                with open(output_file_path, "r") as output_file:
-                    result = output_file.read()
-            else:
-                raise FileNotFoundError(
-                    f"Marker output file not found in: {output_dir}"
-                )
+            converter = PdfConverter(
+                config=config_parser.generate_config_dict(),
+                artifact_dict=models,
+                processor_list=config_parser.get_processors(),
+                renderer=config_parser.get_renderer(),
+            )
 
-            return result  # Return the processed result
+            rendered = converter(input_path)
+            out_folder = config_parser.get_output_folder(input_path)
+            save_output(
+                rendered, out_folder, config_parser.get_base_filename(input_path)
+            )
 
-        except subprocess.CalledProcessError as e:
-            print(f"Error running marker module: {e}")
-            return ""  # Return empty string in case of error
+            return rendered.markdown  # Return the processed result
+
         except FileNotFoundError as e:
             print(f"File not found: {e}")
             return ""  # Return empty string in case of error

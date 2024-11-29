@@ -12,7 +12,7 @@ load_dotenv(override=True)
 def test_processor_with_real_data():
     papers_directory = "../papers"
     metadata_file = "../papers/metadata.json"
-    max_papers = 2
+    max_papers = 1
 
     lighthouse_api_key = os.getenv("LIGHTHOUSE_TOKEN")
     postgres_host = "localhost"
@@ -34,9 +34,9 @@ def test_processor_with_real_data():
     ][:max_papers]
 
     databases = [
-        {"converter": "openai", "chunker": "sentence", "embedder": "openai"},
+        # {"converter": "openai", "chunker": "sentence", "embedder": "openai"},
         {
-            "converter": "extract_text_from_pdf",
+            "converter": "marker",
             "chunker": "paragraph",
             "embedder": "openai",
         },

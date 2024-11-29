@@ -131,3 +131,4 @@ private_key.txt
 
 *.lock
 *.sqlite3
+output_marker/
