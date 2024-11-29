@@ -1,5 +1,6 @@
 import descidb
 
+
 def test_hello():
-    breakpoint()
+    print(descidb.__name__)
     assert True

@@ -1,11 +1,14 @@
 import os
 import subprocess
-from openai import OpenAI
+
 import PyPDF2
+from dotenv import load_dotenv
+from openai import OpenAI
+
+load_dotenv(override=True)
 
 
 class Converter:
-
     def marker(self, input_path: str) -> str:
         """Convert text using the marker module, where input_path is a path to a file."""
         try:
@@ -18,8 +21,7 @@ class Converter:
             os.makedirs(output_dir, exist_ok=True)
 
             # Command to execute the marker module, passing the file path directly
-            command = ["marker_single", input_path,
-                       output_dir, "--langs", "English"]
+            command = ["marker_single", input_path, output_dir, "--langs", "English"]
             subprocess.run(command, check=True)
 
             # Assuming marker module outputs a file in the output_dir
@@ -29,7 +31,8 @@ class Converter:
                     result = output_file.read()
             else:
                 raise FileNotFoundError(
-                    f"Marker output file not found in: {output_dir}")
+                    f"Marker output file not found in: {output_dir}"
+                )
 
             return result  # Return the processed result
 
@@ -49,20 +52,22 @@ class Converter:
             # Extract text from the PDF file
             pdf_text = self.extract_text_from_pdf(input_path)
 
-            OPENAI_API_KEY = "ENTER_API_KEY_HERE"
-            client = OpenAI(api_key=OPENAI_API_KEY)
+            client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
             response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
-                    {"role": "user", "content": f"Convert the following text to Markdown:\n\n{pdf_text}"},
-                ]
+                    {
+                        "role": "user",
+                        "content": f"Convert the following text to Markdown:\n\n{pdf_text}",
+                    },
+                ],
             )
 
             if response and response.choices:
                 return response.choices[0].message.content
             else:
-                print('Failed to convert text using OpenAI.')
+                print("Failed to convert text using OpenAI.")
                 return pdf_text
 
         except FileNotFoundError as e:

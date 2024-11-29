@@ -1,17 +1,20 @@
 import os
+
+from dotenv import load_dotenv
+from Postgres import PostgresDBManager
 from processor import Processor
+from TokenRewarder import TokenRewarder
 from vectordb import VectorDatabaseManager
 
-from Postgres import PostgresDBManager
-from TokenRewarder import TokenRewarder
+load_dotenv(override=True)
 
 
 def test_processor_with_real_data():
     papers_directory = "../papers"
-    metadata_file = "metadata.json"
+    metadata_file = "../papers/metadata.json"
     max_papers = 2
 
-    lighthouse_api_key = "ENTER_API_KEY_HERE"
+    lighthouse_api_key = os.getenv("LIGHTHOUSE_TOKEN")
     postgres_host = "localhost"
     postgres_port = 5432
     postgres_user = "vardhanshorewala"
@@ -21,35 +24,39 @@ def test_processor_with_real_data():
         host=postgres_host,
         port=postgres_port,
         user=postgres_user,
-        password=postgres_password
+        password=postgres_password,
     )
 
-    papers = [os.path.join(papers_directory, f) for f in os.listdir(
-        papers_directory) if f.endswith('.pdf')][:max_papers]
+    papers = [
+        os.path.join(papers_directory, f)
+        for f in os.listdir(papers_directory)
+        if f.endswith(".pdf")
+    ][:max_papers]
 
     databases = [
+        {"converter": "openai", "chunker": "sentence", "embedder": "openai"},
         {
-            "converter": "openai",
-            "chunker": "sentence",
-            "embedder": "openai"
-        },
-        {
-            "converter": "openai",
+            "converter": "extract_text_from_pdf",
             "chunker": "paragraph",
-            "embedder": "openai"
-        }
+            "embedder": "openai",
+        },
     ]
 
     components = {
         "converter": list(set([db_config["converter"] for db_config in databases])),
         "chunker": list(set([db_config["chunker"] for db_config in databases])),
-        "embedder": list(set([db_config["embedder"] for db_config in databases]))
+        "embedder": list(set([db_config["embedder"] for db_config in databases])),
     }
 
     db_manager = VectorDatabaseManager(components=components)
 
-    tokenRewarder = TokenRewarder(db_components=components, host=postgres_host, port=postgres_port,
-                                  user=postgres_user, password=postgres_password)
+    tokenRewarder = TokenRewarder(
+        db_components=components,
+        host=postgres_host,
+        port=postgres_port,
+        user=postgres_user,
+        password=postgres_password,
+    )
 
     for db_config in databases:
         converter = db_config["converter"]
@@ -69,7 +76,7 @@ def test_processor_with_real_data():
         postgres_db_manager=db_manager_postgres,
         metadata_file=metadata_file,
         ipfs_api_key=lighthouse_api_key,
-        TokenRewarder=tokenRewarder
+        TokenRewarder=tokenRewarder,
     )
 
     for paper in papers:
@@ -79,5 +86,5 @@ def test_processor_with_real_data():
     # tokenRewarder.reward_users()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     test_processor_with_real_data()

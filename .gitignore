@@ -130,3 +130,4 @@ private_key.txt
 .idea/
 
 *.lock
+*.sqlite3
