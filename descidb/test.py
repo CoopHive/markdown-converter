@@ -5,7 +5,8 @@ from Postgres import PostgresDBManager
 from processor import Processor
 from TokenRewarder import TokenRewarder
 from vectordb import VectorDatabaseManager
-
+from utils import upload_to_lighthouse
+from converter import Converter
 load_dotenv(override=True)
 
 
@@ -86,5 +87,21 @@ def test_processor_with_real_data():
     # tokenRewarder.reward_users()
 
 
+def modular_pipeline():
+    # First dockerfile expects url with (set of) pdf(s) and a converter type as input.
+    pdf_path = "../papers/desci.pdf"
+    lighthouse_api_key = os.getenv("LIGHTHOUSE_TOKEN")
+    
+    input_url = upload_to_lighthouse(pdf_path, lighthouse_api_key)
+    converter_type = 'marker'
+
+    # converter
+
+    breakpoint()
+
+    chunker = 'paragraph'
+
+    embedder =  "openai"
+
 if __name__ == "__main__":
-    test_processor_with_real_data()
+    modular_pipeline()

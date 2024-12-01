@@ -4,12 +4,12 @@ from typing import List
 
 import requests
 from chunker import Chunker
-from converter import Converter
+from converter import convert
 from embedder import Embedder
 from Postgres import PostgresDBManager
 from TokenRewarder import TokenRewarder
 from vectordb import VectorDatabaseManager
-
+from utils import upload_to_lighthouse
 
 class Processor:
     def __init__(
@@ -29,7 +29,6 @@ class Processor:
         """
         self.db_manager = db_manager  # Vector Database Manager
         self.TokenRewarder = TokenRewarder
-        self.converter = Converter()  # Converter
         self.chunker = Chunker()  # Chunker
         self.embedder = Embedder()  # Embedder
         self.metadata_file = metadata_file  # Metadata File
@@ -38,21 +37,6 @@ class Processor:
         self.postgres_db_manager = postgres_db_manager  # Postgres DB Manager
         self.convert_cache = {}  # Cache for converted text
         self.chunk_cache = {}  # Cache for chunked text
-
-    def upload_to_lighthouse(self, filepath: str) -> str:
-        """Uploads a file to Lighthouse IPFS and returns the IPFS hash (CID).
-
-        - filepath: Path to the file to be uploaded.
-        - Returns: IPFS hash (CID) of the uploaded file.
-        """
-        url = "https://node.lighthouse.storage/api/v0/add"
-        headers = {"Authorization": f"Bearer {self.ipfs_api_key}"}
-        with open(filepath, "rb") as file:
-            files = {"file": file}
-            print(f"Uploading {filepath} to Lighthouse IPFS...")
-            response = requests.post(url, headers=headers, files=files)
-            response.raise_for_status()
-            return response.json()["Hash"]
 
     def upload_text_to_lighthouse(self, content: str, filename: str) -> str:
         """Uploads a string as a file to Lighthouse IPFS and returns the IPFS hash (CID).
@@ -95,7 +79,7 @@ class Processor:
             for key, value in metadata.items()
         }
 
-        pdf_cid = self.upload_to_lighthouse(pdf_path)
+        pdf_cid = upload_to_lighthouse(pdf_path, self.ipfs_api_key)
         metadata["pdf_ipfs_cid"] = pdf_cid
 
         for db_config in databases:
@@ -106,8 +90,7 @@ class Processor:
             # Step 2.1: Conversion
             if converter_func not in self.convert_cache:
                 print(f"Running Converter({converter_func}) on {pdf_path}")
-                convert_method = getattr(self.converter, converter_func)
-                converted_text = convert_method(pdf_path)
+                converted_text = convert(conversion_type=converter_func, input_path=pdf_path)
                 self.convert_cache[converter_func] = converted_text
 
             else:
@@ -130,6 +113,7 @@ class Processor:
             )
             embed_method = getattr(self.embedder, embedder_func)
 
+            
             for chunk_index, chunk in enumerate(chunked_text):
                 embedding = embed_method(chunk)
 
