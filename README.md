@@ -10,8 +10,7 @@ This section explains how to automate the conversion of research papers (PDFs) i
 
 Before running the script, ensure that you have the following:
 
-- **Python 3.6+** installed
-- Required Python libraries installed (see below)
+- **Python 3.12** installed
 - Access to OpenAI API (with an API key)
 - Lighthouse API key for file storage
 - A set of research papers in PDF format
@@ -28,20 +27,13 @@ Before running the script, ensure that you have the following:
 
 2. **Install Required Packages:**
 
-   Install the necessary Python packages using `pip`:
+   Install the necessary Python packages using `uv`:
 
    ```bash
-   pip install -r requirements.txt
+   make uv-download
+   make install
    ```
-
-   The `requirements.txt` should include:
-
-   - requests
-   - PyPDF2
-   - openai
-   - chroma
-   - torch
-
+   
 3. **Prepare Your Config Files:**
 
    - **config.json:** This file should contain your API keys and other configurations.

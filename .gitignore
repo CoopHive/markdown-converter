@@ -2,8 +2,8 @@
 .DS_Store
 
 # Python
-*.py[cod]       # Matches .pyc, .pyo, .pyd, .pdb files
-__pycache__/    # Matches __pycache__ directories
+*.py[cod]
+__pycache__/
 
 # Distribution / packaging
 .Python
@@ -47,6 +47,7 @@ coverage.xml
 *.log
 local_settings.py
 db.sqlite3
+*.db
 
 # Flask stuff
 instance/
@@ -127,3 +128,7 @@ private_key.txt
 
 # JetBrains IDEs
 .idea/
+
+*.lock
+*.sqlite3
+output_marker/
