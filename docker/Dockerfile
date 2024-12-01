@@ -12,7 +12,4 @@ RUN apt-get update && apt-get install -y \
 
 RUN uv pip install "git+https://github.com/CoopHive/markdown-converter.git@conversion" --system
 
-ENTRYPOINT ["/usr/local/bin/python", "/usr/local/lib/python3.12/site-packages/descidb/test.py"]
-
-# Run the package or set a default command
-# CMD ["python", "-m", "<your_package_entry_point>"]
+ENTRYPOINT ["python3", "-c", "import sys; from descidb.converter import convert; convert(*sys.argv[1:])"]
