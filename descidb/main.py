@@ -97,10 +97,8 @@ def modular_pipeline():
     # lighthouse_api_key = os.getenv("LIGHTHOUSE_TOKEN")
     # input_url = upload_to_lighthouse(pdf_path, lighthouse_api_key)
     # NOTE: input_url to pdf_path. Apiary responsibility.
-
+    
     converted = convert(conversion_type=conversion_type, input_path=pdf_path)
-
-    breakpoint()
 
     chunker = 'paragraph'
 
