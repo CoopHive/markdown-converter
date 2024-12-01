@@ -6,7 +6,7 @@ from processor import Processor
 from TokenRewarder import TokenRewarder
 from vectordb import VectorDatabaseManager
 from utils import upload_to_lighthouse
-from converter import Converter
+from converter import convert
 load_dotenv(override=True)
 
 
@@ -90,12 +90,15 @@ def test_processor_with_real_data():
 def modular_pipeline():
     # First dockerfile expects url with (set of) pdf(s) and a converter type as input.
     pdf_path = "../papers/desci.pdf"
-    lighthouse_api_key = os.getenv("LIGHTHOUSE_TOKEN")
-    
-    input_url = upload_to_lighthouse(pdf_path, lighthouse_api_key)
-    converter_type = 'marker'
+    conversion_type = 'marker'
 
-    # converter
+    # NOTE: pdf_path to input_url, containing both the pdf(s) and the other inputs
+
+    # lighthouse_api_key = os.getenv("LIGHTHOUSE_TOKEN")
+    # input_url = upload_to_lighthouse(pdf_path, lighthouse_api_key)
+    # NOTE: input_url to pdf_path. Apiary responsibility.
+
+    converted = convert(conversion_type=conversion_type, input_path=pdf_path)
 
     breakpoint()
 
