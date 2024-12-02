@@ -9,7 +9,7 @@ converted = converter.convert_from_url(
     conversion_type=conversion_type, input_url=input_url
 )
 
-build_command = "podman build -t job-image -f ../docker/convert.Dockerfile"
+build_command = "podman build --no-cache -t job-image -f ../docker/convert.Dockerfile"
 subprocess.run(build_command, shell=True, check=True)
 
 remove_command = "podman rm -f job-container"
