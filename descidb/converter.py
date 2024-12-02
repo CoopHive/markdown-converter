@@ -33,14 +33,9 @@ def marker(input_path: str) -> str:
         if not os.path.exists(input_path):
             raise FileNotFoundError(f"Input file not found: {input_path}")
 
-        # Directory for the output of the marker module
-        output_dir = "output_marker"
-        os.makedirs(output_dir, exist_ok=True)
-
         models = create_model_dict()
         config_parser = ConfigParser(
             {
-                "output_dir": output_dir,
                 "languages": "en",
                 "output_format": "markdown",
             }
@@ -54,11 +49,6 @@ def marker(input_path: str) -> str:
         )
 
         rendered = converter(input_path)
-        out_folder = config_parser.get_output_folder(input_path)
-        save_output(
-            rendered, out_folder, config_parser.get_base_filename(input_path)
-        )
-
         return rendered.markdown
 
     except FileNotFoundError as e:
