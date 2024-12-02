@@ -12,19 +12,22 @@ input_url = "https://gateway.lighthouse.storage/ipfs/bafkreidsulm4ma4jnkp2zc2zw6
 build_command = "podman build -t job-image -f ../docker/convert.Dockerfile"
 subprocess.run(build_command, shell=True, check=True)
 
-breakpoint()
+remove_command = "podman rm -f job-container"
+subprocess.run(remove_command, shell=True, check=False)
 
 run_command = (
     f"podman run --rm --name job-container job-image {conversion_type} {input_url}"
 )
-result = subprocess.run(
-    run_command,
-    shell=True,
-    check=True,
-    capture_output=True,
-    text=True,
-)
+try:
+    result = subprocess.run(
+        run_command,
+        shell=True,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    result = result.stdout
 
-result = result.stdout
-
-print(result)
+    print(result)
+except subprocess.CalledProcessError as e:
+    print("Command failed:", e.stderr)
