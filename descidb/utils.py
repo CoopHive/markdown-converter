@@ -43,6 +43,8 @@ def extract(tar_file_path: str, output_path: str):
         tar.extractall(path=output_dir)
         print("Extraction complete.")
 
+    tar_path.unlink()
+
 
 def upload_to_lighthouse(filepath: str, ipfs_api_key: str) -> str:
     """Uploads a file to Lighthouse IPFS and returns the gateway url, via the file CID."""
@@ -57,11 +59,11 @@ def upload_to_lighthouse(filepath: str, ipfs_api_key: str) -> str:
     return f"https://gateway.lighthouse.storage/ipfs/{cid}"
 
 
-def download_from_url(url: str, output_folder: str):
+def download_from_url(url: str, output_folder: str = "./tmp"):
     """Downloads a file from a given URL and saves it to the specified output path."""
     # Ensure the output folder exists
     output_dir = Path(output_folder)
-    output_dir.mkdir(parents=True, exist_ok=True)
+    output_dir.parent.mkdir(parents=True, exist_ok=True)
 
     # Fetch the file
     print(f"Downloading from {url}...")

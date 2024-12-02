@@ -8,12 +8,24 @@ from marker.converters.pdf import PdfConverter
 from marker.logger import configure_logging
 from marker.models import create_model_dict
 from openai import OpenAI
+from utils import download_from_url, extract
 
 load_dotenv(override=True)
 configure_logging()
 
 
 ConversionType = Literal["marker", "openai"]
+
+
+def convert_from_url(conversion_type: ConversionType, input_url: str) -> str:
+    """Convert based on the specified conversion type."""
+    donwload_path = download_from_url(url=input_url)
+
+    if donwload_path.endswith(".tar"):
+        output_path = donwload_path[: donwload_path.rfind("/")]
+        extract(tar_file_path=donwload_path, output_path=output_path)
+
+    return convert(conversion_type=conversion_type, input_path=output_path)
 
 
 def convert(conversion_type: ConversionType, input_path: str) -> str:

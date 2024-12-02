@@ -1,11 +1,11 @@
 import os
 
-from converter import convert
+from converter import convert_from_url
 from dotenv import load_dotenv
 from Postgres import PostgresDBManager
 from processor import Processor
 from TokenRewarder import TokenRewarder
-from utils import compress, download_from_url, extract, upload_to_lighthouse
+from utils import compress, upload_to_lighthouse
 from vectordb import VectorDatabaseManager
 
 load_dotenv(override=True)
@@ -98,18 +98,12 @@ def modular_pipeline():
     compress(input_pdf_paths, tar_path)
 
     lighthouse_api_key = os.getenv("LIGHTHOUSE_TOKEN")
+
+    # Query:
     ipfs_url = upload_to_lighthouse(tar_path, lighthouse_api_key)
-    donwload_path = download_from_url(url=ipfs_url, output_folder="../tmp/")
-    input_path = donwload_path
-
-    if donwload_path.endswith(".tar"):
-        extract_path = "../tmp/batched_input"
-        extract(tar_file_path=donwload_path, output_path=extract_path)
-
-        input_path = extract_path
-
     conversion_type = "marker"
-    converted = convert(conversion_type=conversion_type, input_path=input_path)
+
+    converted = convert_from_url(conversion_type=conversion_type, input_url=ipfs_url)
     print(converted)
 
     # chunker = 'paragraph'

@@ -10,6 +10,6 @@ RUN apt-get update && apt-get install -y \
     libglib2.0-0 \
     && pip install --no-cache-dir uv
 
-RUN uv pip install "git+https://github.com/CoopHive/markdown-converter.git@main" --system
+RUN uv pip install "git+https://github.com/CoopHive/markdown-converter.git@batch-covert-and-chunk" --system
 
-ENTRYPOINT ["python3", "-c", "import sys; from descidb.converter import convert; print(convert(*sys.argv[1:]))"]
+ENTRYPOINT ["python3", "-c", "import sys; from descidb.converter import convert_from_url; print(convert(*sys.argv[1:]))"]
