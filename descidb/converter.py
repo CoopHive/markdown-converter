@@ -1,4 +1,5 @@
 import os
+from typing import Literal
 
 import PyPDF2
 from dotenv import load_dotenv
@@ -6,14 +7,14 @@ from marker.config.parser import ConfigParser
 from marker.converters.pdf import PdfConverter
 from marker.logger import configure_logging
 from marker.models import create_model_dict
-from marker.output import save_output
 from openai import OpenAI
 
 load_dotenv(override=True)
 configure_logging()
 
-from typing import Literal
+
 ConversionType = Literal["marker", "openai"]
+
 
 def convert(conversion_type: ConversionType, input_path: str) -> str:
     """Convert based on the specified conversion type."""
@@ -55,6 +56,7 @@ def marker(input_path: str) -> str:
         print(f"File not found: {e}")
         return ""  # Return empty string in case of error
 
+
 def extract_text_from_pdf(input_path: str) -> str:
     """Extracts text from a PDF file."""
     pdf_reader = PyPDF2.PdfReader(input_path)
@@ -65,7 +67,8 @@ def extract_text_from_pdf(input_path: str) -> str:
         text_content += page.extract_text()
 
     return text_content
-    
+
+
 def openai(input_path: str) -> str:
     """Convert text using the OpenAI API."""
     try:

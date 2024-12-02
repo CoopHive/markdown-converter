@@ -1,12 +1,13 @@
 import os
 
+from converter import convert
 from dotenv import load_dotenv
 from Postgres import PostgresDBManager
 from processor import Processor
 from TokenRewarder import TokenRewarder
-from vectordb import VectorDatabaseManager
 from utils import upload_to_lighthouse
-from converter import convert
+from vectordb import VectorDatabaseManager
+
 load_dotenv(override=True)
 
 
@@ -90,19 +91,21 @@ def test_processor_with_real_data():
 def modular_pipeline():
     # First dockerfile expects url with (set of) pdf(s) and a converter type as input.
     pdf_path = "../papers/desci.pdf"
-    conversion_type = 'marker'
+    conversion_type = "marker"
 
     # NOTE: pdf_path to input_url, containing both the pdf(s) and the other inputs
-
-    # lighthouse_api_key = os.getenv("LIGHTHOUSE_TOKEN")
-    # input_url = upload_to_lighthouse(pdf_path, lighthouse_api_key)
+    if False:
+        lighthouse_api_key = os.getenv("LIGHTHOUSE_TOKEN")
+        input_url = upload_to_lighthouse(pdf_path, lighthouse_api_key)
+        print(input_url)
     # NOTE: input_url to pdf_path. Apiary responsibility.
-    
+
     converted = convert(conversion_type=conversion_type, input_path=pdf_path)
+    print(converted)
 
-    chunker = 'paragraph'
+    # chunker = 'paragraph'
+    # embedder =  "openai"
 
-    embedder =  "openai"
 
 if __name__ == "__main__":
     modular_pipeline()
