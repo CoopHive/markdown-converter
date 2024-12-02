@@ -1,6 +1,6 @@
 import subprocess
 
-build_command = "podman build -t job-image -f convert.Dockerfile ../docker"
+build_command = "podman build -t job-image -f ../docker/convert.Dockerfile"
 subprocess.run(build_command, shell=True, check=True)
 
 conversion_type = "marker"
