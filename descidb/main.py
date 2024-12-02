@@ -3,6 +3,7 @@ import os
 from dotenv import load_dotenv
 from Postgres import PostgresDBManager
 
+from descidb.chunker import chunk_from_url
 from descidb.converter import convert_from_url
 from descidb.processor import Processor
 from descidb.TokenRewarder import TokenRewarder
@@ -37,7 +38,6 @@ def test_processor():
     ][:max_papers]
 
     databases = [
-        # {"converter": "openai", "chunker": "sentence", "embedder": "openai"},
         {
             "converter": "marker",
             "chunker": "paragraph",
@@ -90,24 +90,43 @@ def test_processor():
 
 
 def modular_pipeline():
-    input_pdf_paths = [
-        "../papers/1001.0093.pdf",
-        "../papers/desci.pdf",
-        "../papers/metadata.json",
-    ]
-    tar_path = "../papers/batched.tar"
-    compress(input_pdf_paths, tar_path)
+    if False:
+        # Buyer Steps
+        input_pdf_paths = [
+            # "../papers/1001.0093.pdf",
+            "../papers/desci.pdf",
+            "../papers/metadata.json",
+        ]
+        tar_path = "../papers/batched.tar"
+        compress(input_pdf_paths, tar_path)
 
     lighthouse_api_key = os.getenv("LIGHTHOUSE_TOKEN")
 
-    # Query:
-    ipfs_url = upload_to_lighthouse(tar_path, lighthouse_api_key)
-    conversion_type = "marker"
+    if False:
+        # Query:
+        ipfs_url = upload_to_lighthouse(tar_path, lighthouse_api_key)
+        conversion_type = "marker"
 
-    converted = convert_from_url(conversion_type=conversion_type, input_url=ipfs_url)
-    print(converted)
+        converted = convert_from_url(
+            conversion_type=conversion_type, input_url=ipfs_url
+        )
+        print(converted)
 
-    # chunker = 'paragraph'
+    converted_file = "tmp/converted_file.txt"
+    if False:
+        with open(converted_file, "w") as file:
+            # Write the variable to the file
+            file.write(converted)
+
+        # Query:
+        ipfs_url = upload_to_lighthouse(converted_file, lighthouse_api_key)
+
+    ipfs_url = "https://gateway.lighthouse.storage/ipfs/bafkreidt4eler4fphoz7k5s6f6lx7myvz5b4hwsvd7v7spymd2iob6qvwy"
+    chunker_type = "paragraph"
+
+    chunked = chunk_from_url(chunker_type=chunker_type, input_url=ipfs_url)
+    print(chunked)
+
     # embedder =  "openai"
 
 
