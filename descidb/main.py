@@ -5,16 +5,16 @@ from dotenv import load_dotenv
 from Postgres import PostgresDBManager
 from processor import Processor
 from TokenRewarder import TokenRewarder
-from utils import upload_to_lighthouse
+from utils import compress, download_from_url, extract, upload_to_lighthouse
 from vectordb import VectorDatabaseManager
 
 load_dotenv(override=True)
 
 
-def test_processor_with_real_data():
+def test_processor():
     papers_directory = "../papers"
     metadata_file = "../papers/metadata.json"
-    max_papers = 1
+    max_papers = 2
 
     lighthouse_api_key = os.getenv("LIGHTHOUSE_TOKEN")
     postgres_host = "localhost"
@@ -89,18 +89,27 @@ def test_processor_with_real_data():
 
 
 def modular_pipeline():
-    # First dockerfile expects url with (set of) pdf(s) and a converter type as input.
-    pdf_path = "../papers/desci.pdf"
+    input_pdf_paths = [
+        "../papers/1001.0093.pdf",
+        "../papers/desci.pdf",
+        "../papers/metadata.json",
+    ]
+    tar_path = "../papers/batched.tar"
+    compress(input_pdf_paths, tar_path)
+
+    lighthouse_api_key = os.getenv("LIGHTHOUSE_TOKEN")
+    ipfs_url = upload_to_lighthouse(tar_path, lighthouse_api_key)
+    donwload_path = download_from_url(url=ipfs_url, output_folder="../tmp/")
+    input_path = donwload_path
+
+    if donwload_path.endswith(".tar"):
+        extract_path = "../tmp/batched_input"
+        extract(tar_file_path=donwload_path, output_path=extract_path)
+
+        input_path = extract_path
+
     conversion_type = "marker"
-
-    # NOTE: pdf_path to input_url, containing both the pdf(s) and the other inputs
-    if False:
-        lighthouse_api_key = os.getenv("LIGHTHOUSE_TOKEN")
-        input_url = upload_to_lighthouse(pdf_path, lighthouse_api_key)
-        print(input_url)
-    # NOTE: input_url to pdf_path. Apiary responsibility.
-
-    converted = convert(conversion_type=conversion_type, input_path=pdf_path)
+    converted = convert(conversion_type=conversion_type, input_path=input_path)
     print(converted)
 
     # chunker = 'paragraph'
