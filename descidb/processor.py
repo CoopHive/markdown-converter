@@ -4,7 +4,7 @@ from typing import List
 
 import requests
 
-from descidb.chunker import Chunker
+from descidb.chunker import chunk
 from descidb.converter import convert
 from descidb.embedder import Embedder
 from descidb.Postgres import PostgresDBManager
@@ -31,7 +31,6 @@ class Processor:
         """
         self.db_manager = db_manager  # Vector Database Manager
         self.TokenRewarder = TokenRewarder
-        self.chunker = Chunker()  # Chunker
         self.embedder = Embedder()  # Embedder
         self.metadata_file = metadata_file  # Metadata File
         self.authorPublicKey = authorPublicKey  # Author Public Key
@@ -106,8 +105,9 @@ class Processor:
                 print(
                     f"Running Chunker({chunker_func}) on converted text from {converter_func}"
                 )
-                chunk_method = getattr(self.chunker, chunker_func)
-                chunked_text = chunk_method(converted_text)
+                chunked_text = chunk(
+                    chunker_type=chunker_func, input_text=converted_text
+                )
                 self.chunk_cache[chunk_cache_key] = chunked_text
             else:
                 chunked_text = self.chunk_cache[chunk_cache_key]
@@ -117,8 +117,8 @@ class Processor:
             )
             embed_method = getattr(self.embedder, embedder_func)
 
-            for chunk_index, chunk in enumerate(chunked_text):
-                embedding = embed_method(chunk)
+            for chunk_index, chunk_i in enumerate(chunked_text):
+                embedding = embed_method(chunk_i)
 
                 db_name = f"{converter_func}_{chunker_func}_{embedder_func}"
                 metadata.update(
@@ -143,7 +143,7 @@ class Processor:
                         (
                             self.authorPublicKey,
                             metadata.get("title", "Unknown Title"),
-                            chunk,
+                            chunk_i,
                             embedding,
                             json.dumps(metadata),
                             False,
