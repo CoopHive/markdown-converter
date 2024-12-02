@@ -1,20 +1,21 @@
 import os
 
-from converter import convert
 from dotenv import load_dotenv
 from Postgres import PostgresDBManager
-from processor import Processor
-from TokenRewarder import TokenRewarder
-from utils import upload_to_lighthouse
-from vectordb import VectorDatabaseManager
+
+from descidb.converter import convert_from_url
+from descidb.processor import Processor
+from descidb.TokenRewarder import TokenRewarder
+from descidb.utils import compress, upload_to_lighthouse
+from descidb.vectordb import VectorDatabaseManager
 
 load_dotenv(override=True)
 
 
-def test_processor_with_real_data():
+def test_processor():
     papers_directory = "../papers"
     metadata_file = "../papers/metadata.json"
-    max_papers = 1
+    max_papers = 2
 
     lighthouse_api_key = os.getenv("LIGHTHOUSE_TOKEN")
     postgres_host = "localhost"
@@ -89,18 +90,21 @@ def test_processor_with_real_data():
 
 
 def modular_pipeline():
-    # First dockerfile expects url with (set of) pdf(s) and a converter type as input.
-    pdf_path = "../papers/desci.pdf"
+    input_pdf_paths = [
+        "../papers/1001.0093.pdf",
+        "../papers/desci.pdf",
+        "../papers/metadata.json",
+    ]
+    tar_path = "../papers/batched.tar"
+    compress(input_pdf_paths, tar_path)
+
+    lighthouse_api_key = os.getenv("LIGHTHOUSE_TOKEN")
+
+    # Query:
+    ipfs_url = upload_to_lighthouse(tar_path, lighthouse_api_key)
     conversion_type = "marker"
 
-    # NOTE: pdf_path to input_url, containing both the pdf(s) and the other inputs
-    if False:
-        lighthouse_api_key = os.getenv("LIGHTHOUSE_TOKEN")
-        input_url = upload_to_lighthouse(pdf_path, lighthouse_api_key)
-        print(input_url)
-    # NOTE: input_url to pdf_path. Apiary responsibility.
-
-    converted = convert(conversion_type=conversion_type, input_path=pdf_path)
+    converted = convert_from_url(conversion_type=conversion_type, input_url=ipfs_url)
     print(converted)
 
     # chunker = 'paragraph'

@@ -9,11 +9,24 @@ from marker.logger import configure_logging
 from marker.models import create_model_dict
 from openai import OpenAI
 
+from descidb.utils import download_from_url, extract
+
 load_dotenv(override=True)
 configure_logging()
 
 
 ConversionType = Literal["marker", "openai"]
+
+
+def convert_from_url(conversion_type: ConversionType, input_url: str) -> str:
+    """Convert based on the specified conversion type."""
+    donwload_path = download_from_url(url=input_url)
+
+    if donwload_path.endswith(".tar"):
+        output_path = donwload_path[: donwload_path.rfind("/")]
+        extract(tar_file_path=donwload_path, output_path=output_path)
+
+    return convert(conversion_type=conversion_type, input_path=output_path)
 
 
 def convert(conversion_type: ConversionType, input_path: str) -> str:
@@ -28,11 +41,30 @@ def convert(conversion_type: ConversionType, input_path: str) -> str:
 
 
 def marker(input_path: str) -> str:
-    """Convert text using the marker module, where input_path is a path to a file."""
+    """Convert text using the marker module, where input_path is either a path to pdf file or a path to a folder containing a set of pdf files."""
     try:
         # Ensure the input_path is a valid file
         if not os.path.exists(input_path):
-            raise FileNotFoundError(f"Input file not found: {input_path}")
+            raise FileNotFoundError(f"Input path not found: {input_path}")
+
+        # Check if the path is a file and a PDF
+        if os.path.isfile(input_path):
+            if input_path.lower().endswith(".pdf"):
+                input_pdf_paths = [input_path]
+            else:
+                raise ValueError(f"File at {input_path} is not a PDF.")
+
+        # Check if the path is a folder containing PDFs
+        elif os.path.isdir(input_path):
+            input_pdf_paths = [
+                os.path.join(input_path, f)
+                for f in os.listdir(input_path)
+                if f.lower().endswith(".pdf")
+            ]
+            if not input_pdf_paths:
+                raise ValueError(f"No PDF files found in directory: {input_path}")
+        else:
+            raise ValueError(f"Invalid input path: {input_path}")
 
         models = create_model_dict()
         config_parser = ConfigParser(
@@ -49,8 +81,13 @@ def marker(input_path: str) -> str:
             renderer=config_parser.get_renderer(),
         )
 
-        rendered = converter(input_path)
-        return rendered.markdown
+        std_out = ""
+        for pdf_path in input_pdf_paths:
+            rendered = converter(pdf_path)
+            rendered_markdown = rendered.markdown
+            std_out += rendered_markdown
+
+        return std_out
 
     except FileNotFoundError as e:
         print(f"File not found: {e}")

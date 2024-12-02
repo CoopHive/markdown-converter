@@ -1,24 +1,33 @@
-import os
 import subprocess
 
-build_command = "podman build -t job-image ../docker"
-subprocess.run(build_command, shell=True, check=True)
+from descidb import converter
 
-pdf_path = "/app/papers/desci.pdf"
 conversion_type = "marker"
+input_url = "https://gateway.lighthouse.storage/ipfs/bafkreidsulm4ma4jnkp2zc2zw64rpiqj6diemfimazo4bfkc5urguzql3u"
 
-papers_path = os.path.abspath("../papers/desci.pdf")
-
-run_command = f"podman run --rm --name job-container -v {papers_path}:{pdf_path} job-image {conversion_type} {pdf_path}"
-result = subprocess.run(
-    run_command,
-    shell=True,
-    check=True,
-    capture_output=True,
-    text=True,
+converted = converter.convert_from_url(
+    conversion_type=conversion_type, input_url=input_url
 )
 
-result = result.stdout
+build_command = "podman build --no-cache -t job-image -f ../docker/convert.Dockerfile"
+subprocess.run(build_command, shell=True, check=True)
 
+remove_command = "podman rm -f job-container"
+subprocess.run(remove_command, shell=True, check=False)
 
-print(result)
+run_command = (
+    f"podman run --rm --name job-container job-image {conversion_type} {input_url}"
+)
+try:
+    result = subprocess.run(
+        run_command,
+        shell=True,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    result = result.stdout
+
+    print(result)
+except subprocess.CalledProcessError as e:
+    print("Command failed:", e.stderr)

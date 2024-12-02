@@ -6,7 +6,7 @@ uv-download:
 install:
 	rm -rf .venv && uv venv
 	. .venv/bin/activate && \
-	uv pip install .
+	uv pip install -e .
 
 .PHONY: codestyle
 codestyle:

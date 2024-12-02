@@ -3,13 +3,14 @@ import os
 from typing import List
 
 import requests
-from chunker import Chunker
-from converter import convert
-from embedder import Embedder
-from Postgres import PostgresDBManager
-from TokenRewarder import TokenRewarder
-from utils import upload_to_lighthouse
-from vectordb import VectorDatabaseManager
+
+from descidb.chunker import Chunker
+from descidb.converter import convert
+from descidb.embedder import Embedder
+from descidb.Postgres import PostgresDBManager
+from descidb.TokenRewarder import TokenRewarder
+from descidb.utils import upload_to_lighthouse
+from descidb.vectordb import VectorDatabaseManager
 
 
 class Processor:
