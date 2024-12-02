@@ -8,8 +8,9 @@ from converter import convert
 from embedder import Embedder
 from Postgres import PostgresDBManager
 from TokenRewarder import TokenRewarder
-from vectordb import VectorDatabaseManager
 from utils import upload_to_lighthouse
+from vectordb import VectorDatabaseManager
+
 
 class Processor:
     def __init__(
@@ -90,7 +91,9 @@ class Processor:
             # Step 2.1: Conversion
             if converter_func not in self.convert_cache:
                 print(f"Running Converter({converter_func}) on {pdf_path}")
-                converted_text = convert(conversion_type=converter_func, input_path=pdf_path)
+                converted_text = convert(
+                    conversion_type=converter_func, input_path=pdf_path
+                )
                 self.convert_cache[converter_func] = converted_text
 
             else:
@@ -113,7 +116,6 @@ class Processor:
             )
             embed_method = getattr(self.embedder, embedder_func)
 
-            
             for chunk_index, chunk in enumerate(chunked_text):
                 embedding = embed_method(chunk)
 

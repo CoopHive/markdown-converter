@@ -1,4 +1,5 @@
 import os
+from typing import Literal
 
 import PyPDF2
 from dotenv import load_dotenv
@@ -6,14 +7,14 @@ from marker.config.parser import ConfigParser
 from marker.converters.pdf import PdfConverter
 from marker.logger import configure_logging
 from marker.models import create_model_dict
-from marker.output import save_output
 from openai import OpenAI
 
 load_dotenv(override=True)
 configure_logging()
 
-from typing import Literal
+
 ConversionType = Literal["marker", "openai"]
+
 
 def convert(conversion_type: ConversionType, input_path: str) -> str:
     """Convert based on the specified conversion type."""
@@ -33,14 +34,9 @@ def marker(input_path: str) -> str:
         if not os.path.exists(input_path):
             raise FileNotFoundError(f"Input file not found: {input_path}")
 
-        # Directory for the output of the marker module
-        output_dir = "output_marker"
-        os.makedirs(output_dir, exist_ok=True)
-
         models = create_model_dict()
         config_parser = ConfigParser(
             {
-                "output_dir": output_dir,
                 "languages": "en",
                 "output_format": "markdown",
             }
@@ -54,16 +50,12 @@ def marker(input_path: str) -> str:
         )
 
         rendered = converter(input_path)
-        out_folder = config_parser.get_output_folder(input_path)
-        save_output(
-            rendered, out_folder, config_parser.get_base_filename(input_path)
-        )
-
         return rendered.markdown
 
     except FileNotFoundError as e:
         print(f"File not found: {e}")
         return ""  # Return empty string in case of error
+
 
 def extract_text_from_pdf(input_path: str) -> str:
     """Extracts text from a PDF file."""
@@ -75,7 +67,8 @@ def extract_text_from_pdf(input_path: str) -> str:
         text_content += page.extract_text()
 
     return text_content
-    
+
+
 def openai(input_path: str) -> str:
     """Convert text using the OpenAI API."""
     try:
