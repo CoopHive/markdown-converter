@@ -1,12 +1,13 @@
 import os
 
-from converter import convert_from_url
 from dotenv import load_dotenv
 from Postgres import PostgresDBManager
-from processor import Processor
-from TokenRewarder import TokenRewarder
-from utils import compress, upload_to_lighthouse
-from vectordb import VectorDatabaseManager
+
+from descidb.converter import convert_from_url
+from descidb.processor import Processor
+from descidb.TokenRewarder import TokenRewarder
+from descidb.utils import compress, upload_to_lighthouse
+from descidb.vectordb import VectorDatabaseManager
 
 load_dotenv(override=True)
 

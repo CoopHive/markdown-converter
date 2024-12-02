@@ -8,7 +8,8 @@ from marker.converters.pdf import PdfConverter
 from marker.logger import configure_logging
 from marker.models import create_model_dict
 from openai import OpenAI
-from utils import download_from_url, extract
+
+from descidb.utils import download_from_url, extract
 
 load_dotenv(override=True)
 configure_logging()

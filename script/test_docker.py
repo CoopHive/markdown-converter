@@ -1,10 +1,18 @@
 import subprocess
 
-build_command = "podman build -t job-image -f ../docker/convert.Dockerfile"
-subprocess.run(build_command, shell=True, check=True)
+from descidb import converter
 
 conversion_type = "marker"
 input_url = "https://gateway.lighthouse.storage/ipfs/bafkreidsulm4ma4jnkp2zc2zw64rpiqj6diemfimazo4bfkc5urguzql3u"
+
+# converted = converter.convert_from_url(
+#     conversion_type=conversion_type, input_url=input_url
+# )
+
+build_command = "podman build -t job-image -f ../docker/convert.Dockerfile"
+subprocess.run(build_command, shell=True, check=True)
+
+breakpoint()
 
 run_command = (
     f"podman run --rm --name job-container job-image {conversion_type} {input_url}"

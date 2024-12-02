@@ -63,7 +63,7 @@ def download_from_url(url: str, output_folder: str = "./tmp"):
     """Downloads a file from a given URL and saves it to the specified output path."""
     # Ensure the output folder exists
     output_dir = Path(output_folder)
-    output_dir.parent.mkdir(parents=True, exist_ok=True)
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     # Fetch the file
     print(f"Downloading from {url}...")
