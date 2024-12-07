@@ -105,10 +105,10 @@ The TokenRewarder class requires the following parameters:
 
 The .env file should contain the following environment variables:
 
-````env
+```env
    OWNER_ADDRESS=your_owner_address
    PRIVATE_KEY=your_private_key
-```g
+```
 
 ### Database Structure
 
@@ -127,7 +127,7 @@ The rewards are added to the `user_rewards` table and can be distributed to user
 
 ```python
 user_rewards = self.reward_users_default(db_name)
-````
+```
 
 However, this can be swapped with any of the following functions depending on the desired reward logic:
 
