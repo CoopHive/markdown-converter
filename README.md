@@ -39,11 +39,9 @@ Before running the script, ensure that you have the following:
 
    See .env.example as a reference.
 
-   ```json
-   {
-     "OPENAI_API_KEY=...
-      LIGHTHOUSE_TOKEN=...
-   }
+   ```env
+      OPENAI_API_KEY=your_openai_api_key
+      LIGHTHOUSE_TOKEN=your_lighthouse_token
    ```
 
    - **metadata.json:** A JSON file containing metadata for your papers. A sample file has been created, containing the metadata of arXiv papers. Hence, unless using arXiv papers, a custom metadata file would have to be created in the format below. If metadata if not provided, it will default it to blank.
