@@ -116,12 +116,14 @@ class TokenRewarder:
         try:
             # Check if the database exists
             cursor.execute(
-                sql.SQL("SELECT 1 FROM pg_database WHERE datname = %s"), [db_name]
+                sql.SQL("SELECT 1 FROM pg_database WHERE datname = %s"), [
+                    db_name]
             )
             if not cursor.fetchone():
                 # Create the new database
                 cursor.execute(
-                    sql.SQL("CREATE DATABASE {}").format(sql.Identifier(db_name))
+                    sql.SQL("CREATE DATABASE {}").format(
+                        sql.Identifier(db_name))
                 )
                 print(f"Database '{db_name}' created successfully.")
 
@@ -211,7 +213,8 @@ class TokenRewarder:
                     "UPDATE default_schema.user_rewards SET job_count = %s WHERE public_key = %s",
                     (new_job_count, public_key),
                 )
-                print(f"User '{public_key}' job_count incremented to {new_job_count}.")
+                print(
+                    f"User '{public_key}' job_count incremented to {new_job_count}.")
 
         except Exception as e:
             print(f"Error updating job count: {e}")
@@ -222,7 +225,8 @@ class TokenRewarder:
     def issue_token(self, recipient_address, job_count=1):
         """Issues tokens to the recipient address."""
         try:
-            nonce = self.web3.eth.get_transaction_count(self.owner_address, "pending")
+            nonce = self.web3.eth.get_transaction_count(
+                self.owner_address, "pending")
 
             txn = self.contract.functions.transfer(
                 recipient_address, job_count
@@ -235,8 +239,10 @@ class TokenRewarder:
                 }
             )
 
-            signed_txn = self.web3.eth.account.sign_transaction(txn, self.private_key)
-            tx_hash = self.web3.eth.send_raw_transaction(signed_txn.raw_transaction)
+            signed_txn = self.web3.eth.account.sign_transaction(
+                txn, self.private_key)
+            tx_hash = self.web3.eth.send_raw_transaction(
+                signed_txn.raw_transaction)
             print(f"Transaction sent: {self.web3.to_hex(tx_hash)}")
             return True
 
@@ -271,7 +277,8 @@ class TokenRewarder:
                             """,
                             (job_count, public_key),
                         )
-                        print(f"Rewarded {job_count} tokens to '{public_key}'.")
+                        print(
+                            f"Rewarded {job_count} tokens to '{public_key}'.")
 
             except Exception as e:
                 print(f"Error rewarding users: {e}")
