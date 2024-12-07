@@ -4,7 +4,7 @@ This document provides a comprehensive guide to processing research papers into 
 
 ## Part 1: Processing Research Papers
 
-This section explains how to automate the conversion of research papers (PDFs) into markdown format, extract metadata, and insert the processed documents into custom databases.
+This section explains how to the conversion of research papers (PDFs) into markdown format, extract metadata, and insert the processed documents into custom databases.
 
 ### Prerequisites
 
@@ -61,7 +61,7 @@ Before running the script, ensure that you have the following:
 
 4. **Prepare Your Papers Directory:**
 
-   - Place all your research paper PDFs in a directory named `papers`. Name the papers with its corresponding id from the metadata.json section.
+   - Place all your research paper
 
 5. **Selecting Database Creation Methods**
 
@@ -99,11 +99,8 @@ The TokenRewarder class requires the following parameters:
 - **contract_abi_path**: The path to the smart contract ABI.
 - **db_components**: The components of the database.
 - **host**: The host of the PostgreSQL database.
-- **port**: The port of the PostgreSQL database.
-- **user**: The user of the PostgreSQL database.
-- **password**: The password of the PostgreSQL database.
-
-The .env file should contain the following environment variables:
+- **port**: The port of the PostgreSQL
+  The .env file should contain the following environment variables:
 
 ```env
    OWNER_ADDRESS=your_owner_address
@@ -125,9 +122,9 @@ The `user_rewards` table is created within each database and has the following s
 
 The rewards are added to the `user_rewards` table and can be distributed to users by calling the `get_user_rewards()` function. By default, this function uses:
 
-```python
+````python
 user_rewards = self.reward_users_default(db_name)
-```
+```sfksdfkdskf
 
 However, this can be swapped with any of the following functions depending on the desired reward logic:
 
@@ -153,4 +150,4 @@ databases = [
     {"converter": "openai", "chunker": "sentence", "embedder": "openai"},
     {"converter": "openai", "chunker": "paragraph", "embedder": "openai"},
 ]
-```
+````
