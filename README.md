@@ -105,10 +105,10 @@ The TokenRewarder class requires the following parameters:
 
 The .env file should contain the following environment variables:
 
-```env
+````env
    OWNER_ADDRESS=your_owner_address
    PRIVATE_KEY=your_private_key
-```
+```g
 
 ### Database Structure
 
@@ -127,7 +127,7 @@ The rewards are added to the `user_rewards` table and can be distributed to user
 
 ```python
 user_rewards = self.reward_users_default(db_name)
-```
+````
 
 However, this can be swapped with any of the following functions depending on the desired reward logic:
 
@@ -143,3 +143,14 @@ These functions calculate the rewards based on their respective logic and update
 ### Issuing Tokens
 
 Tokens are issued using the `issue_token()` method, which transfers the calculated reward to the contributor's blockchain address. The transaction details are managed securely using the owner's private key stored in the environment variables.
+
+### Example Usage
+
+See descidb/TokenScheduler.py for an example of how to use the TokenRewarder class to reward users. The TokenScheduler class is used to reward users for contributions to multiple databases. The parameters for the TokenRewarder class are passed in from the TokenScheduler class. You can add specific databases to reward users for by adding them to the databases list in TokenScheduler.py:
+
+```python
+databases = [
+    {"converter": "openai", "chunker": "sentence", "embedder": "openai"},
+    {"converter": "openai", "chunker": "paragraph", "embedder": "openai"},
+]
+```
