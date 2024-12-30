@@ -1,0 +1,177 @@
+{
+    "modified_files": [
+        "README.md"
+    ],
+    "file_diffs": {
+        "README.md": [
+            {
+                "hash": "2b3b3f10-0f5b-4151-a761-5dfad0826dcf",
+                "file_path": "README.md",
+                "hunk_header": "@@ -4,7 +4,7 @@ This document provides a comprehensive guide to processing research papers into",
+                "changes": {
+                    "removed": [
+                        "This section explains how to automate the conversion of research papers (PDFs) into markdown format, extract metadata, and insert the processed documents into custom databases."
+                    ],
+                    "added": [
+                        "This section explains how to the conversion of research papers (PDFs) into markdown format, extract metadata, and insert the processed documents into custom databases."
+                    ]
+                }
+            },
+            {
+                "hash": "8e0ce7e6-d4bd-4a23-b585-3b965a608074",
+                "file_path": "README.md",
+                "hunk_header": "@@ -61,7 +61,7 @@ Before running the script, ensure that you have the following:",
+                "changes": {
+                    "removed": [
+                        "   - Place all your research paper PDFs in a directory named `papers`. Name the papers with its corresponding id from the metadata.json section."
+                    ],
+                    "added": [
+                        "   - Place all your research paper"
+                    ]
+                }
+            },
+            {
+                "hash": "13aabd43-d04d-4df1-9e4d-89da023213d9",
+                "file_path": "README.md",
+                "hunk_header": "@@ -99,11 +99,8 @@ The TokenRewarder class requires the following parameters:",
+                "changes": {
+                    "removed": [
+                        "- **port**: The port of the PostgreSQL database.",
+                        "- **user**: The user of the PostgreSQL database.",
+                        "- **password**: The password of the PostgreSQL database.",
+                        "",
+                        "The .env file should contain the following environment variables:"
+                    ],
+                    "added": [
+                        "- **port**: The port of the PostgreSQL",
+                        "  The .env file should contain the following environment variables:"
+                    ]
+                }
+            },
+            {
+                "hash": "f920ee2a-c2a2-4e7a-a9e3-cb4dbd3dc446",
+                "file_path": "README.md",
+                "hunk_header": "@@ -125,9 +122,9 @@ The `user_rewards` table is created within each database and has the following s",
+                "changes": {
+                    "removed": [
+                        "```python"
+                    ],
+                    "added": [
+                        "````python"
+                    ]
+                }
+            },
+            {
+                "hash": "251df9ea-f46c-43c5-89ae-c6d5cafb93c8",
+                "file_path": "README.md",
+                "hunk_header": "@@ -125,9 +122,9 @@ The `user_rewards` table is created within each database and has the following s",
+                "changes": {
+                    "removed": [
+                        "```"
+                    ],
+                    "added": [
+                        "```sfksdfkdskf"
+                    ]
+                }
+            },
+            {
+                "hash": "b8a8b959-654a-44de-aed7-4aa3c9b7d866",
+                "file_path": "README.md",
+                "hunk_header": "@@ -153,4 +150,4 @@ databases = [",
+                "changes": {
+                    "removed": [
+                        "```"
+                    ],
+                    "added": [
+                        "````"
+                    ]
+                }
+            }
+        ]
+    },
+    "hash_to_changes_dict": {
+        "2b3b3f10-0f5b-4151-a761-5dfad0826dcf": {
+            "hash": "2b3b3f10-0f5b-4151-a761-5dfad0826dcf",
+            "file_path": "README.md",
+            "hunk_header": "@@ -4,7 +4,7 @@ This document provides a comprehensive guide to processing research papers into",
+            "changes": {
+                "removed": [
+                    "This section explains how to automate the conversion of research papers (PDFs) into markdown format, extract metadata, and insert the processed documents into custom databases."
+                ],
+                "added": [
+                    "This section explains how to the conversion of research papers (PDFs) into markdown format, extract metadata, and insert the processed documents into custom databases."
+                ]
+            }
+        },
+        "8e0ce7e6-d4bd-4a23-b585-3b965a608074": {
+            "hash": "8e0ce7e6-d4bd-4a23-b585-3b965a608074",
+            "file_path": "README.md",
+            "hunk_header": "@@ -61,7 +61,7 @@ Before running the script, ensure that you have the following:",
+            "changes": {
+                "removed": [
+                    "   - Place all your research paper PDFs in a directory named `papers`. Name the papers with its corresponding id from the metadata.json section."
+                ],
+                "added": [
+                    "   - Place all your research paper"
+                ]
+            }
+        },
+        "13aabd43-d04d-4df1-9e4d-89da023213d9": {
+            "hash": "13aabd43-d04d-4df1-9e4d-89da023213d9",
+            "file_path": "README.md",
+            "hunk_header": "@@ -99,11 +99,8 @@ The TokenRewarder class requires the following parameters:",
+            "changes": {
+                "removed": [
+                    "- **port**: The port of the PostgreSQL database.",
+                    "- **user**: The user of the PostgreSQL database.",
+                    "- **password**: The password of the PostgreSQL database.",
+                    "",
+                    "The .env file should contain the following environment variables:"
+                ],
+                "added": [
+                    "- **port**: The port of the PostgreSQL",
+                    "  The .env file should contain the following environment variables:"
+                ]
+            }
+        },
+        "f920ee2a-c2a2-4e7a-a9e3-cb4dbd3dc446": {
+            "hash": "f920ee2a-c2a2-4e7a-a9e3-cb4dbd3dc446",
+            "file_path": "README.md",
+            "hunk_header": "@@ -125,9 +122,9 @@ The `user_rewards` table is created within each database and has the following s",
+            "changes": {
+                "removed": [
+                    "```python"
+                ],
+                "added": [
+                    "````python"
+                ]
+            }
+        },
+        "251df9ea-f46c-43c5-89ae-c6d5cafb93c8": {
+            "hash": "251df9ea-f46c-43c5-89ae-c6d5cafb93c8",
+            "file_path": "README.md",
+            "hunk_header": "@@ -125,9 +122,9 @@ The `user_rewards` table is created within each database and has the following s",
+            "changes": {
+                "removed": [
+                    "```"
+                ],
+                "added": [
+                    "```sfksdfkdskf"
+                ]
+            }
+        },
+        "b8a8b959-654a-44de-aed7-4aa3c9b7d866": {
+            "hash": "b8a8b959-654a-44de-aed7-4aa3c9b7d866",
+            "file_path": "README.md",
+            "hunk_header": "@@ -153,4 +150,4 @@ databases = [",
+            "changes": {
+                "removed": [
+                    "```"
+                ],
+                "added": [
+                    "````"
+                ]
+            }
+        }
+    }
+}

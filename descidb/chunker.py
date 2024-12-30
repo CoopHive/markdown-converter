@@ -20,7 +20,8 @@ def chunk(chunker_type: ChunkerType, input_text: str) -> List[str]:
     """Chunk based on the specified chunking type."""
 
     # Mapping chunking types to functions
-    chunking_methods = {"paragraph": paragraph, "sentence": sentence, "word": word}
+    chunking_methods = {"paragraph": paragraph,
+                        "sentence": sentence, "word": word}
 
     return chunking_methods[chunker_type](text=input_text)
 

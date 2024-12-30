@@ -62,7 +62,8 @@ def marker(input_path: str) -> str:
                 if f.lower().endswith(".pdf")
             ]
             if not input_pdf_paths:
-                raise ValueError(f"No PDF files found in directory: {input_path}")
+                raise ValueError(
+                    f"No PDF files found in directory: {input_path}")
         else:
             raise ValueError(f"Invalid input path: {input_path}")
 

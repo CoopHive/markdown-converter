@@ -35,21 +35,22 @@ if False:
         print("Command failed:", e.stderr)
 
 
-chunker_type = "paragraph"
-ipfs_url = "https://gateway.lighthouse.storage/ipfs/bafkreidt4eler4fphoz7k5s6f6lx7myvz5b4hwsvd7v7spymd2iob6qvwy"
+embeder_type = "openai"
+ipfs_url = "https://gateway.lighthouse.storage/ipfs/bafkreies5jikyxatomqj2zrg5e7z2fpb5bd62zsgqqhkd2k5eorhy5jc2i"
 
 if False:
-    chunked = chunker.chunk_from_url(chunker_type=chunker_type, input_url=ipfs_url)
+    chunked = chunker.chunk_from_url(
+        chunker_type=chunker_type, input_url=ipfs_url)
     print(chunked)
 
-build_command = "podman build --no-cache -t job-image -f ../docker/chunk.Dockerfile"
+build_command = "podman build --no-cache -t job-image -f ../docker/embed.Dockerfile"
 subprocess.run(build_command, shell=True, check=True)
 
 remove_command = "podman rm -f job-container"
 subprocess.run(remove_command, shell=True, check=False)
 
 run_command = (
-    f"podman run --rm --name job-container job-image {chunker_type} {ipfs_url}"
+    f"podman run --rm --name job-container job-image {embeder_type} {ipfs_url}"
 )
 try:
     result = subprocess.run(
