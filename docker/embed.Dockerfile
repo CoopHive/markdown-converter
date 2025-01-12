@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y \
     libgl1-mesa-glx \
     libglib2.0-0 \
     && pip install --no-cache-dir uv \
-    && apt-get clean && rm -rfa/var/lib/apt/lists/*
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN uv pip install --no-cache-dir "git+https://github.com/CoopHive/markdown-converter.git@embed-test" --system
 
