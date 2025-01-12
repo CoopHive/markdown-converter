@@ -109,7 +109,6 @@ except subprocess.CalledProcessError as e:
 # subprocess.run(remove_command, shell=True, check=False)
 
 # env_vars = {
-#     "OPENAI_API_KEY": "sk-DkpEd31FQDPP4hycFq743IIT-QlFjXiRBeYZ7PVWWdT3BlbkFJl2elt0mENPhg4d7vlEFGucjoJ5rC_qGO3GsuP4ARsA",
 # }
 
 # env_flags = " ".join(f"-e {key}={value}" for key, value in env_vars.items())
