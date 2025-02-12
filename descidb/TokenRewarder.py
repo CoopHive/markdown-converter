@@ -2,6 +2,8 @@ import itertools
 import json
 import os
 import time
+from datetime import datetime
+import math
 
 from dotenv import load_dotenv
 from psycopg2 import connect, sql
@@ -15,17 +17,9 @@ class TokenRewarder:
     # attestation to the contributor, the retroactive reward should be based by on-chain data, in particular demand data in such attestations,
     # so that the token scheduler can (or not) reward intermediate contributions to the db.
 
-    def __init__(
-        self,
-        network="test_base",
-        contract_address="0x14436f6895B8EC34e0E4994Df29D1856b665B490",
-        contract_abi_path="../contracts/CoopHiveV1.json",
-        db_components=None,
-        host="localhost",
-        port=5432,
-        user="",
-        password="",
-    ):
+    def __init__(self, network='test_base', contract_address='0x14436f6895B8EC34e0E4994Df29D1856b665B490',
+                 contract_abi_path='CoopHiveV1.json', db_components=None,
+                 host="localhost", port=5432, user="", password=""):
         """Initializes the TokenRewarder class and sets up blockchain and database connections."""
         self._initialize_network(network)
         contract_abi = self.load_contract_abi(contract_abi_path)["abi"]
@@ -34,8 +28,7 @@ class TokenRewarder:
         self.web3 = Web3(Web3.HTTPProvider(self.rpc_url))
         self.contract_address = contract_address
         self.contract = self.web3.eth.contract(
-            address=self.contract_address, abi=contract_abi
-        )
+            address=self.contract_address, abi=contract_abi)
 
         # Blockchain credentials from environment variables
         self.owner_address = os.getenv("OWNER_ADDRESS")
@@ -67,8 +60,7 @@ class TokenRewarder:
             self.chain_id = 1234
         else:
             raise ValueError(
-                "Unsupported network. Choose 'optimism', 'test_base', or 'base'."
-            )
+                "Unsupported network. Choose 'optimism', 'test_base', or 'base'.")
 
     def _connect(self, dbname="postgres"):
         """Establishes a connection to the specified PostgreSQL database."""
@@ -78,7 +70,7 @@ class TokenRewarder:
                 port=self.port,
                 user=self.user,
                 password=self.password,
-                dbname=dbname,
+                dbname=dbname
             )
             conn.autocommit = True
             return conn
@@ -116,13 +108,13 @@ class TokenRewarder:
         try:
             # Check if the database exists
             cursor.execute(
-                sql.SQL("SELECT 1 FROM pg_database WHERE datname = %s"), [db_name]
+                sql.SQL("SELECT 1 FROM pg_database WHERE datname = %s"), [
+                    db_name]
             )
             if not cursor.fetchone():
                 # Create the new database
-                cursor.execute(
-                    sql.SQL("CREATE DATABASE {}").format(sql.Identifier(db_name))
-                )
+                cursor.execute(sql.SQL("CREATE DATABASE {}").format(
+                    sql.Identifier(db_name)))
                 print(f"Database '{db_name}' created successfully.")
 
             # Ensure schema and table are created in the new database
@@ -149,27 +141,27 @@ class TokenRewarder:
             # Check if 'user_rewards' table exists
             cursor.execute("""
                 SELECT EXISTS (
-                    SELECT FROM information_schema.tables 
-                    WHERE table_schema = 'default_schema' 
+                    SELECT FROM information_schema.tables
+                    WHERE table_schema = 'default_schema'
                     AND table_name = 'user_rewards'
                 )
             """)
             table_exists = cursor.fetchone()[0]
 
             if not table_exists:
-                # Create the 'user_rewards' table if it doesn't exist
+                # Create the 'user_rewards' table with an id as primary key
                 cursor.execute("""
                     CREATE TABLE default_schema.user_rewards (
-                        public_key TEXT PRIMARY KEY,
+                        id SERIAL PRIMARY KEY,
+                        public_key TEXT NOT NULL,
                         job_count INT DEFAULT 0,
-                        token_balance INT DEFAULT 0
+                        time_stamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     )
                 """)
                 print(f"Initialized 'user_rewards' table in '{db_name}'.")
             else:
                 print(
-                    f"'user_rewards' table already exists in '{db_name}', skipping creation."
-                )
+                    f"'user_rewards' table already exists in '{db_name}', skipping creation.")
 
         except Exception as e:
             print(f"Error creating schema or table: {e}")
@@ -179,7 +171,7 @@ class TokenRewarder:
 
     def add_reward_to_user(self, public_key, db_name):
         db_name = f"{db_name}_token"
-        """Increments the job count for a user or adds them if they don't exist."""
+        """Adds a new entry for the user or increments job count with a new timestamp."""
         conn = self._connect(db_name)
         if conn is None:
             print(f"Unable to connect to the database '{db_name}'.")
@@ -187,94 +179,338 @@ class TokenRewarder:
 
         cursor = conn.cursor()
         try:
-            # Check if the user exists
             cursor.execute(
-                "SELECT job_count FROM default_schema.user_rewards WHERE public_key = %s",
-                (public_key,),
+                """
+                INSERT INTO default_schema.user_rewards (public_key, job_count, time_stamp)
+                VALUES (%s, %s, CURRENT_TIMESTAMP)
+                """, (public_key, 1)
             )
-            result = cursor.fetchone()
-
-            if result is None:
-                # Insert a new user if not found
-                cursor.execute(
-                    """
-                    INSERT INTO default_schema.user_rewards (public_key, job_count, token_balance)
-                    VALUES (%s, %s, %s)
-                    """,
-                    (public_key, 1, 0),
-                )
-                print(f"User '{public_key}' added with job_count 1.")
-            else:
-                # Increment the user's job count
-                new_job_count = result[0] + 1
-                cursor.execute(
-                    "UPDATE default_schema.user_rewards SET job_count = %s WHERE public_key = %s",
-                    (new_job_count, public_key),
-                )
-                print(f"User '{public_key}' job_count incremented to {new_job_count}.")
+            print(f"Added entry for user '{public_key}' with job_count 1.")
 
         except Exception as e:
-            print(f"Error updating job count: {e}")
+            print(f"Error adding reward entry: {e}")
         finally:
             cursor.close()
             conn.close()
 
-    def issue_token(self, recipient_address, job_count=1):
+    def issue_token(self, recipient_address, amount=1):
         """Issues tokens to the recipient address."""
         try:
-            nonce = self.web3.eth.get_transaction_count(self.owner_address, "pending")
+            nonce = self.web3.eth.get_transaction_count(
+                self.owner_address, 'pending')
 
             txn = self.contract.functions.transfer(
-                recipient_address, job_count
-            ).build_transaction(
-                {
-                    "chainId": self.chain_id,
-                    "gas": 100000,
-                    "gasPrice": self.web3.eth.gas_price,
-                    "nonce": nonce,
-                }
-            )
+                str(recipient_address), int(amount * 1e18)
+            ).build_transaction({
+                'chainId': self.chain_id,
+                'gas': 100000,
+                'gasPrice': self.web3.eth.gas_price,
+                'nonce': nonce,
+            })
 
-            signed_txn = self.web3.eth.account.sign_transaction(txn, self.private_key)
-            tx_hash = self.web3.eth.send_raw_transaction(signed_txn.raw_transaction)
+            signed_txn = self.web3.eth.account.sign_transaction(
+                txn, self.private_key)
+            tx_hash = self.web3.eth.send_raw_transaction(
+                signed_txn.raw_transaction)
             print(f"Transaction sent: {self.web3.to_hex(tx_hash)}")
+            time.sleep(5)
             return True
 
         except Exception as e:
             print(f"Error sending transaction: {e}")
             return False
 
-    def reward_users(self):
-        """Rewards users and resets their job counts."""
-        print("Rewarding users...")
-        for db_name in self.db_names:
-            conn = self._connect(db_name)
-            if conn is None:
-                print(f"Unable to connect to '{db_name}'.")
-                continue
+    def get_user_rewards(self, db_name):
+        user_rewards = self.reward_users_default(db_name)
+        for user, amount in user_rewards.items():
+            print(f"Issuing {amount:.2f} tokens to user '{user}'")
+            self.issue_token(user, amount)
 
-            cursor = conn.cursor()
-            try:
-                cursor.execute(
-                    "SELECT public_key, job_count FROM default_schema.user_rewards WHERE job_count > 0"
-                )
-                users = cursor.fetchall()
+    def reward_users_after_time(self, db_name, start_time, reward_per_job=1):
+        '''Rewards users based on a constant reward per job count after a specified time.'''
+        conn = self._connect(db_name)
+        if conn is None:
+            print(f"Unable to connect to the database '{db_name}'.")
+            return
 
-                for public_key, job_count in users:
-                    time.sleep(4)
-                    if self.issue_token(public_key, job_count):
-                        cursor.execute(
-                            """
-                            UPDATE default_schema.user_rewards 
-                            SET job_count = 0, token_balance = token_balance + %s 
-                            WHERE public_key = %s
-                            """,
-                            (job_count, public_key),
-                        )
-                        print(f"Rewarded {job_count} tokens to '{public_key}'.")
+        cursor = conn.cursor()
+        try:
+            cursor.execute("""
+                SELECT public_key, SUM(job_count) AS total_jobs
+                FROM default_schema.user_rewards
+                WHERE time_stamp >= %s
+                GROUP BY public_key
+            """, (start_time,))
 
-            except Exception as e:
-                print(f"Error rewarding users: {e}")
-            finally:
-                cursor.close()
-                conn.close()
+            user_entries = cursor.fetchall()
+
+            rewards = {}
+            for public_key, total_jobs in user_entries:
+                rewards[public_key] = total_jobs * reward_per_job
+
+            print("\nRewards After Specified Time:")
+            for user, reward in rewards.items():
+                print(f"  User '{user}': {reward:.2f} tokens")
+
+            return rewards
+
+        except Exception as e:
+            print(f"Error calculating time-based rewards: {e}")
+        finally:
+            cursor.close()
+            conn.close()
+
+    def reward_users_milestone(self, db_name, milestone=10, reward_per_job=1):
+        '''Rewards users based on a milestone-based reward scheme.'''
+        conn = self._connect(db_name)
+        if conn is None:
+            print(f"Unable to connect to the database '{db_name}'.")
+            return
+
+        cursor = conn.cursor()
+        try:
+            cursor.execute("""
+                SELECT public_key, SUM(job_count) AS total_jobs
+                FROM default_schema.user_rewards
+                GROUP BY public_key
+                HAVING SUM(job_count) >= %s
+            """, (milestone,))
+
+            user_entries = cursor.fetchall()
+
+            rewards = {}
+            for public_key, total_jobs in user_entries:
+                rewards[public_key] = total_jobs * reward_per_job
+
+            print("\nMilestone-Based Rewards:")
+            for user, reward in rewards.items():
+                print(f"  User '{user}': {reward:.2f} tokens")
+
+            return rewards
+
+        except Exception as e:
+            print(f"Error calculating milestone-based rewards: {e}")
+        finally:
+            cursor.close()
+            conn.close()
+
+    def reward_users_with_bonus(self, db_name, bonus_threshold=50, bonus=10, reward_per_job=1):
+        '''Rewards users based on a bonus threshold and bonus amount.'''
+        conn = self._connect(db_name)
+        if conn is None:
+            print(f"Unable to connect to the database '{db_name}'.")
+            return
+
+        cursor = conn.cursor()
+        try:
+            cursor.execute("""
+                SELECT public_key, SUM(job_count) AS total_jobs
+                FROM default_schema.user_rewards
+                GROUP BY public_key
+            """)
+
+            user_entries = cursor.fetchall()
+
+            rewards = {}
+            for public_key, total_jobs in user_entries:
+                reward = total_jobs * reward_per_job
+                if total_jobs >= bonus_threshold:
+                    reward += bonus
+                rewards[public_key] = reward
+
+            print("\nRewards with Bonuses:")
+            for user, reward in rewards.items():
+                print(f"  User '{user}': {reward:.2f} tokens")
+
+            return rewards
+
+        except Exception as e:
+            print(f"Error calculating rewards with bonuses: {e}")
+        finally:
+            cursor.close()
+            conn.close()
+
+    def reward_users_constant(self, db_name, reward_per_job=1):
+        '''Rewards users based on a constant reward per job count.'''
+        conn = self._connect(db_name)
+        if conn is None:
+            print(f"Unable to connect to the database '{db_name}'.")
+            return
+
+        cursor = conn.cursor()
+        try:
+            cursor.execute("""
+                SELECT public_key, SUM(job_count) AS total_jobs
+                FROM default_schema.user_rewards
+                GROUP BY public_key
+            """)
+
+            user_entries = cursor.fetchall()
+
+            rewards = {}
+            for public_key, total_jobs in user_entries:
+                rewards[public_key] = total_jobs * reward_per_job
+
+            print("\nConstant Rewards:")
+            for user, reward in rewards.items():
+                print(f"  User '{user}': {reward:.2f} tokens")
+
+            return rewards
+
+        except Exception as e:
+            print(f"Error calculating constant rewards: {e}")
+        finally:
+            cursor.close()
+            conn.close()
+
+    def reward_users_default(self, db_name):
+        '''Rewards users based on a default exponential decay reward scheme.'''
+        conn = self._connect(db_name)
+        if conn is None:
+            print(f"Unable to connect to the database '{db_name}'.")
+            return
+
+        cursor = conn.cursor()
+        n_buckets = 3
+
+        try:
+            cursor.execute("""
+                SELECT public_key, job_count, time_stamp
+                FROM default_schema.user_rewards
+                ORDER BY public_key, time_stamp
+            """)
+
+            user_entries = cursor.fetchall()
+
+            if not user_entries:
+                print("No user entries found.")
+                return
+
+            current_time = datetime.now()
+            bucket_duration = (
+                user_entries[-1][2] - user_entries[0][2]) / n_buckets
+            start_time = current_time - (bucket_duration * n_buckets)
+
+            global_buckets = [start_time + i *
+                              bucket_duration for i in range(n_buckets)]
+
+            # Initialize the bucket map
+            bucket_map = {bucket_start: {} for bucket_start in global_buckets}
+
+            # Populate each bucket with user contributions
+            for public_key, job_count, time_stamp in user_entries:
+                for bucket_start in global_buckets:
+                    # Define the end time for the current bucket
+                    bucket_end = bucket_start + bucket_duration
+                    if bucket_start <= time_stamp < bucket_end:
+                        if public_key not in bucket_map[bucket_start]:
+                            bucket_map[bucket_start][public_key] = 0
+
+                        bucket_map[bucket_start][public_key] += job_count
+                        break
+
+            weights = [math.exp(-i) for i in range(n_buckets)]
+
+            weighted_rewards = {}
+            for i, (bucket_start, users) in enumerate(reversed(bucket_map.items())):
+                weight = weights[i]
+                print(f"Bucket starting {bucket_start} (Weight: {weight}):")
+                for user, count in users.items():
+                    weighted_reward = count * weight
+                    if user not in weighted_rewards:
+                        weighted_rewards[user] = 0
+                    weighted_rewards[user] += weighted_reward
+                    print(
+                        f"  User '{user}': {count} contributions, Weighted reward: {weighted_reward:.2f}")
+
+            print("\nTotal Weighted Rewards:")
+            for user, total_reward in weighted_rewards.items():
+                print(
+                    f"  User '{user}': {total_reward:.2f} total weighted reward")
+
+            return weighted_rewards
+
+        except Exception as e:
+            print(f"Error fetching user rewards: {e}")
+        finally:
+            cursor.close()
+            conn.close()
+
+    def reward_users_within_timeframe(self, db_name, start_time, end_time, reward_per_job=1):
+        '''Rewards users who contributed within a specific timeframe.'''
+        conn = self._connect(db_name)
+        if conn is None:
+            print(f"Unable to connect to the database '{db_name}'.")
+            return
+
+        cursor = conn.cursor()
+        try:
+            cursor.execute("""
+                SELECT public_key, SUM(job_count) AS total_jobs
+                FROM default_schema.user_rewards
+                WHERE time_stamp >= %s AND time_stamp <= %s
+                GROUP BY public_key
+            """, (start_time, end_time))
+
+            user_entries = cursor.fetchall()
+
+            rewards = {}
+            for public_key, total_jobs in user_entries:
+                rewards[public_key] = total_jobs * reward_per_job
+
+            print("\nTimeframe-Based Rewards:")
+            for user, reward in rewards.items():
+                print(f"  User '{user}': {reward:.2f} tokens")
+
+            return rewards
+
+        except Exception as e:
+            print(f"Error calculating timeframe-based rewards: {e}")
+        finally:
+            cursor.close()
+            conn.close()
+
+    def reward_users_by_tier(self, db_name, tiers=None):
+        '''Rewards users based on their tier of contributions.'''
+        if tiers is None:
+            tiers = {
+                100: 5,  # Contributions >= 100 get 5 tokens per job
+                50: 3,   # Contributions >= 50 get 3 tokens per job
+                0: 1     # Contributions >= 0 get 1 token per job
+            }
+
+        conn = self._connect(db_name)
+        if conn is None:
+            print(f"Unable to connect to the database '{db_name}'.")
+            return
+
+        cursor = conn.cursor()
+        try:
+            cursor.execute("""
+                SELECT public_key, SUM(job_count) AS total_jobs
+                FROM default_schema.user_rewards
+                GROUP BY public_key
+            """)
+
+            user_entries = cursor.fetchall()
+
+            rewards = {}
+            for public_key, total_jobs in user_entries:
+                reward_per_job = 0
+                for threshold, reward in sorted(tiers.items(), reverse=True):
+                    if total_jobs >= threshold:
+                        reward_per_job = reward
+                        break
+                rewards[public_key] = total_jobs * reward_per_job
+
+            print("\nTier-Based Rewards:")
+            for user, reward in rewards.items():
+                print(f"  User '{user}': {reward:.2f} tokens")
+
+            return rewards
+
+        except Exception as e:
+            print(f"Error calculating tier-based rewards: {e}")
+        finally:
+            cursor.close()
+            conn.close()
