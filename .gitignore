@@ -134,3 +134,8 @@ private_key.txt
 output_marker/
 *.tar
 tmp/
+**/__pycache__/
+**/.env
+/descidb/database
+/descidb/cids.txt
+/papers

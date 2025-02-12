@@ -1,6 +1,6 @@
 import os
 from typing import Literal
-
+import textwrap
 import PyPDF2
 from dotenv import load_dotenv
 from marker.config.parser import ConfigParser
@@ -38,6 +38,11 @@ def convert(conversion_type: ConversionType, input_path: str) -> str:
     }
 
     return conversion_methods[conversion_type](input_path)
+
+
+def chunk_text(text: str, chunk_size: int = 4000) -> list:
+    """Splits text into smaller chunks to fit within token limits."""
+    return textwrap.wrap(text, width=chunk_size, break_long_words=False, break_on_hyphens=False)
 
 
 def marker(input_path: str) -> str:
@@ -108,30 +113,34 @@ def extract_text_from_pdf(input_path: str) -> str:
 
 
 def openai(input_path: str) -> str:
-    """Convert text using the OpenAI API."""
+    """Convert large text to Markdown using OpenAI API with chunking."""
     try:
         if not os.path.exists(input_path):
             raise FileNotFoundError(f"Input file not found: {input_path}")
 
         pdf_text = extract_text_from_pdf(input_path)
+        chunks = chunk_text(pdf_text, chunk_size=4000)
 
         client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        markdown_chunks = []
 
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {
-                    "role": "user",
-                    "content": f"Convert the following text to Markdown:\n\n{pdf_text}",
-                },
-            ],
-        )
+        for chunk in chunks:
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {
+                        "role": "user",
+                        "content": f"Convert the following text to Markdown:\n\n{chunk}",
+                    },
+                ],
+            )
+            if response and response.choices:
+                markdown_chunks.append(response.choices[0].message.content)
+            else:
+                print("Failed to convert a chunk using OpenAI.")
+                markdown_chunks.append(chunk)
 
-        if response and response.choices:
-            return response.choices[0].message.content
-        else:
-            print("Failed to convert text using OpenAI.")
-            return pdf_text
+        return "\n\n".join(markdown_chunks)
 
     except FileNotFoundError as e:
         print(f"File not found: {e}")

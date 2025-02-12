@@ -2,136 +2,110 @@ import os
 
 from dotenv import load_dotenv
 from Postgres import PostgresDBManager
-
+import time
 from descidb.chunker import chunk_from_url
 from descidb.converter import convert_from_url
 from descidb.embedder import embed_from_url
-# from descidb.processor import Processor
+from descidb.processor import Processor
 from descidb.TokenRewarder import TokenRewarder
 from descidb.utils import compress, upload_to_lighthouse
-from descidb.vectordb import VectorDatabaseManager
+from descidb.ChromaClient import VectorDatabaseManager
+import hashlib
+import subprocess
 
 load_dotenv(override=True)
 
 
-# def test_processor():
-#     papers_directory = "../papers"
-#     metadata_file = "../papers/metadata.json"
-#     max_papers = 2
+def test_processor():
+    papers_directory = os.getcwd() + "/" + "../papers"
+    metadata_file = os.getcwd() + "/" + "../papers/metadata.json"
+    storage_directory = "/Users/vardhanshorewala/Desktop/coophive/papers-graph"
 
-#     lighthouse_api_key = os.getenv("LIGHTHOUSE_TOKEN")
-#     postgres_host = "localhost"
-#     postgres_port = 5432
-#     postgres_user = "vardhanshorewala"
-#     postgres_password = "password"
-
-#     db_manager_postgres = PostgresDBManager(
-#         host=postgres_host,
-#         port=postgres_port,
-#         user=postgres_user,
-#         password=postgres_password,
-#     )
-
-#     papers = [
-#         os.path.join(papers_directory, f)
-#         for f in os.listdir(papers_directory)
-#         if f.endswith(".pdf")
-#     ][:max_papers]
-
-#     databases = [
-#         {
-#             "converter": "marker",
-#             "chunker": "paragraph",
-#             "embedder": "openai",
-#         },
-#     ]
-
-#     components = {
-#         "converter": list(set([db_config["converter"] for db_config in databases])),
-#         "chunker": list(set([db_config["chunker"] for db_config in databases])),
-#         "embedder": list(set([db_config["embedder"] for db_config in databases])),
-#     }
-
-#     db_manager = VectorDatabaseManager(components=components)
-
-#     tokenRewarder = TokenRewarder(
-#         db_components=components,
-#         host=postgres_host,
-#         port=postgres_port,
-#         user=postgres_user,
-#         password=postgres_password,
-#     )
-
-#     for db_config in databases:
-#         converter = db_config["converter"]
-#         chunker = db_config["chunker"]
-#         embedder = db_config["embedder"]
-
-#         db_name = f"{converter}_{chunker}_{embedder}"
-#         db_config["db_name"] = db_name
-
-#     db_names = [db_config["db_name"] for db_config in databases]
-
-#     db_manager_postgres.create_databases(db_names)
-
-#     processor = Processor(
-#         authorPublicKey="0x55DE19820d5Dfc5761370Beb16Eb041E11272619",
-#         db_manager=db_manager,
-#         postgres_db_manager=db_manager_postgres,
-#         metadata_file=metadata_file,
-#         ipfs_api_key=lighthouse_api_key,
-#         TokenRewarder=tokenRewarder,
-#     )
-
-#     for paper in papers:
-#         print(f"Processing {paper}...")
-#         processor.process(pdf_path=paper, databases=databases)
-
-# tokenRewarder.reward_users()
-
-
-def modular_pipeline():
-    if False:
-        # Buyer Steps
-        input_pdf_paths = [
-            # "../papers/1001.0093.pdf",
-            "../papers/desci.pdf",
-            "../papers/metadata.json",
-        ]
-        tar_path = "../papers/batched.tar"
-        compress(input_pdf_paths, tar_path)
+    max_papers = 10
 
     lighthouse_api_key = os.getenv("LIGHTHOUSE_TOKEN")
+    postgres_host = "localhost"
+    postgres_port = 5432
+    postgres_user = "vardhanshorewala"
+    postgres_password = "password"
 
-    if False:
-        # Query:
-        ipfs_url = upload_to_lighthouse(tar_path, lighthouse_api_key)
-        conversion_type = "marker"
+    db_manager_postgres = PostgresDBManager(
+        host=postgres_host,
+        port=postgres_port,
+        user=postgres_user,
+        password=postgres_password,
+    )
 
-        converted = convert_from_url(
-            conversion_type=conversion_type, input_url=ipfs_url
-        )
-        print(converted)
+    papers = [
+        os.path.join(papers_directory, f)
+        for f in os.listdir(papers_directory)
+        if f.endswith(".pdf")
+    ][:max_papers]
 
-    converted_file = "tmp/converted_file.txt"
-    if False:
-        with open(converted_file, "w") as file:
-            # Write the variable to the file
-            file.write(converted)
+    databases = [
+        {
+            "converter": "openai",
+            "chunker": "paragraph",
+            "embedder": "openai",
+        },
+    ]
 
-        # Query:
-        ipfs_url = upload_to_lighthouse(converted_file, lighthouse_api_key)
+    components = {
+        "converter": list(set([db_config["converter"] for db_config in databases])),
+        "chunker": list(set([db_config["chunker"] for db_config in databases])),
+        "embedder": list(set([db_config["embedder"] for db_config in databases])),
+    }
 
-    ipfs_url = "https://gateway.lighthouse.storage/ipfs/bafkreies5jikyxatomqj2zrg5e7z2fpb5bd62zsgqqhkd2k5eorhy5jc2i"
-    print(ipfs_url)
-    embed_type = "openai"
+    db_manager = VectorDatabaseManager(components=components)
 
-    embed = embed_from_url(embeder_type=embed_type, input_url=ipfs_url)
-    print(embed)
+    tokenRewarder = TokenRewarder(
+        db_components=components,
+        host=postgres_host,
+        port=postgres_port,
+        user=postgres_user,
+        password=postgres_password,
+    )
 
-    # embedder =  "openai"
+    for db_config in databases:
+        converter = db_config["converter"]
+        chunker = db_config["chunker"]
+        embedder = db_config["embedder"]
+
+        db_name = f"{converter}_{chunker}_{embedder}"
+        db_config["db_name"] = db_name
+
+    db_names = [db_config["db_name"] for db_config in databases]
+
+    db_manager_postgres.create_databases(db_names)
+
+    processor = Processor(
+        authorPublicKey="0x55DE19820d5Dfc5761370Beb16Eb041E11272619",
+        db_manager=db_manager,
+        postgres_db_manager=db_manager_postgres,
+        metadata_file=metadata_file,
+        ipfs_api_key=lighthouse_api_key,
+        TokenRewarder=tokenRewarder,
+    )
+
+    for paper in papers:
+        print(f"Processing {paper}...")
+        random_data = os.urandom(32)
+        hash_value = hashlib.sha256(random_data).hexdigest()
+
+        try:
+            os.makedirs(f"{storage_directory}/{hash_value}")
+            os.chdir(f"{storage_directory}/{hash_value}")
+            subprocess.run(["git", "init"], check=True)
+        except Exception as e:
+            print(f"Error: {e}")
+            continue
+
+        processor.process(pdf_path=paper, databases=databases,
+                          git_path=f"{storage_directory}/{hash_value}")
+
+        time.sleep(5)
 
 
 if __name__ == "__main__":
     print("Running test_processor")
-    modular_pipeline()
+    test_processor()

@@ -1,6 +1,5 @@
 import itertools
 import os
-
 import chromadb
 
 
@@ -52,9 +51,29 @@ class VectorDatabaseManager:
 
         # Insert document into the database
         collection = self.db_client.get_collection(name=db_name)
-        collection.add(
-            documents=[metadata["title"]],
-            embeddings=[embedding],
-            ids=[doc_id],
-            metadatas=[metadata],
-        )
+        try:
+            collection.add(
+                documents=[metadata["content_cid"]],
+                embeddings=embedding,
+                ids=[doc_id],
+                metadatas=[metadata],
+            )
+        except Exception as e:
+            print(f"Error inserting document into database '{db_name}': {e}")
+
+    def print_all_metadata(self):
+        """
+        Retrieves and prints all metadata from every collection.
+        """
+        for db_name in self.db_names:
+            collection = self.db_client.get_collection(name=db_name)
+            # Retrieve all entries from the collection.
+            # The structure of the returned results is assumed to contain a "metadatas" key.
+            results = collection.get()
+            metadatas = results.get("metadatas", [])
+            print(f"\nMetadata for collection '{db_name}':")
+            if not metadatas:
+                print("  No metadata found.")
+            else:
+                for metadata in metadatas:
+                    print(metadata)
