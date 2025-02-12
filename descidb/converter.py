@@ -20,11 +20,11 @@ ConversionType = Literal["marker", "openai"]
 
 def convert_from_url(conversion_type: ConversionType, input_url: str) -> str:
     """Convert based on the specified conversion type."""
-    donwload_path = download_from_url(url=input_url)
+    download_path = download_from_url(url=input_url)
 
-    if donwload_path.endswith(".tar"):
-        output_path = donwload_path[: donwload_path.rfind("/")]
-        extract(tar_file_path=donwload_path, output_path=output_path)
+    if download_path.endswith(".tar"):
+        output_path = download_path[: download_path.rfind("/")]
+        extract(tar_file_path=download_path, output_path=output_path)
 
     return convert(conversion_type=conversion_type, input_path=output_path)
 

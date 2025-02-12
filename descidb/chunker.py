@@ -8,9 +8,9 @@ ChunkerType = Literal["paragraph", "sentence", "word"]
 
 def chunk_from_url(chunker_type: ChunkerType, input_url: str) -> List[str]:
     """Chunk based on the specified chunking type."""
-    donwload_path = download_from_url(url=input_url)
+    download_path = download_from_url(url=input_url)
 
-    with open(donwload_path, "r") as file:
+    with open(download_path, "r") as file:
         input_text = file.read()
 
     return chunk(chunker_type=chunker_type, input_text=input_text)
