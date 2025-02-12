@@ -2,21 +2,26 @@ import os
 
 from dotenv import load_dotenv
 from Postgres import PostgresDBManager
-
+import time
 from descidb.chunker import chunk_from_url
 from descidb.converter import convert_from_url
+from descidb.embedder import embed_from_url
 from descidb.processor import Processor
 from descidb.TokenRewarder import TokenRewarder
 from descidb.utils import compress, upload_to_lighthouse
-from descidb.vectordb import VectorDatabaseManager
+from descidb.ChromaClient import VectorDatabaseManager
+import hashlib
+import subprocess
 
 load_dotenv(override=True)
 
 
 def test_processor():
-    papers_directory = "../papers"
-    metadata_file = "../papers/metadata.json"
-    max_papers = 2
+    papers_directory = os.getcwd() + "/" + "../papers"
+    metadata_file = os.getcwd() + "/" + "../papers/metadata.json"
+    storage_directory = "/Users/vardhanshorewala/Desktop/coophive/papers-graph"
+
+    max_papers = 10
 
     lighthouse_api_key = os.getenv("LIGHTHOUSE_TOKEN")
     postgres_host = "localhost"
@@ -39,7 +44,7 @@ def test_processor():
 
     databases = [
         {
-            "converter": "marker",
+            "converter": "openai",
             "chunker": "paragraph",
             "embedder": "openai",
         },
@@ -84,51 +89,23 @@ def test_processor():
 
     for paper in papers:
         print(f"Processing {paper}...")
-        processor.process(pdf_path=paper, databases=databases)
+        random_data = os.urandom(32)
+        hash_value = hashlib.sha256(random_data).hexdigest()
 
-    # tokenRewarder.reward_users()
+        try:
+            os.makedirs(f"{storage_directory}/{hash_value}")
+            os.chdir(f"{storage_directory}/{hash_value}")
+            subprocess.run(["git", "init"], check=True)
+        except Exception as e:
+            print(f"Error: {e}")
+            continue
 
+        processor.process(pdf_path=paper, databases=databases,
+                          git_path=f"{storage_directory}/{hash_value}")
 
-def modular_pipeline():
-    if False:
-        # Buyer Steps
-        input_pdf_paths = [
-            # "../papers/1001.0093.pdf",
-            "../papers/desci.pdf",
-            "../papers/metadata.json",
-        ]
-        tar_path = "../papers/batched.tar"
-        compress(input_pdf_paths, tar_path)
-
-    lighthouse_api_key = os.getenv("LIGHTHOUSE_TOKEN")
-
-    if False:
-        # Query:
-        ipfs_url = upload_to_lighthouse(tar_path, lighthouse_api_key)
-        conversion_type = "marker"
-
-        converted = convert_from_url(
-            conversion_type=conversion_type, input_url=ipfs_url
-        )
-        print(converted)
-
-    converted_file = "tmp/converted_file.txt"
-    if False:
-        with open(converted_file, "w") as file:
-            # Write the variable to the file
-            file.write(converted)
-
-        # Query:
-        ipfs_url = upload_to_lighthouse(converted_file, lighthouse_api_key)
-
-    ipfs_url = "https://gateway.lighthouse.storage/ipfs/bafkreidt4eler4fphoz7k5s6f6lx7myvz5b4hwsvd7v7spymd2iob6qvwy"
-    chunker_type = "paragraph"
-
-    chunked = chunk_from_url(chunker_type=chunker_type, input_url=ipfs_url)
-    print(chunked)
-
-    # embedder =  "openai"
+        time.sleep(5)
 
 
 if __name__ == "__main__":
-    modular_pipeline()
+    print("Running test_processor")
+    test_processor()
