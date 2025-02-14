@@ -12,7 +12,6 @@ from openai import OpenAI
 from descidb.utils import download_from_url, extract
 
 load_dotenv(override=True)
-configure_logging()
 
 
 ConversionType = Literal["marker", "openai"]

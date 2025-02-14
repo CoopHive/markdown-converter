@@ -41,6 +41,11 @@ class Processor:
         self.chunk_cache = {}  # Cache for chunked text
         self.graph_db = IPFSNeo4jGraph(uri=os.getenv("NEO4J_URI"), username=os.getenv(
             "NEO4J_USER"), password=os.getenv("NEO4J_PASSWORD"))
+        self.__write_to_file(
+            self.authorPublicKey, os.path.join(os.getcwd(), "tmp.txt"))
+        self.author_cid = self.__upload_text_to_lighthouse(
+            os.path.join(os.getcwd(), "tmp.txt")).split("ipfs/")[-1]
+        self.graph_db.add_ipfs_node(self.author_cid)
 
     def __upload_text_to_lighthouse(self, filename: str) -> str:
         """Uploads a string as a file to Lighthouse IPFS and returns the IPFS hash (CID).
@@ -142,6 +147,8 @@ class Processor:
             object=pdf_path, git_path=git_path)
 
         self.graph_db.add_ipfs_node(metadata["pdf_ipfs_cid"])
+        self.graph_db.create_relationship(metadata["pdf_ipfs_cid"],
+                                          self.author_cid, "AUTHORED_BY")
 
         cid_file_path = os.path.join(os.getcwd(), "cids.txt")
 
@@ -171,7 +178,8 @@ class Processor:
             self.graph_db.add_ipfs_node(converted_text_ipfs_cid)
             self.graph_db.create_relationship(
                 metadata["pdf_ipfs_cid"], converted_text_ipfs_cid, "CONVERTED_BY_" + converter_func)
-
+            self.graph_db.create_relationship(
+                converted_text_ipfs_cid, self.author_cid, "AUTHORED_BY")
             # Step 2.2: Chunking
             chunk_cache_key = f"{converter_func}_{chunker_func}"
             if chunk_cache_key not in self.chunk_cache:
@@ -192,7 +200,8 @@ class Processor:
                 self.graph_db.add_ipfs_node(chunk_text_ipfs_cid)
                 self.graph_db.create_relationship(
                     converted_text_ipfs_cid, chunk_text_ipfs_cid, "CHUNKED_BY_" + chunker_func)
-
+                self.graph_db.create_relationship(
+                    chunk_text_ipfs_cid, self.author_cid, "AUTHORED_BY")
                 # Step 2.3: Embedding
 
                 embedding = embed(
@@ -205,7 +214,8 @@ class Processor:
                 self.graph_db.add_ipfs_node(embedding_ipfs_cid)
                 self.graph_db.create_relationship(
                     chunk_text_ipfs_cid, embedding_ipfs_cid, "EMBEDDED_BY_" + embedder_func)
-
+                self.graph_db.create_relationship(
+                    embedding_ipfs_cid, self.author_cid, "AUTHORED_BY")
                 # db_name = f"{converter_func}_{chunker_func}_{embedder_func}"
                 # metadata.update(
                 #     {

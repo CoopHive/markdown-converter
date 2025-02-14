@@ -18,7 +18,11 @@ class TokenRewarder:
     # so that the token scheduler can (or not) reward intermediate contributions to the db.
 
     def __init__(self, network='test_base', contract_address='0x14436f6895B8EC34e0E4994Df29D1856b665B490',
+<<<<<<< Updated upstream
                  contract_abi_path='CoopHiveV1.json', db_components=None,
+=======
+                 contract_abi_path="/Users/vardhanshorewala/Desktop/coophive/markdown-converter/contracts/CoopHiveV1.json", db_components=None,
+>>>>>>> Stashed changes
                  host="localhost", port=5432, user="", password=""):
         """Initializes the TokenRewarder class and sets up blockchain and database connections."""
         self._initialize_network(network)
@@ -169,9 +173,86 @@ class TokenRewarder:
             cursor.close()
             conn.close()
 
-    def add_reward_to_user(self, public_key, db_name):
+    def add_reward_to_user(self, public_key, db_name, job_count=1):
+        """
+        Adds a new entry for the user with a specific job count.
+
+        :param public_key: The public key of the user.
+        :param db_name: The database name where the user record exists.
+        :param job_count: The number of jobs to add.
+        """
         db_name = f"{db_name}_token"
+<<<<<<< Updated upstream
         """Adds a new entry for the user or increments job count with a new timestamp."""
+=======
+
+        conn = self._connect(db_name)
+        if conn is None:
+            print(f"❌ Unable to connect to the database '{db_name}'.")
+            return
+
+        cursor = conn.cursor()
+        try:
+            cursor.execute(
+                """
+                INSERT INTO default_schema.user_rewards (public_key, job_count, time_stamp)
+                VALUES (%s, %s, CURRENT_TIMESTAMP)
+                ON CONFLICT (public_key) 
+                DO UPDATE SET job_count = default_schema.user_rewards.job_count + EXCLUDED.job_count
+                """, (public_key, job_count)
+            )
+            print(
+                f"✅ Added entry for user '{public_key}' with job_count {job_count}.")
+
+        except Exception as e:
+            print(f"❌ Error adding reward entry: {e}")
+        finally:
+            cursor.close()
+            conn.close()
+
+    def issue_token(self, recipient_address, amount=1):
+        """Issues tokens to the recipient address."""
+        if not self.owner_address:
+            print("❌ OWNER_ADDRESS is not set!")
+            return False
+
+        if not recipient_address:
+            print("❌ Recipient address is invalid!")
+            return False
+
+        try:
+            nonce = self.web3.eth.get_transaction_count(
+                self.owner_address, 'pending')
+
+            txn = self.contract.functions.transfer(
+                str(recipient_address), int(amount * 1e18)
+            ).build_transaction({
+                'chainId': self.chain_id,
+                'gas': 100000,
+                'gasPrice': self.web3.eth.gas_price,
+                'nonce': nonce,
+            })
+
+            signed_txn = self.web3.eth.account.sign_transaction(
+                txn, self.private_key)
+            tx_hash = self.web3.eth.send_raw_transaction(
+                signed_txn.raw_transaction)
+            print(f"✅ Transaction sent: {self.web3.to_hex(tx_hash)}")
+            return True
+
+        except Exception as e:
+            print(f"❌ Error sending transaction: {e}")
+            return False
+
+    def get_user_rewards(self, db_name):
+        user_rewards = self.reward_users_constant(db_name)
+        for user, amount in user_rewards.items():
+            print(f"Issuing {amount:.2f} tokens to user '{user}'")
+            self.issue_token(user, amount)
+
+    def reward_users_after_time(self, db_name, start_time, reward_per_job=1):
+        '''Rewards users based on a constant reward per job count after a specified time.'''
+>>>>>>> Stashed changes
         conn = self._connect(db_name)
         if conn is None:
             print(f"Unable to connect to the database '{db_name}'.")
@@ -179,6 +260,7 @@ class TokenRewarder:
 
         cursor = conn.cursor()
         try:
+<<<<<<< Updated upstream
             cursor.execute(
                 """
                 INSERT INTO default_schema.user_rewards (public_key, job_count, time_stamp)
@@ -189,10 +271,34 @@ class TokenRewarder:
 
         except Exception as e:
             print(f"Error adding reward entry: {e}")
+=======
+            cursor.execute("""
+                SELECT public_key, SUM(job_count) AS total_jobs
+                FROM default_schema.user_rewards
+                WHERE time_stamp >= %s
+                GROUP BY public_key
+            """, (start_time,))
+
+            user_entries = cursor.fetchall()
+
+            rewards = {}
+            for public_key, total_jobs in user_entries:
+                rewards[public_key] = total_jobs * reward_per_job
+
+            print("\nRewards After Specified Time:")
+            for user, reward in rewards.items():
+                print(f"  User '{user}': {reward:.2f} tokens")
+
+            return rewards
+
+        except Exception as e:
+            print(f"Error calculating time-based rewards: {e}")
+>>>>>>> Stashed changes
         finally:
             cursor.close()
             conn.close()
 
+<<<<<<< Updated upstream
     def issue_token(self, recipient_address, amount=1):
         """Issues tokens to the recipient address."""
         try:
@@ -215,11 +321,43 @@ class TokenRewarder:
             print(f"Transaction sent: {self.web3.to_hex(tx_hash)}")
             time.sleep(5)
             return True
+=======
+    def reward_users_milestone(self, db_name, milestone=10, reward_per_job=1):
+        '''Rewards users based on a milestone-based reward scheme.'''
+        conn = self._connect(db_name)
+        if conn is None:
+            print(f"Unable to connect to the database '{db_name}'.")
+            return
+
+        cursor = conn.cursor()
+        try:
+            cursor.execute("""
+                SELECT public_key, SUM(job_count) AS total_jobs
+                FROM default_schema.user_rewards
+                GROUP BY public_key
+                HAVING SUM(job_count) >= %s
+            """, (milestone,))
+
+            user_entries = cursor.fetchall()
+
+            rewards = {}
+            for public_key, total_jobs in user_entries:
+                rewards[public_key] = total_jobs * reward_per_job
+
+            print("\nMilestone-Based Rewards:")
+            for user, reward in rewards.items():
+                print(f"  User '{user}': {reward:.2f} tokens")
+
+            return rewards
+>>>>>>> Stashed changes
 
         except Exception as e:
-            print(f"Error sending transaction: {e}")
-            return False
+            print(f"Error calculating milestone-based rewards: {e}")
+        finally:
+            cursor.close()
+            conn.close()
 
+<<<<<<< Updated upstream
     def get_user_rewards(self, db_name):
         user_rewards = self.reward_users_default(db_name)
         for user, amount in user_rewards.items():
@@ -311,6 +449,25 @@ class TokenRewarder:
 
             user_entries = cursor.fetchall()
 
+=======
+    def reward_users_with_bonus(self, db_name, bonus_threshold=50, bonus=10, reward_per_job=1):
+        '''Rewards users based on a bonus threshold and bonus amount.'''
+        conn = self._connect(db_name)
+        if conn is None:
+            print(f"Unable to connect to the database '{db_name}'.")
+            return
+
+        cursor = conn.cursor()
+        try:
+            cursor.execute("""
+                SELECT public_key, SUM(job_count) AS total_jobs
+                FROM default_schema.user_rewards
+                GROUP BY public_key
+            """)
+
+            user_entries = cursor.fetchall()
+
+>>>>>>> Stashed changes
             rewards = {}
             for public_key, total_jobs in user_entries:
                 reward = total_jobs * reward_per_job
@@ -513,4 +670,8 @@ class TokenRewarder:
             print(f"Error calculating tier-based rewards: {e}")
         finally:
             cursor.close()
+<<<<<<< Updated upstream
             conn.close()
+=======
+            conn.close()
+>>>>>>> Stashed changes

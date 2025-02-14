@@ -4,7 +4,6 @@ from dotenv import load_dotenv
 from Postgres import PostgresDBManager
 import time
 from descidb.chunker import chunk_from_url
-from descidb.converter import convert_from_url
 from descidb.embedder import embed_from_url
 from descidb.processor import Processor
 from descidb.TokenRewarder import TokenRewarder

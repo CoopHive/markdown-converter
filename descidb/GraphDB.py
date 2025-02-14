@@ -2,7 +2,7 @@ import os
 import certifi
 import logging
 from neo4j import GraphDatabase
-
+import requests
 logging.basicConfig(level=logging.INFO)
 
 
@@ -122,10 +122,61 @@ class IPFSNeo4jGraph:
                           start_cid} with path {path}: {e}")
             return False
 
+    def _query_ipfs_content(self, cid):
+        """
+        Retrieves the content stored in IPFS for a given CID.
 
-# graph = IPFSNeo4jGraph(uri="bolt+s://9fb20fc2.databases.neo4j.io:7687",
-#                        username="neo4j", password="z2-Aq8cYB0BN7HM54BDCYgoepzrPcqLexdmbUawm_pg")
+        :param cid: The IPFS CID.
+        :return: The content of the IPFS file as a string.
+        """
+        url = f"https://gateway.lighthouse.storage/ipfs/{cid}"
+        try:
+            response = requests.get(url)
+            response.raise_for_status()
+            return response.text.strip()  # Ensure leading/trailing spaces are removed
+        except requests.exceptions.RequestException as e:
+            logging.error(
+                f"Failed to retrieve IPFS content for CID {cid}: {e}")
+            return None
 
+    def get_authored_by_stats(self):
+        """
+        Retrieves a dictionary where keys are the author IDs (fetched from IPFS),
+        and values are the number of incoming relationships pointing to them.
+
+        :return: Dictionary {author_id: incoming_count}
+        """
+        try:
+            with self.driver.session() as session:
+                query = """
+                MATCH (n)-[:AUTHORED_BY]->(a)
+                RETURN a.cid AS authored_by_cid, COUNT(n) AS incoming_count
+                """
+                result = session.run(query)
+
+                authored_by_dict = {}
+
+                for record in result:
+                    cid = record["authored_by_cid"]
+                    incoming_count = record["incoming_count"]
+
+                    author_id = self._query_ipfs_content(cid)
+
+                    if author_id:
+                        authored_by_dict[author_id.strip()] = incoming_count
+                    else:
+                        logging.warning(
+                            f"Could not fetch author ID for CID: {cid}")
+
+                return authored_by_dict
+        except Exception as e:
+            logging.error(f"Failed to retrieve AUTHORED_BY stats: {e}")
+            return {}
+
+
+graph = IPFSNeo4jGraph(uri="bolt+s://9fb20fc2.databases.neo4j.io:7687",
+                       username="neo4j", password="z2-Aq8cYB0BN7HM54BDCYgoepzrPcqLexdmbUawm_pg")
+print(graph.get_authored_by_stats())
 # # Sample data
 # graph.add_ipfs_node("A")
 # graph.add_ipfs_node("B1")
