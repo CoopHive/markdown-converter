@@ -172,26 +172,3 @@ class IPFSNeo4jGraph:
         except Exception as e:
             logging.error(f"Failed to retrieve AUTHORED_BY stats: {e}")
             return {}
-
-
-graph = IPFSNeo4jGraph(uri="bolt+s://9fb20fc2.databases.neo4j.io:7687",
-                       username="neo4j", password="z2-Aq8cYB0BN7HM54BDCYgoepzrPcqLexdmbUawm_pg")
-print(graph.get_authored_by_stats())
-# # Sample data
-# graph.add_ipfs_node("A")
-# graph.add_ipfs_node("B1")
-# graph.add_ipfs_node("B2")
-# graph.add_ipfs_node("C1")
-# graph.add_ipfs_node("C2")
-
-# graph.create_relationship("A", "B1", "LINKS_TO")
-# graph.create_relationship("A", "B2", "LINKS_TO")
-# graph.create_relationship("A", "B3", "LINKS_TO")
-# graph.create_relationship("B1", "C1", "STORED_IN")
-# graph.create_relationship("B2", "C2", "STORED_IN")
-# graph.create_relationship("B2", "C3", "STORED_IN")
-
-# result = graph.recreate_path("A", ["LINKS_TO", "STORED_IN"])
-# print(result)
-
-# graph.close()

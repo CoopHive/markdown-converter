@@ -37,13 +37,13 @@ def run_reward_users():
         password="password",
     )
 
-    # # Add users and update their job counts
-    # for author_id, job_count in author_jobs.items():
-    #     for db_config in databases:
-    #         db_name = f"{db_config['converter']}_{db_config['chunker']}_{db_config['embedder']}"
-    #         rewarder.add_reward_to_user(
-    #             str(author_id), db_name, job_count)
-    #         print(f"Added/Updated user {author_id} in {db_name}")
+    # Add users and update their job counts
+    for author_id, job_count in author_jobs.items():
+        for db_config in databases:
+            db_name = f"{db_config['converter']}_{db_config['chunker']}_{db_config['embedder']}"
+            rewarder.add_reward_to_user(
+                str(author_id), db_name, job_count)
+            print(f"Added/Updated user {author_id} in {db_name}")
 
     # Now reward users
     rewarder.get_user_rewards("openai_paragraph_openai_token")

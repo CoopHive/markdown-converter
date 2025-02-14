@@ -48,8 +48,3 @@ def query_collection(collection_name, user_query):
     }
 
     return json.dumps(output, indent=4)
-
-
-# Example usage
-print(query_collection("openai_paragraph_openai",
-      "Tell me about antiaging schemes and how I can improve my health from bacteria living in my gut"))
