@@ -4,7 +4,6 @@ from functools import wraps
 import chromadb
 import chromadb.utils.embedding_functions as embedding_functions
 from dotenv import load_dotenv
-from flask import Flask, jsonify, request
 from openai import OpenAI
 
 load_dotenv()
