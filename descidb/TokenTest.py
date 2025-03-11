@@ -5,21 +5,20 @@ from descidb.GraphDB import IPFSNeo4jGraph
 def run_reward_users():
     # Initialize Neo4j graph connection
     graph = IPFSNeo4jGraph(
-            uri="bolt://b191b806.databases.neo4j.io:7687", 
-            username="neo4j", 
-            password="3a9zR8-u38Vn7x8WWerccZUxN8eSNRVD_cyc33C7j1Y"
-        )
-
+        uri="bolt://b191b806.databases.neo4j.io:7687",
+        username="neo4j",
+        password="3a9zR8-u38Vn7x8WWerccZUxN8eSNRVD_cyc33C7j1Y"
+    )
 
     # Fetch author job contributions from Neo4j
     author_jobs = graph.get_authored_by_stats()
 
-    # Define database configurations
+    # # Define database configurations
     databases = [
         {"converter": "openai", "chunker": "paragraph", "embedder": "openai"},
     ]
 
-    # Extract components
+    # # Extract components
     components = {
         "converter": list(set([db_config["converter"] for db_config in databases])),
         "chunker": list(set([db_config["chunker"] for db_config in databases])),
@@ -29,7 +28,7 @@ def run_reward_users():
     # Initialize the TokenRewarder
     rewarder = TokenRewarder(
         network="test_base",
-        contract_address="0x14436f6895B8EC34e0E4994Df29D1856b665B490",
+        contract_address="0x3bB10ec2404638c6fB9f98948f8e3730316B7BfA",
         contract_abi_path="/Users/vardhanshorewala/Desktop/coophive/markdown-converter/contracts/CoopHiveV1.json",
         db_components=components,
         host="localhost",

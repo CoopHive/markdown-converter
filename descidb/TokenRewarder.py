@@ -237,11 +237,78 @@ class TokenRewarder:
             print(f"❌ Error sending transaction: {e}")
             return False
 
+    def batch_issue_tokens(self, recipients, amounts):
+        """Issue tokens to multiple addresses in a single transaction using batchDistribute."""
+        if not self.owner_address:
+            print("❌ OWNER_ADDRESS is not set!")
+            return False
+
+        if not recipients or not amounts or len(recipients) != len(amounts):
+            print("❌ Invalid recipients or amounts for batch distribution")
+            return False
+
+        try:
+            nonce = self.web3.eth.get_transaction_count(
+                self.owner_address, 'pending')
+            print(f"🏦 Batch issuing tokens to {len(recipients)} recipients...")
+
+            # Convert amounts to wei (multiply by 10^18)
+            wei_amounts = [int(amount * 1e18) for amount in amounts]
+
+            # Call the batchDistribute function
+            txn = self.contract.functions.batchDistribute(
+                recipients, wei_amounts
+            ).build_transaction({
+                'chainId': self.chain_id,
+                # Base gas + extra for each recipient
+                'gas': 200000 + (70000 * len(recipients)),
+                'gasPrice': self.web3.eth.gas_price,
+                'nonce': nonce,
+            })
+
+            signed_txn = self.web3.eth.account.sign_transaction(
+                txn, self.private_key)
+            tx_hash = self.web3.eth.send_raw_transaction(
+                signed_txn.raw_transaction)
+            print(f"✅ Batch transaction sent: {self.web3.to_hex(tx_hash)}")
+            return True
+
+        except Exception as e:
+            print(f"❌ Error sending batch transaction: {e}")
+            return False
+
     def get_user_rewards(self, db_name):
+        '''
+        Get all user rewards and distribute them in a single batch transaction.
+
+        This method retrieves user rewards from the database and uses the 
+        batchDistribute function of the ERC20 contract to send all rewards
+        in a single transaction, which is more gas-efficient than sending
+        individual transactions.
+
+        Args:
+            db_name (str): The name of the database to query for user rewards
+        '''
         user_rewards = self.reward_users_constant(db_name)
+
+        if not user_rewards:
+            print("No rewards to distribute")
+            return
+
+        # Collect all recipients and amounts for batch distribution
+        recipients = []
+        amounts = []
+
         for user, amount in user_rewards.items():
-            print(f"Issuing {amount:.2f} tokens to user '{user}'")
-            self.issue_token(user, amount)
+            print(f"Adding {amount:.2f} tokens for user '{user}'")
+            recipients.append(user)
+            amounts.append(amount)
+
+        # Use batch distribution
+        if recipients and amounts:
+            print(
+                f"Issuing tokens to {len(recipients)} users in a single transaction")
+            self.batch_issue_tokens(recipients, amounts)
 
     def reward_users_after_time(self, db_name, start_time, reward_per_job=1):
         '''Rewards users based on a constant reward per job count after a specified time.'''
