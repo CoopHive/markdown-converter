@@ -18,7 +18,7 @@ load_dotenv(override=True)
 def test_processor():
     papers_directory = os.getcwd() + "/" + "../papers"
     metadata_file = os.getcwd() + "/" + "../papers/metadata.json"
-    storage_directory = "/Users/vardhanshorewala/Desktop/coophive/papers-graph"
+    storage_directory = "/Users/vardhanshorewala/Desktop/coophive/papers-graph-demo"
 
     max_papers = 10
 
@@ -44,7 +44,7 @@ def test_processor():
     databases = [
         {
             "converter": "openai",
-            "chunker": "paragraph",
+            "chunker": "fixed_length",
             "embedder": "openai",
         },
     ]

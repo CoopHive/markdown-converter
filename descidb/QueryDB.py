@@ -27,7 +27,7 @@ def query_collection(collection_name, user_query):
     embedding = response.data[0].embedding
     values = collection.query(
         query_embeddings=[embedding],
-        n_results=5,
+        n_results=4,
         include=["metadatas", "documents", "distances"]
     )
 
@@ -47,3 +47,5 @@ def query_collection(collection_name, user_query):
     }
 
     return json.dumps(output, indent=4)
+
+print(query_collection("openai_fixed_length_openai", "What are the challenges in assessing gene editing outcomes in human embryos?"))

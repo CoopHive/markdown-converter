@@ -137,5 +137,13 @@ tmp/
 **/__pycache__/
 **/.env
 /descidb/database
+/descidb/database_50
 /descidb/cids.txt
+/descidb/cids_50_papers.txt
+/descidb/tmp.txt
 /papers
+/erc20-token/cache
+/erc20-token/artifacts
+/erc20-token/node_modules
+/erc20-token/test/MyToken.test.js
+

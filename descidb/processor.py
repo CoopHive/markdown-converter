@@ -3,6 +3,7 @@ import os
 from typing import List
 
 import requests
+import certifi
 
 from descidb.chunker import chunk
 from descidb.converter import convert
@@ -13,7 +14,9 @@ from descidb.utils import upload_to_lighthouse
 from descidb.ChromaClient import VectorDatabaseManager
 from descidb.GraphDB import IPFSNeo4jGraph
 import subprocess
+import os
 
+# Load environment variables
 
 class Processor:
     def __init__(
@@ -25,12 +28,6 @@ class Processor:
         ipfs_api_key: str,
         TokenRewarder: TokenRewarder,
     ):
-        """Initializes the Processor class with the necessary components.
-
-        - db_manager: An instance of the VectorDatabaseManager to handle database operations.
-        - metadata_file: Path to the metadata file for retrieving document information.
-        - ipfs_api_key: API key for IPFS upload if required.
-        """
         self.db_manager = db_manager  # Vector Database Manager
         self.TokenRewarder = TokenRewarder
         self.metadata_file = metadata_file
@@ -39,8 +36,16 @@ class Processor:
         self.postgres_db_manager = postgres_db_manager  # Postgres DB Manager
         self.convert_cache = {}  # Cache for converted text
         self.chunk_cache = {}  # Cache for chunked text
-        self.graph_db = IPFSNeo4jGraph(uri=os.getenv("NEO4J_URI"), username=os.getenv(
-            "NEO4J_USER"), password=os.getenv("NEO4J_PASSWORD"))
+
+        # Set SSL certificate path explicitly
+        os.environ["SSL_CERT_FILE"] = certifi.where()
+
+        self.graph_db = IPFSNeo4jGraph(
+            uri="bolt://b191b806.databases.neo4j.io:7687", 
+            username="neo4j", 
+            password="3a9zR8-u38Vn7x8WWerccZUxN8eSNRVD_cyc33C7j1Y"
+        )
+
         self.__write_to_file(
             self.authorPublicKey, os.path.join(os.getcwd(), "tmp.txt"))
         self.author_cid = self.__upload_text_to_lighthouse(

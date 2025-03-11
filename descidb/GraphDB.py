@@ -12,7 +12,7 @@ class IPFSNeo4jGraph:
         try:
             os.environ["SSL_CERT_FILE"] = certifi.where()
 
-            self.driver = GraphDatabase.driver(uri, auth=(username, password))
+            self.driver = GraphDatabase.driver(uri, auth=(username, password), encrypted=True)
             self.driver.verify_connectivity()
             logging.info("Successfully connected to Neo4j AuraDB")
         except Exception as e:

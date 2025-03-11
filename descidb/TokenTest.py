@@ -5,10 +5,11 @@ from descidb.GraphDB import IPFSNeo4jGraph
 def run_reward_users():
     # Initialize Neo4j graph connection
     graph = IPFSNeo4jGraph(
-        uri="bolt+s://9fb20fc2.databases.neo4j.io:7687",
-        username="neo4j",
-        password="z2-Aq8cYB0BN7HM54BDCYgoepzrPcqLexdmbUawm_pg"
-    )
+            uri="bolt://b191b806.databases.neo4j.io:7687", 
+            username="neo4j", 
+            password="3a9zR8-u38Vn7x8WWerccZUxN8eSNRVD_cyc33C7j1Y"
+        )
+
 
     # Fetch author job contributions from Neo4j
     author_jobs = graph.get_authored_by_stats()
