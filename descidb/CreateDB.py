@@ -83,10 +83,10 @@ class CreateDB:
 
 def main():
     graph = IPFSNeo4jGraph(
-            uri="bolt://b191b806.databases.neo4j.io:7687", 
-            username="neo4j", 
-            password="3a9zR8-u38Vn7x8WWerccZUxN8eSNRVD_cyc33C7j1Y"
-        )
+        uri="bolt://b191b806.databases.neo4j.io:7687",
+        username="neo4j",
+        password="3a9zR8-u38Vn7x8WWerccZUxN8eSNRVD_cyc33C7j1Y"
+    )
 
     components = {
         "converter": ["openai"],
@@ -96,9 +96,12 @@ def main():
     vector_db_manager = VectorDatabaseManager(components)
     create_db = CreateDB(graph, vector_db_manager)
 
-    relationship_path = ["CONVERTED_BY_openai",
-                         "CHUNKED_BY_fixed_length", "EMBEDDED_BY_openai"]
-    
+    relationship_path = [
+        "CONVERTED_BY_openai",
+        "CHUNKED_BY_fixed_length",
+        "EMBEDDED_BY_openai"
+    ]
+
     db_name = "openai_fixed_length_openai"
 
     with open("cids.txt", "r") as file:

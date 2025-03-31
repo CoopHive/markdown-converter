@@ -18,7 +18,10 @@ import os
 
 # Load environment variables
 
+
 class Processor:
+    """Base class for text processing."""
+
     def __init__(
         self,
         authorPublicKey: str,
@@ -28,6 +31,7 @@ class Processor:
         ipfs_api_key: str,
         TokenRewarder: TokenRewarder,
     ):
+        """Initialize the processor."""
         self.db_manager = db_manager  # Vector Database Manager
         self.TokenRewarder = TokenRewarder
         self.metadata_file = metadata_file

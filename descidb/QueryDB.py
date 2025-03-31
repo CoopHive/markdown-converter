@@ -1,6 +1,5 @@
 import os
 import json
-from functools import wraps
 import chromadb
 import chromadb.utils.embedding_functions as embedding_functions
 from dotenv import load_dotenv
@@ -48,4 +47,9 @@ def query_collection(collection_name, user_query):
 
     return json.dumps(output, indent=4)
 
-print(query_collection("openai_fixed_length_openai", "What are the challenges in assessing gene editing outcomes in human embryos?"))
+
+if __name__ == "__main__":
+    print(query_collection(
+        "openai_fixed_length_openai",
+        "What are the challenges in assessing gene editing outcomes in human embryos?"
+    ))
