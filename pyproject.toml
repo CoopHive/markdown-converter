@@ -2,7 +2,7 @@
 name = "descidb"
 version = "0.1.0"
 description = "A database management system for document processing and embedding"
-authors = ["Your Name <your.email@example.com>"]
+authors = ["Vardhan Shorewala <vardhanshorewala@coophive.com>"]
 readme = "README.md"
 packages = [{include = "descidb"}]
 license = "MIT"
