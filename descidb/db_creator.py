@@ -117,10 +117,14 @@ def main():
     """
     Main function to create and populate the database from IPFS CIDs.
     """
+    neo4j_uri = os.getenv("NEO4J_URI")
+    neo4j_username = os.getenv("NEO4J_USERNAME")
+    neo4j_password = os.getenv("NEO4J_PASSWORD")
+
     graph = IPFSNeo4jGraph(
-        uri="bolt://edfa737b.databases.neo4j.io",
-        username="neo4j",
-        password="Qnzj8c_dgZaTfbftxZOQO-DpRASYE6lqdGl3Vk97g7Y"
+        uri=neo4j_uri,
+        username=neo4j_username,
+        password=neo4j_password
     )
 
     components = {

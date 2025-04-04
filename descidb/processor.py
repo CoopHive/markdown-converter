@@ -70,10 +70,14 @@ class Processor:
         # Set SSL certificate path explicitly
         os.environ["SSL_CERT_FILE"] = certifi.where()
 
+        neo4j_uri = os.getenv("NEO4J_URI")
+        neo4j_username = os.getenv("NEO4J_USERNAME")
+        neo4j_password = os.getenv("NEO4J_PASSWORD")
+
         self.graph_db = IPFSNeo4jGraph(
-            uri="bolt://edfa737b.databases.neo4j.io",
-            username="neo4j",
-            password="Qnzj8c_dgZaTfbftxZOQO-DpRASYE6lqdGl3Vk97g7Y"
+            uri=neo4j_uri,
+            username=neo4j_username,
+            password=neo4j_password
         )
 
         self.__write_to_file(self.authorPublicKey, str(self.tmp_file_path))

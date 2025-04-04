@@ -8,6 +8,7 @@ from Neo4j and distributing rewards based on their contributions.
 from descidb.token_rewarder import TokenRewarder
 from descidb.graph_db import IPFSNeo4jGraph
 from pathlib import Path
+import os
 
 
 def run_reward_users():
@@ -18,10 +19,14 @@ def run_reward_users():
     and distributes token rewards based on their contributions across different databases.
     """
     # Initialize Neo4j graph connection
+    neo4j_uri = os.getenv("NEO4J_URI")
+    neo4j_username = os.getenv("NEO4J_USERNAME")
+    neo4j_password = os.getenv("NEO4J_PASSWORD")
+
     graph = IPFSNeo4jGraph(
-        uri="bolt://b191b806.databases.neo4j.io:7687",
-        username="neo4j",
-        password="3a9zR8-u38Vn7x8WWerccZUxN8eSNRVD_cyc33C7j1Y"
+        uri=neo4j_uri,
+        username=neo4j_username,
+        password=neo4j_password
     )
 
     # Fetch author job contributions from Neo4j
