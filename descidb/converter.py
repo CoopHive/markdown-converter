@@ -10,6 +10,7 @@ from typing import Literal
 import textwrap
 import PyPDF2
 from dotenv import load_dotenv
+
 # from marker.config.parser import ConfigParser
 # from marker.converters.pdf import PdfConverter
 # from marker.logger import configure_logging
@@ -48,7 +49,9 @@ def convert(conversion_type: ConversionType, input_path: str) -> str:
 
 def chunk_text(text: str, chunk_size: int = 4000) -> list:
     """Splits text into smaller chunks to fit within token limits."""
-    return textwrap.wrap(text, width=chunk_size, break_long_words=False, break_on_hyphens=False)
+    return textwrap.wrap(
+        text, width=chunk_size, break_long_words=False, break_on_hyphens=False
+    )
 
 
 def marker(input_path: str) -> str:

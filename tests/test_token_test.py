@@ -25,16 +25,16 @@ class TestTokenTest:
         return {
             "NEO4J_URI": "neo4j://testhost:7687",
             "NEO4J_USERNAME": "test_user",
-            "NEO4J_PASSWORD": "test_password"
+            "NEO4J_PASSWORD": "test_password",
         }
 
     def test_run_reward_users(self, mock_env_vars):
         """Test the token reward test function."""
-        with patch('descidb.token_test.IPFSNeo4jGraph') as mock_graph:
-            with patch('descidb.token_test.TokenRewarder') as mock_rewarder:
-                with patch('descidb.token_test.Path') as mock_path:
-                    with patch('descidb.token_test.logger') as mock_logger:
-                        with patch('descidb.token_test.os.getenv') as mock_getenv:
+        with patch("descidb.token_test.IPFSNeo4jGraph") as mock_graph:
+            with patch("descidb.token_test.TokenRewarder") as mock_rewarder:
+                with patch("descidb.token_test.Path") as mock_path:
+                    with patch("descidb.token_test.logger") as mock_logger:
+                        with patch("descidb.token_test.os.getenv") as mock_getenv:
                             # Configure environment variable mock
                             def getenv_side_effect(key):
                                 return mock_env_vars.get(key)
@@ -51,7 +51,7 @@ class TestTokenTest:
                             mock_graph.return_value = mock_graph_instance
                             mock_graph_instance.get_authored_by_stats.return_value = {
                                 "author1@example.com": 10,
-                                "author2@example.com": 5
+                                "author2@example.com": 5,
                             }
 
                             # Configure TokenRewarder mock
@@ -62,14 +62,18 @@ class TestTokenTest:
                             run_reward_users()
 
                             # Verify logger was called for start and completion
-                            mock_logger.info.assert_any_call("Starting token reward test")
-                            mock_logger.info.assert_any_call("Token reward test completed")
+                            mock_logger.info.assert_any_call(
+                                "Starting token reward test"
+                            )
+                            mock_logger.info.assert_any_call(
+                                "Token reward test completed"
+                            )
 
                             # Verify Neo4j graph was initialized with correct parameters
                             mock_graph.assert_called_once_with(
                                 uri=mock_env_vars["NEO4J_URI"],
                                 username=mock_env_vars["NEO4J_USERNAME"],
-                                password=mock_env_vars["NEO4J_PASSWORD"]
+                                password=mock_env_vars["NEO4J_PASSWORD"],
                             )
 
                             # Verify author stats were fetched
@@ -78,21 +82,30 @@ class TestTokenTest:
                             # Verify TokenRewarder was initialized with correct parameters
                             mock_rewarder.assert_called_once()
                             _, kwargs = mock_rewarder.call_args
-                            assert kwargs['network'] == 'test_base'
-                            assert kwargs['contract_address'] == '0x3bB10ec2404638c6fB9f98948f8e3730316B7BfA'
-                            assert 'db_components' in kwargs
+                            assert kwargs["network"] == "test_base"
+                            assert (
+                                kwargs["contract_address"]
+                                == "0x3bB10ec2404638c6fB9f98948f8e3730316B7BfA"
+                            )
+                            assert "db_components" in kwargs
 
                             # Verify components structure
-                            components = kwargs['db_components']
-                            assert 'converter' in components
-                            assert 'chunker' in components
-                            assert 'embedder' in components
+                            components = kwargs["db_components"]
+                            assert "converter" in components
+                            assert "chunker" in components
+                            assert "embedder" in components
 
                             # Verify create_database_and_table was called
-                            assert mock_rewarder_instance.create_database_and_table.call_count > 0
+                            assert (
+                                mock_rewarder_instance.create_database_and_table.call_count
+                                > 0
+                            )
 
                             # Verify add_reward_to_user was called for each author
-                            assert mock_rewarder_instance.add_reward_to_user.call_count == 2  # Two authors
+                            assert (
+                                mock_rewarder_instance.add_reward_to_user.call_count
+                                == 2
+                            )  # Two authors
                             mock_rewarder_instance.add_reward_to_user.assert_any_call(
                                 "openai_paragraph_openai", "author1@example.com", 10
                             )
@@ -102,11 +115,11 @@ class TestTokenTest:
 
     def test_run_reward_users_no_authors(self):
         """Test behavior when no authors are found."""
-        with patch('descidb.token_test.IPFSNeo4jGraph') as mock_graph:
-            with patch('descidb.token_test.TokenRewarder') as mock_rewarder:
-                with patch('descidb.token_test.Path'):
-                    with patch('descidb.token_test.logger') as mock_logger:
-                        with patch('descidb.token_test.os.getenv'):
+        with patch("descidb.token_test.IPFSNeo4jGraph") as mock_graph:
+            with patch("descidb.token_test.TokenRewarder") as mock_rewarder:
+                with patch("descidb.token_test.Path"):
+                    with patch("descidb.token_test.logger") as mock_logger:
+                        with patch("descidb.token_test.os.getenv"):
                             # Configure graph mock to return empty author stats
                             mock_graph_instance = Mock()
                             mock_graph.return_value = mock_graph_instance
@@ -123,18 +136,23 @@ class TestTokenTest:
                             mock_graph_instance.get_authored_by_stats.assert_called_once()
 
                             # Verify found 0 authors message
-                            mock_logger.info.assert_any_call("Found 0 authors with contributions")
+                            mock_logger.info.assert_any_call(
+                                "Found 0 authors with contributions"
+                            )
 
                             # Verify add_reward_to_user was not called (no authors)
-                            assert mock_rewarder_instance.add_reward_to_user.call_count == 0
+                            assert (
+                                mock_rewarder_instance.add_reward_to_user.call_count
+                                == 0
+                            )
 
     def test_neo4j_connection_failure(self):
         """Test behavior when Neo4j connection fails."""
-        with patch('descidb.token_test.IPFSNeo4jGraph') as mock_graph:
-            with patch('descidb.token_test.TokenRewarder'):
-                with patch('descidb.token_test.Path'):
-                    with patch('descidb.token_test.logger') as mock_logger:
-                        with patch('descidb.token_test.os.getenv'):
+        with patch("descidb.token_test.IPFSNeo4jGraph") as mock_graph:
+            with patch("descidb.token_test.TokenRewarder"):
+                with patch("descidb.token_test.Path"):
+                    with patch("descidb.token_test.logger") as mock_logger:
+                        with patch("descidb.token_test.os.getenv"):
                             # Configure graph mock to raise an exception on initialization
                             mock_graph.side_effect = Exception("Connection failed")
 
@@ -146,18 +164,23 @@ class TestTokenTest:
                             assert "Connection failed" in str(excinfo.value)
 
                             # Verify logger was called for start
-                            mock_logger.info.assert_called_with("Starting token reward test")
+                            mock_logger.info.assert_called_with(
+                                "Starting token reward test"
+                            )
 
     def test_main_execution(self):
         """Test the script execution when run as __main__."""
-        with patch('descidb.token_test.run_reward_users') as mock_run:
+        with patch("descidb.token_test.run_reward_users") as mock_run:
             # Directly test the __name__ == "__main__" condition by mocking the entire module
-            with patch.dict('sys.modules', {'descidb.token_test': Mock(__name__='__main__')}):
+            with patch.dict(
+                "sys.modules", {"descidb.token_test": Mock(__name__="__main__")}
+            ):
                 # Import the token_test module to execute the __name__ == "__main__" block
                 import importlib
+
                 try:
                     # This might raise an ImportError since we're mocking the module
-                    importlib.reload(importlib.import_module('descidb.token_test'))
+                    importlib.reload(importlib.import_module("descidb.token_test"))
                 except ImportError:
                     pass
 

@@ -10,7 +10,7 @@ from descidb.chunker import (
     sentence,
     word,
     fixed_length,
-    chunk_from_url
+    chunk_from_url,
 )
 
 
@@ -121,7 +121,7 @@ class TestChunker:
         with pytest.raises(KeyError):
             chunk("invalid_chunker", text)
 
-    @patch('descidb.chunker.download_from_url')
+    @patch("descidb.chunker.download_from_url")
     def test_chunk_from_url(self, mock_download):
         """Test the chunk_from_url function."""
         # Set up mock
@@ -135,7 +135,7 @@ class TestChunker:
         m = MagicMock()
         m.__enter__.return_value.read.return_value = mock_content
 
-        with patch('builtins.open', return_value=m):
+        with patch("builtins.open", return_value=m):
             chunks = chunk_from_url("paragraph", "http://example.com/file.txt")
 
         # Assert download was called

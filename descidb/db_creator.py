@@ -39,7 +39,7 @@ class DatabaseCreator:
         """
         self.graph = graph
         self.vector_db_manager = vector_db_manager
-        self.logger = get_logger(__name__ + '.DatabaseCreator')
+        self.logger = get_logger(__name__ + ".DatabaseCreator")
 
     def query_lighthouse_for_embedding(self, cid):
         """
@@ -69,8 +69,7 @@ class DatabaseCreator:
             content = response.text
             return content
         except requests.exceptions.RequestException as e:
-            self.logger.error(
-                f"Failed to retrieve IPFS content for CID {cid}: {e}")
+            self.logger.error(f"Failed to retrieve IPFS content for CID {cid}: {e}")
             return None
 
     def process_paths(self, start_cid, path, db_name):
@@ -88,34 +87,36 @@ class DatabaseCreator:
             content_cid = path_nodes[-2]
             embedding_cid = path_nodes[-1]
 
-            embedding_vector = self.query_lighthouse_for_embedding(
-                embedding_cid)
+            embedding_vector = self.query_lighthouse_for_embedding(embedding_cid)
             if embedding_vector is None:
                 self.logger.error(
-                    f"Skipping path {path_nodes} due to failed embedding retrieval.")
+                    f"Skipping path {path_nodes} due to failed embedding retrieval."
+                )
                 continue
 
             content = self.query_ipfs_content(content_cid)
             if content is None:
                 self.logger.error(
-                    f"Skipping path {path_nodes} due to failed IPFS content retrieval.")
+                    f"Skipping path {path_nodes} due to failed IPFS content retrieval."
+                )
                 continue
 
             metadata = {
                 "content_cid": content_cid,
                 "root_cid": start_cid,
                 "embedding_cid": embedding_cid,
-                "content": content
+                "content": content,
             }
 
             try:
                 self.vector_db_manager.insert_document(
-                    db_name, embedding_vector, metadata, embedding_cid)
+                    db_name, embedding_vector, metadata, embedding_cid
+                )
                 self.logger.info(
-                    f"Inserted document into '{db_name}' with CID {embedding_cid}")
+                    f"Inserted document into '{db_name}' with CID {embedding_cid}"
+                )
             except Exception as e:
-                self.logger.error(
-                    f"Failed to insert document into '{db_name}': {e}")
+                self.logger.error(f"Failed to insert document into '{db_name}': {e}")
 
 
 def main():
@@ -127,15 +128,13 @@ def main():
     neo4j_password = os.getenv("NEO4J_PASSWORD")
 
     graph = IPFSNeo4jGraph(
-        uri=neo4j_uri,
-        username=neo4j_username,
-        password=neo4j_password
+        uri=neo4j_uri, username=neo4j_username, password=neo4j_password
     )
 
     components = {
         "converter": ["openai"],
         "chunker": ["fixed_length"],
-        "embedder": ["openai"]
+        "embedder": ["openai"],
     }
 
     # Create database directory
@@ -149,16 +148,13 @@ def main():
     relationship_path = [
         "CONVERTED_BY_openai",
         "CHUNKED_BY_fixed_length",
-        "EMBEDDED_BY_openai"
+        "EMBEDDED_BY_openai",
     ]
 
     db_name = "openai_fixed_length_openai"
 
     # Look for cids.txt file in project root and temp directories
-    cids_file_paths = [
-        project_root / "cids.txt",
-        project_root / "temp" / "cids.txt"
-    ]
+    cids_file_paths = [project_root / "cids.txt", project_root / "temp" / "cids.txt"]
 
     cids_file = None
     for path in cids_file_paths:

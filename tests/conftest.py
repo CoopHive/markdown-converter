@@ -23,9 +23,9 @@ This is the final paragraph. Just one more sentence."""
 @pytest.fixture
 def temp_pdf_file():
     """Create a temporary file with .pdf extension for testing."""
-    fd, path = tempfile.mkstemp(suffix='.pdf')
+    fd, path = tempfile.mkstemp(suffix=".pdf")
     try:
-        with os.fdopen(fd, 'w') as f:
+        with os.fdopen(fd, "w") as f:
             f.write("PDF content placeholder")
         yield path
     finally:
@@ -36,9 +36,9 @@ def temp_pdf_file():
 @pytest.fixture
 def temp_tar_file():
     """Create a temporary file with .tar extension for testing."""
-    fd, path = tempfile.mkstemp(suffix='.tar')
+    fd, path = tempfile.mkstemp(suffix=".tar")
     try:
-        with os.fdopen(fd, 'w') as f:
+        with os.fdopen(fd, "w") as f:
             f.write("TAR content placeholder")
         yield path
     finally:
@@ -67,7 +67,7 @@ def mock_environment_variables():
         "NEO4J_USERNAME": "test_neo4j_user",
         "NEO4J_PASSWORD": "test_neo4j_password",
         "LIGHTHOUSE_TOKEN": "test_lighthouse_token",
-        "DESCIDB_LOG_LEVEL": "DEBUG"
+        "DESCIDB_LOG_LEVEL": "DEBUG",
     }
 
     # Save original values and set test values

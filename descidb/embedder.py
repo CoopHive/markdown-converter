@@ -41,9 +41,7 @@ def openai(text: str) -> list:
     """Embed text using the OpenAI embedding API. Returns a list."""
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-    response = client.embeddings.create(
-        model="text-embedding-3-small", input=[text]
-    )
+    response = client.embeddings.create(model="text-embedding-3-small", input=[text])
     embedding = response.data[0].embedding
     return embedding
 

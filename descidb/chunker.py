@@ -13,17 +13,23 @@ from descidb.utils import download_from_url
 ChunkerType = Literal["paragraph", "sentence", "word", "fixed_length"]
 
 
-def chunk_from_url(chunker_type: ChunkerType, input_url: str, chunk_size: int = 500) -> List[str]:
+def chunk_from_url(
+    chunker_type: ChunkerType, input_url: str, chunk_size: int = 500
+) -> List[str]:
     """Chunk based on the specified chunking type."""
     download_path = download_from_url(url=input_url)
 
     with open(download_path, "r") as file:
         input_text = file.read()
 
-    return chunk(chunker_type=chunker_type, input_text=input_text, chunk_size=chunk_size)
+    return chunk(
+        chunker_type=chunker_type, input_text=input_text, chunk_size=chunk_size
+    )
 
 
-def chunk(chunker_type: ChunkerType, input_text: str, chunk_size: int = 500) -> List[str]:
+def chunk(
+    chunker_type: ChunkerType, input_text: str, chunk_size: int = 500
+) -> List[str]:
     """Chunk based on the specified chunking type."""
 
     # Mapping chunking types to functions
@@ -31,7 +37,7 @@ def chunk(chunker_type: ChunkerType, input_text: str, chunk_size: int = 500) -> 
         "paragraph": paragraph,
         "sentence": sentence,
         "word": word,
-        "fixed_length": lambda text: fixed_length(text, chunk_size)
+        "fixed_length": lambda text: fixed_length(text, chunk_size),
     }
 
     return chunking_methods[chunker_type](text=input_text)
@@ -57,4 +63,4 @@ def word(text: str) -> List[str]:
 
 def fixed_length(text: str, chunk_size: int) -> List[str]:
     """Chunk the text into fixed-length chunks."""
-    return [text[i: i + chunk_size] for i in range(0, len(text), chunk_size)]
+    return [text[i : i + chunk_size] for i in range(0, len(text), chunk_size)]

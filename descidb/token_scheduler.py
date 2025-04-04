@@ -23,22 +23,14 @@ def run_reward_users():
     logger.info("Starting token reward process")
 
     databases = [
-        {
-            "converter": "openai",
-            "chunker": "sentence",
-            "embedder": "openai"
-        },
-        {
-            "converter": "openai",
-            "chunker": "paragraph",
-            "embedder": "openai"
-        }
+        {"converter": "openai", "chunker": "sentence", "embedder": "openai"},
+        {"converter": "openai", "chunker": "paragraph", "embedder": "openai"},
     ]
 
     components = {
         "converter": list(set([db_config["converter"] for db_config in databases])),
         "chunker": list(set([db_config["chunker"] for db_config in databases])),
-        "embedder": list(set([db_config["embedder"] for db_config in databases]))
+        "embedder": list(set([db_config["embedder"] for db_config in databases])),
     }
 
     # Get project root directory
@@ -47,18 +39,18 @@ def run_reward_users():
 
     logger.info(f"Initializing TokenRewarder")
     rewarder = TokenRewarder(
-        network='test_base',
-        contract_address='0x14436f6895B8EC34e0E4994Df29D1856b665B490',
+        network="test_base",
+        contract_address="0x14436f6895B8EC34e0E4994Df29D1856b665B490",
         contract_abi_path=str(contract_abi_path),
         db_components=components,
         host="localhost",
         port=5432,
         user="vardhanshorewala",
-        password="password"
+        password="password",
     )
 
     for component in components:
-        component_name = component + '_token'
+        component_name = component + "_token"
         logger.info(f"Processing rewards for component: {component_name}")
         rewarder.get_user_rewards(component_name)
 

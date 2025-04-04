@@ -5,17 +5,13 @@ Tests for the embedder module.
 import os
 import pytest
 from unittest.mock import patch, MagicMock
-from descidb.embedder import (
-    embed,
-    openai,
-    embed_from_url
-)
+from descidb.embedder import embed, openai, embed_from_url
 
 
 class TestEmbedder:
     """Test cases for embedder functions."""
 
-    @patch('descidb.embedder.OpenAI')
+    @patch("descidb.embedder.OpenAI")
     def test_openai_embedder(self, mock_openai):
         """Test the OpenAI embedder function."""
         # Mock OpenAI client and response
@@ -37,12 +33,11 @@ class TestEmbedder:
         # Verify the expected behavior
         mock_openai.assert_called_once()
         mock_client.embeddings.create.assert_called_once_with(
-            model="text-embedding-3-small", 
-            input=["Test text"]
+            model="text-embedding-3-small", input=["Test text"]
         )
         assert result == mock_embedding
 
-    @patch('descidb.embedder.openai')
+    @patch("descidb.embedder.openai")
     def test_embed_with_openai(self, mock_openai_func):
         """Test the embed function with OpenAI embedder."""
         # Mock openai function
@@ -61,8 +56,8 @@ class TestEmbedder:
         with pytest.raises(KeyError):
             embed("invalid_embedder", "Test text")
 
-    @patch('descidb.embedder.embed')
-    @patch('descidb.embedder.download_from_url')
+    @patch("descidb.embedder.embed")
+    @patch("descidb.embedder.download_from_url")
     def test_embed_from_url(self, mock_download, mock_embed):
         """Test the embed_from_url function."""
         # Mock download
@@ -79,18 +74,17 @@ class TestEmbedder:
         mock_embed.return_value = expected_embedding
 
         # Call the function with mocked open
-        with patch('builtins.open', return_value=m):
+        with patch("builtins.open", return_value=m):
             result = embed_from_url("openai", "http://example.com/file.txt")
 
         # Verify expected behavior
         mock_download.assert_called_once_with(url="http://example.com/file.txt")
         mock_embed.assert_called_once_with(
-            embeder_type="openai", 
-            input_text=mock_content
+            embeder_type="openai", input_text=mock_content
         )
         assert result == expected_embedding
 
-    @patch('descidb.embedder.OpenAI')
+    @patch("descidb.embedder.OpenAI")
     def test_openai_embedder_with_environment_variable(self, mock_openai):
         """Test the OpenAI embedder function with API key from environment."""
         # Store the original environment variable

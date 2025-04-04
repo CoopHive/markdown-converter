@@ -10,6 +10,7 @@ from descidb.graph_db import IPFSNeo4jGraph
 from pathlib import Path
 from descidb.logging_utils import get_logger
 import os
+
 # Get module logger
 logger = get_logger(__name__)
 
@@ -29,9 +30,7 @@ def run_reward_users():
     neo4j_password = os.getenv("NEO4J_PASSWORD")
 
     graph = IPFSNeo4jGraph(
-        uri=neo4j_uri,
-        username=neo4j_username,
-        password=neo4j_password
+        uri=neo4j_uri, username=neo4j_username, password=neo4j_password
     )
 
     # Fetch author job contributions from Neo4j
@@ -70,7 +69,9 @@ def run_reward_users():
 
     # Process the rewards for each database configuration
     for db_config in databases:
-        db_name = f"{db_config['converter']}_{db_config['chunker']}_{db_config['embedder']}"
+        db_name = (
+            f"{db_config['converter']}_{db_config['chunker']}_{db_config['embedder']}"
+        )
         logger.info(f"Processing database: {db_name}")
 
         # Create the database if it doesn't exist

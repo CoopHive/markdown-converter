@@ -53,7 +53,9 @@ def query_collection(collection_name, user_query, db_path=None):
         # Ensure the db_path exists
         os.makedirs(db_path, exist_ok=True)
 
-        logger.info(f"Querying collection '{collection_name}' with: '{user_query[:50]}...'")
+        logger.info(
+            f"Querying collection '{collection_name}' with: '{user_query[:50]}...'"
+        )
         client = chromadb.PersistentClient(path=str(db_path))
         openai_ef = embedding_functions.OpenAIEmbeddingFunction(
             api_key="", model_name="text-embedding-3-small"
@@ -63,27 +65,31 @@ def query_collection(collection_name, user_query, db_path=None):
         )
 
         model_name = "text-embedding-3-small"
-        response = openaiClient.embeddings.create(
-            model=model_name, input=[user_query])
+        response = openaiClient.embeddings.create(model=model_name, input=[user_query])
         embedding = response.data[0].embedding
         values = collection.query(
             query_embeddings=[embedding],
             n_results=4,
-            include=["metadatas", "documents", "distances"]
+            include=["metadatas", "documents", "distances"],
         )
 
-        result = {
-            "query": user_query,
-            "results": []
-        }
+        result = {"query": user_query, "results": []}
 
         if values["ids"] and len(values["ids"][0]) > 0:
             for i in range(len(values["ids"][0])):
-                result["results"].append({
-                    "document": values["documents"][0][i] if i < len(values["documents"][0]) else "",
-                    "metadata": values["metadatas"][0][i] if i < len(values["metadatas"][0]) else {},
-                    "distance": values["distances"][0][i] if i < len(values["distances"][0]) else 0
-                })
+                result["results"].append(
+                    {
+                        "document": values["documents"][0][i]
+                        if i < len(values["documents"][0])
+                        else "",
+                        "metadata": values["metadatas"][0][i]
+                        if i < len(values["metadatas"][0])
+                        else {},
+                        "distance": values["distances"][0][i]
+                        if i < len(values["distances"][0])
+                        else 0,
+                    }
+                )
 
             logger.info(f"Found {len(result['results'])} results for query")
             return json.dumps(result)
@@ -97,7 +103,9 @@ def query_collection(collection_name, user_query, db_path=None):
 
 
 if __name__ == "__main__":
-    print(query_collection(
-        "openai_fixed_length_openai",
-        "What are the challenges in assessing gene editing outcomes in human embryos?"
-    ))
+    print(
+        query_collection(
+            "openai_fixed_length_openai",
+            "What are the challenges in assessing gene editing outcomes in human embryos?",
+        )
+    )

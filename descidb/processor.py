@@ -53,7 +53,7 @@ class Processor:
             TokenRewarder: Token rewarder instance
             project_root: Path to project root directory
         """
-        self.logger = get_logger(__name__ + '.Processor')
+        self.logger = get_logger(__name__ + ".Processor")
         self.db_manager = db_manager  # Vector Database Manager
         self.TokenRewarder = TokenRewarder
         self.metadata_file = metadata_file
@@ -81,15 +81,16 @@ class Processor:
         neo4j_password = os.getenv("NEO4J_PASSWORD")
 
         self.graph_db = IPFSNeo4jGraph(
-            uri=neo4j_uri,
-            username=neo4j_username,
-            password=neo4j_password
+            uri=neo4j_uri, username=neo4j_username, password=neo4j_password
         )
 
         self.__write_to_file(self.authorPublicKey, str(self.tmp_file_path))
-        self.logger.info(f"Uploading author public key to Lighthouse: {self.authorPublicKey[:10]}...")
+        self.logger.info(
+            f"Uploading author public key to Lighthouse: {self.authorPublicKey[:10]}..."
+        )
         self.author_cid = self.__upload_text_to_lighthouse(
-            str(self.tmp_file_path)).split("ipfs/")[-1]
+            str(self.tmp_file_path)
+        ).split("ipfs/")[-1]
         self.logger.info(f"Author CID: {self.author_cid}")
         self.graph_db.add_ipfs_node(self.author_cid)
 
@@ -143,10 +144,18 @@ class Processor:
 
             self.__create_file_with_ipfs(ipfs_cid, file_path)
 
+            subprocess.run(["git", "-C", git_path, "add", file_path], check=True)
             subprocess.run(
-                ["git", "-C", git_path, "add", file_path], check=True)
-            subprocess.run(["git", "-C", git_path, "commit",
-                           "-m", f"Added IPFS CID: {hash_value}"], check=True)
+                [
+                    "git",
+                    "-C",
+                    git_path,
+                    "commit",
+                    "-m",
+                    f"Added IPFS CID: {hash_value}",
+                ],
+                check=True,
+            )
 
             return ipfs_cid
 
@@ -199,7 +208,8 @@ class Processor:
 
         self.logger.info(f"Uploading PDF to IPFS: {pdf_path}")
         metadata["pdf_ipfs_cid"] = self.__lighthouse_and_commit(
-            object=pdf_path, git_path=git_path)
+            object=pdf_path, git_path=git_path
+        )
 
         if not metadata["pdf_ipfs_cid"]:
             self.logger.error(f"Failed to upload PDF to IPFS: {pdf_path}")
@@ -207,8 +217,9 @@ class Processor:
 
         self.logger.info(f"Adding PDF CID to graph: {metadata['pdf_ipfs_cid']}")
         self.graph_db.add_ipfs_node(metadata["pdf_ipfs_cid"])
-        self.graph_db.create_relationship(metadata["pdf_ipfs_cid"],
-                                          self.author_cid, "AUTHORED_BY")
+        self.graph_db.create_relationship(
+            metadata["pdf_ipfs_cid"], self.author_cid, "AUTHORED_BY"
+        )
 
         with open(self.cids_file_path, "a") as cid_file:
             cid_file.write(metadata["pdf_ipfs_cid"] + "\n")
@@ -232,13 +243,18 @@ class Processor:
             self.__write_to_file(converted_text, self.tmp_file_path)
 
             converted_text_ipfs_cid = self.__lighthouse_and_commit(
-                object=self.tmp_file_path, git_path=git_path)
+                object=self.tmp_file_path, git_path=git_path
+            )
 
             self.graph_db.add_ipfs_node(converted_text_ipfs_cid)
             self.graph_db.create_relationship(
-                metadata["pdf_ipfs_cid"], converted_text_ipfs_cid, "CONVERTED_BY_" + converter_func)
+                metadata["pdf_ipfs_cid"],
+                converted_text_ipfs_cid,
+                "CONVERTED_BY_" + converter_func,
+            )
             self.graph_db.create_relationship(
-                converted_text_ipfs_cid, self.author_cid, "AUTHORED_BY")
+                converted_text_ipfs_cid, self.author_cid, "AUTHORED_BY"
+            )
             # Step 2.2: Chunking
             chunk_cache_key = f"{converter_func}_{chunker_func}"
             if chunk_cache_key not in self.chunk_cache:
@@ -250,31 +266,39 @@ class Processor:
                 chunked_text = self.chunk_cache[chunk_cache_key]
 
             for chunk_index, chunk_i in enumerate(chunked_text):
-
                 self.__write_to_file(chunk_i, self.tmp_file_path)
 
                 chunk_text_ipfs_cid = self.__lighthouse_and_commit(
-                    object=self.tmp_file_path, git_path=git_path)
+                    object=self.tmp_file_path, git_path=git_path
+                )
 
                 self.graph_db.add_ipfs_node(chunk_text_ipfs_cid)
                 self.graph_db.create_relationship(
-                    converted_text_ipfs_cid, chunk_text_ipfs_cid, "CHUNKED_BY_" + chunker_func)
+                    converted_text_ipfs_cid,
+                    chunk_text_ipfs_cid,
+                    "CHUNKED_BY_" + chunker_func,
+                )
                 self.graph_db.create_relationship(
-                    chunk_text_ipfs_cid, self.author_cid, "AUTHORED_BY")
+                    chunk_text_ipfs_cid, self.author_cid, "AUTHORED_BY"
+                )
                 # Step 2.3: Embedding
 
-                embedding = embed(
-                    embeder_type=embedder_func, input_text=chunk_i)
+                embedding = embed(embeder_type=embedder_func, input_text=chunk_i)
 
                 self.__write_to_file(json.dumps(embedding), self.tmp_file_path)
 
                 embedding_ipfs_cid = self.__lighthouse_and_commit(
-                    object=self.tmp_file_path, git_path=git_path)
+                    object=self.tmp_file_path, git_path=git_path
+                )
                 self.graph_db.add_ipfs_node(embedding_ipfs_cid)
                 self.graph_db.create_relationship(
-                    chunk_text_ipfs_cid, embedding_ipfs_cid, "EMBEDDED_BY_" + embedder_func)
+                    chunk_text_ipfs_cid,
+                    embedding_ipfs_cid,
+                    "EMBEDDED_BY_" + embedder_func,
+                )
                 self.graph_db.create_relationship(
-                    embedding_ipfs_cid, self.author_cid, "AUTHORED_BY")
+                    embedding_ipfs_cid, self.author_cid, "AUTHORED_BY"
+                )
 
     def get_metadata_for_doc(self, metadata_file: str, doc_id: str):
         """Retrieves metadata for the given document ID from the metadata file.

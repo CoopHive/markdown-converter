@@ -10,7 +10,7 @@ from descidb.converter import (
     chunk_text,
     extract_text_from_pdf,
     openai,
-    convert_from_url
+    convert_from_url,
 )
 
 
@@ -24,7 +24,7 @@ class TestConverter:
         assert len(chunks) == 1
         assert chunks[0] == text
 
-    @patch('PyPDF2.PdfReader')
+    @patch("PyPDF2.PdfReader")
     def test_extract_text_from_pdf(self, mock_pdf_reader):
         """Test the extract_text_from_pdf function."""
         # Mock a PDF file with two pages
@@ -42,9 +42,9 @@ class TestConverter:
         mock_pdf_reader.assert_called_once_with("test.pdf")
         assert result == "Page 1 contentPage 2 content"
 
-    @patch('descidb.converter.OpenAI')
-    @patch('descidb.converter.extract_text_from_pdf')
-    @patch('os.path.exists')
+    @patch("descidb.converter.OpenAI")
+    @patch("descidb.converter.extract_text_from_pdf")
+    @patch("os.path.exists")
     def test_openai_converter(self, mock_exists, mock_extract, mock_openai):
         """Test the OpenAI converter function."""
         # Mock file existence check
@@ -71,7 +71,7 @@ class TestConverter:
         mock_client.chat.completions.create.assert_called_once()
         assert result == "Converted markdown content"
 
-    @patch('os.path.exists')
+    @patch("os.path.exists")
     def test_openai_converter_file_not_found(self, mock_exists):
         """Test the OpenAI converter with a file that doesn't exist."""
         # Mock file existence check
@@ -84,7 +84,7 @@ class TestConverter:
         mock_exists.assert_called_once_with("nonexistent.pdf")
         assert result == ""
 
-    @patch('descidb.converter.openai')
+    @patch("descidb.converter.openai")
     def test_convert_openai(self, mock_openai):
         """Test the convert function with the OpenAI converter."""
         # Mock the OpenAI function
@@ -102,9 +102,9 @@ class TestConverter:
         with pytest.raises(KeyError):
             convert("invalid_converter", "test.pdf")
 
-    @patch('descidb.converter.convert')
-    @patch('descidb.converter.extract')
-    @patch('descidb.converter.download_from_url')
+    @patch("descidb.converter.convert")
+    @patch("descidb.converter.extract")
+    @patch("descidb.converter.download_from_url")
     def test_convert_from_url(self, mock_download, mock_extract, mock_convert):
         """Test the convert_from_url function with a tar file."""
         # Mock download return value
@@ -119,11 +119,9 @@ class TestConverter:
         # Verify expected behavior
         mock_download.assert_called_once_with(url="http://example.com/file.tar")
         mock_extract.assert_called_once_with(
-            tar_file_path="/tmp/download/file.tar", 
-            output_path="/tmp/download"
+            tar_file_path="/tmp/download/file.tar", output_path="/tmp/download"
         )
         mock_convert.assert_called_once_with(
-            conversion_type="openai", 
-            input_path="/tmp/download"
+            conversion_type="openai", input_path="/tmp/download"
         )
         assert result == "Converted content"

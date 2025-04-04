@@ -126,8 +126,7 @@ def test_processor():
             logger.error(f"Error initializing git repository: {e}")
             continue
 
-        processor.process(pdf_path=paper, databases=databases,
-                          git_path=str(paper_dir))
+        processor.process(pdf_path=paper, databases=databases, git_path=str(paper_dir))
 
         time.sleep(5)
 

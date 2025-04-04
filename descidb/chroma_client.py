@@ -24,7 +24,7 @@ class VectorDatabaseManager:
         Initializes databases based on the Cartesian product of 'convert', 'chunker', and 'embedder'.
 
         Args:
-            components: A dictionary with keys 'converter', 'chunker', and 'embedder', 
+            components: A dictionary with keys 'converter', 'chunker', and 'embedder',
                        each containing a list of values.
             db_path: Optional path to the database directory. If not provided,
                     will use the default 'database' directory in the descidb package.

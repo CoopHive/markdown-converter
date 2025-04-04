@@ -29,12 +29,12 @@ class TestPostgresDBManager:
             "POSTGRES_HOST": "test_host",
             "POSTGRES_PORT": "5432",
             "POSTGRES_USER": "test_user",
-            "POSTGRES_PASSWORD": "test_password"
+            "POSTGRES_PASSWORD": "test_password",
         }
 
     def test_init_with_provided_params(self):
         """Test initialization with provided parameters."""
-        with patch('descidb.postgres_db.psycopg2.connect') as mock_connect:
+        with patch("descidb.postgres_db.psycopg2.connect") as mock_connect:
             # Configure connect mock
             mock_conn = Mock()
             mock_connect.return_value = mock_conn
@@ -44,7 +44,7 @@ class TestPostgresDBManager:
                 host="custom_host",
                 port="1234",
                 user="custom_user",
-                password="custom_password"
+                password="custom_password",
             )
 
             # Verify connection parameters
@@ -53,7 +53,7 @@ class TestPostgresDBManager:
                 port="1234",
                 user="custom_user",
                 password="custom_password",
-                dbname="postgres"
+                dbname="postgres",
             )
             assert mock_conn.autocommit is True
 
@@ -65,8 +65,8 @@ class TestPostgresDBManager:
 
     def test_init_with_env_vars(self, mock_env_vars):
         """Test initialization with environment variables."""
-        with patch('descidb.postgres_db.psycopg2.connect') as mock_connect:
-            with patch('descidb.postgres_db.os.getenv') as mock_getenv:
+        with patch("descidb.postgres_db.psycopg2.connect") as mock_connect:
+            with patch("descidb.postgres_db.os.getenv") as mock_getenv:
                 # Configure getenv mock
                 def getenv_side_effect(key, default=None):
                     return mock_env_vars.get(key, default)
@@ -86,7 +86,7 @@ class TestPostgresDBManager:
                     port=mock_env_vars["POSTGRES_PORT"],
                     user=mock_env_vars["POSTGRES_USER"],
                     password=mock_env_vars["POSTGRES_PASSWORD"],
-                    dbname="postgres"
+                    dbname="postgres",
                 )
                 assert mock_conn.autocommit is True
 
@@ -98,7 +98,7 @@ class TestPostgresDBManager:
 
     def test_init_connection_failure(self):
         """Test handling of connection failure during initialization."""
-        with patch('descidb.postgres_db.psycopg2.connect') as mock_connect:
+        with patch("descidb.postgres_db.psycopg2.connect") as mock_connect:
             # Configure connect mock to raise an exception
             mock_connect.side_effect = Exception("Connection failed")
 
@@ -110,7 +110,7 @@ class TestPostgresDBManager:
 
     def test_connect_success(self):
         """Test successful database connection."""
-        with patch('descidb.postgres_db.psycopg2.connect') as mock_connect:
+        with patch("descidb.postgres_db.psycopg2.connect") as mock_connect:
             # Configure primary connection mock
             mock_primary_conn = Mock()
             mock_connect.return_value = mock_primary_conn
@@ -134,14 +134,14 @@ class TestPostgresDBManager:
                 port=manager.port,
                 user=manager.user,
                 password=manager.password,
-                dbname="test_db"
+                dbname="test_db",
             )
             assert result == mock_conn
             assert mock_conn.autocommit is True
 
     def test_connect_failure(self):
         """Test handling of connection failure in _connect method."""
-        with patch('descidb.postgres_db.psycopg2.connect') as mock_connect:
+        with patch("descidb.postgres_db.psycopg2.connect") as mock_connect:
             # Configure primary connection mock
             mock_primary_conn = Mock()
             mock_connect.return_value = mock_primary_conn
@@ -153,7 +153,7 @@ class TestPostgresDBManager:
             mock_connect.side_effect = Exception("Connection failed")
 
             # Test _connect method
-            with patch.object(manager, 'logger') as mock_logger:
+            with patch.object(manager, "logger") as mock_logger:
                 result = manager._connect("test_db")
 
                 # Verify result and logging
@@ -163,7 +163,7 @@ class TestPostgresDBManager:
 
     def test_create_databases(self):
         """Test creating multiple databases."""
-        with patch('descidb.postgres_db.psycopg2.connect') as mock_connect:
+        with patch("descidb.postgres_db.psycopg2.connect") as mock_connect:
             # Configure primary connection mock
             mock_primary_conn = Mock()
             mock_connect.return_value = mock_primary_conn
@@ -172,8 +172,10 @@ class TestPostgresDBManager:
             manager = PostgresDBManager()
 
             # Patch _connect and _create_schema_and_table_in_db
-            with patch.object(manager, '_connect') as mock_connect_method:
-                with patch.object(manager, '_create_schema_and_table_in_db') as mock_create_schema:
+            with patch.object(manager, "_connect") as mock_connect_method:
+                with patch.object(
+                    manager, "_create_schema_and_table_in_db"
+                ) as mock_create_schema:
                     # Configure mock connection and cursor
                     mock_conn = Mock()
                     mock_cursor = Mock()
@@ -199,7 +201,7 @@ class TestPostgresDBManager:
 
     def test_create_schema_and_table_in_db(self):
         """Test creating schema and table in a database."""
-        with patch('descidb.postgres_db.psycopg2.connect') as mock_connect:
+        with patch("descidb.postgres_db.psycopg2.connect") as mock_connect:
             # Configure primary connection mock
             mock_primary_conn = Mock()
             mock_connect.return_value = mock_primary_conn
@@ -208,7 +210,7 @@ class TestPostgresDBManager:
             manager = PostgresDBManager()
 
             # Patch _connect
-            with patch.object(manager, '_connect') as mock_connect_method:
+            with patch.object(manager, "_connect") as mock_connect_method:
                 # Configure mock connection and cursor
                 mock_conn = Mock()
                 mock_cursor = Mock()
@@ -219,10 +221,16 @@ class TestPostgresDBManager:
                 manager._create_schema_and_table_in_db("test_db")
 
                 # Verify schema creation
-                assert any("CREATE SCHEMA IF NOT EXISTS default_schema" in str(call) for call in mock_cursor.execute.call_args_list)
+                assert any(
+                    "CREATE SCHEMA IF NOT EXISTS default_schema" in str(call)
+                    for call in mock_cursor.execute.call_args_list
+                )
 
                 # Verify table creation
-                assert any("CREATE TABLE IF NOT EXISTS default_schema.papers" in str(call) for call in mock_cursor.execute.call_args_list)
+                assert any(
+                    "CREATE TABLE IF NOT EXISTS default_schema.papers" in str(call)
+                    for call in mock_cursor.execute.call_args_list
+                )
 
                 # Verify cursor and connection were closed
                 mock_cursor.close.assert_called_once()
@@ -230,7 +238,7 @@ class TestPostgresDBManager:
 
     def test_insert_data(self):
         """Test inserting data into a database."""
-        with patch('descidb.postgres_db.psycopg2.connect') as mock_connect:
+        with patch("descidb.postgres_db.psycopg2.connect") as mock_connect:
             # Configure primary connection mock
             mock_primary_conn = Mock()
             mock_connect.return_value = mock_primary_conn
@@ -239,7 +247,7 @@ class TestPostgresDBManager:
             manager = PostgresDBManager()
 
             # Patch _connect
-            with patch.object(manager, '_connect') as mock_connect_method:
+            with patch.object(manager, "_connect") as mock_connect_method:
                 # Configure mock connection and cursor
                 mock_conn = Mock()
                 mock_cursor = Mock()
@@ -248,8 +256,22 @@ class TestPostgresDBManager:
 
                 # Create test data
                 test_data = [
-                    ("author1", "paper1", "markdown1", [0.1, 0.2, 0.3], {"key": "value"}, True),
-                    ("author2", "paper2", "markdown2", [0.4, 0.5, 0.6], {"key": "value2"}, False)
+                    (
+                        "author1",
+                        "paper1",
+                        "markdown1",
+                        [0.1, 0.2, 0.3],
+                        {"key": "value"},
+                        True,
+                    ),
+                    (
+                        "author2",
+                        "paper2",
+                        "markdown2",
+                        [0.4, 0.5, 0.6],
+                        {"key": "value2"},
+                        False,
+                    ),
                 ]
 
                 # Call insert_data
@@ -259,8 +281,8 @@ class TestPostgresDBManager:
                 assert mock_cursor.execute.call_count == 2  # One for each record
 
                 # Verify pickle.dumps was used for embedding
-                with patch('descidb.postgres_db.pickle.dumps') as mock_dumps:
-                    with patch('descidb.postgres_db.np.array') as mock_array:
+                with patch("descidb.postgres_db.pickle.dumps") as mock_dumps:
+                    with patch("descidb.postgres_db.np.array") as mock_array:
                         # Configure mocks
                         mock_dumps.return_value = b"binary_data"
                         mock_array.return_value = "numpy_array"
@@ -277,7 +299,7 @@ class TestPostgresDBManager:
 
     def test_query_select(self):
         """Test executing a SELECT query."""
-        with patch('descidb.postgres_db.psycopg2.connect') as mock_connect:
+        with patch("descidb.postgres_db.psycopg2.connect") as mock_connect:
             # Configure primary connection mock
             mock_primary_conn = Mock()
             mock_connect.return_value = mock_primary_conn
@@ -286,7 +308,7 @@ class TestPostgresDBManager:
             manager = PostgresDBManager()
 
             # Patch _connect
-            with patch.object(manager, '_connect') as mock_connect_method:
+            with patch.object(manager, "_connect") as mock_connect_method:
                 # Configure mock connection and cursor
                 mock_conn = Mock()
                 mock_cursor = Mock()
@@ -315,7 +337,7 @@ class TestPostgresDBManager:
 
     def test_query_non_select(self):
         """Test executing a non-SELECT query."""
-        with patch('descidb.postgres_db.psycopg2.connect') as mock_connect:
+        with patch("descidb.postgres_db.psycopg2.connect") as mock_connect:
             # Configure primary connection mock
             mock_primary_conn = Mock()
             mock_connect.return_value = mock_primary_conn
@@ -324,7 +346,7 @@ class TestPostgresDBManager:
             manager = PostgresDBManager()
 
             # Patch _connect
-            with patch.object(manager, '_connect') as mock_connect_method:
+            with patch.object(manager, "_connect") as mock_connect_method:
                 # Configure mock connection and cursor
                 mock_conn = Mock()
                 mock_cursor = Mock()
@@ -349,7 +371,7 @@ class TestPostgresDBManager:
 
     def test_query_exception(self):
         """Test handling exceptions during query execution."""
-        with patch('descidb.postgres_db.psycopg2.connect') as mock_connect:
+        with patch("descidb.postgres_db.psycopg2.connect") as mock_connect:
             # Configure primary connection mock
             mock_primary_conn = Mock()
             mock_connect.return_value = mock_primary_conn
@@ -358,7 +380,7 @@ class TestPostgresDBManager:
             manager = PostgresDBManager()
 
             # Patch _connect
-            with patch.object(manager, '_connect') as mock_connect_method:
+            with patch.object(manager, "_connect") as mock_connect_method:
                 # Configure mock connection and cursor
                 mock_conn = Mock()
                 mock_cursor = Mock()
@@ -369,7 +391,7 @@ class TestPostgresDBManager:
                 mock_cursor.execute.side_effect = Exception("Query failed")
 
                 # Call query
-                with patch.object(manager, 'logger') as mock_logger:
+                with patch.object(manager, "logger") as mock_logger:
                     result = manager.query("test_db", "SELECT * FROM test")
 
                     # Verify error was logged

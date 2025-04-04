@@ -25,7 +25,7 @@ def setup_logger(name=None, level=None, log_file=None):
     """
     # Get logger level from environment or use default
     if level is None:
-        level_name = os.environ.get('DESCIDB_LOG_LEVEL', 'INFO')
+        level_name = os.environ.get("DESCIDB_LOG_LEVEL", "INFO")
         level = getattr(logging, level_name.upper(), logging.INFO)
 
     # Get or create logger
@@ -38,7 +38,7 @@ def setup_logger(name=None, level=None, log_file=None):
 
     # Create formatters
     formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )
 
     # Console handler
@@ -75,7 +75,7 @@ def get_logger(name=None):
     # If logger doesn't have handlers, set it up
     if not logger.hasHandlers():
         # Check if log directory is set in environment
-        log_dir = os.environ.get('DESCIDB_LOG_DIR')
+        log_dir = os.environ.get("DESCIDB_LOG_DIR")
         log_file = None
 
         if log_dir:

@@ -32,9 +32,17 @@ class TokenRewarder:
     to users who contribute to the system by uploading and processing scientific documents.
     """
 
-    def __init__(self, network='test_base', contract_address='0x3bB10ec2404638c6fB9f98948f8e3730316B7BfA',
-                 contract_abi_path=None, db_components=None,
-                 host="localhost", port=5432, user="", password=""):
+    def __init__(
+        self,
+        network="test_base",
+        contract_address="0x3bB10ec2404638c6fB9f98948f8e3730316B7BfA",
+        contract_abi_path=None,
+        db_components=None,
+        host="localhost",
+        port=5432,
+        user="",
+        password="",
+    ):
         """
         Initialize the TokenRewarder with blockchain and database connections.
 
@@ -48,7 +56,7 @@ class TokenRewarder:
             user: PostgreSQL username
             password: PostgreSQL password
         """
-        self.logger = get_logger(__name__ + '.TokenRewarder')
+        self.logger = get_logger(__name__ + ".TokenRewarder")
         self._initialize_network(network)
 
         # Determine the contract ABI path
@@ -63,7 +71,8 @@ class TokenRewarder:
         self.web3 = Web3(Web3.HTTPProvider(self.rpc_url))
         self.contract_address = contract_address
         self.contract = self.web3.eth.contract(
-            address=self.contract_address, abi=contract_abi)
+            address=self.contract_address, abi=contract_abi
+        )
 
         # Blockchain credentials from environment variables
         self.owner_address = os.getenv("OWNER_ADDRESS")
@@ -98,7 +107,8 @@ class TokenRewarder:
             self.chain_id = 1234
         else:
             raise ValueError(
-                "Unsupported network. Choose 'optimism', 'test_base', or 'base'.")
+                "Unsupported network. Choose 'optimism', 'test_base', or 'base'."
+            )
 
     def _connect(self, dbname="postgres"):
         """Establishes a connection to the specified PostgreSQL database."""
@@ -108,7 +118,7 @@ class TokenRewarder:
                 port=self.port,
                 user=self.user,
                 password=self.password,
-                dbname=dbname
+                dbname=dbname,
             )
             conn.autocommit = True
             return conn
@@ -146,13 +156,13 @@ class TokenRewarder:
         try:
             # Check if the database exists
             cursor.execute(
-                sql.SQL("SELECT 1 FROM pg_database WHERE datname = %s"), [
-                    db_name]
+                sql.SQL("SELECT 1 FROM pg_database WHERE datname = %s"), [db_name]
             )
             if not cursor.fetchone():
                 # Create the new database
-                cursor.execute(sql.SQL("CREATE DATABASE {}").format(
-                    sql.Identifier(db_name)))
+                cursor.execute(
+                    sql.SQL("CREATE DATABASE {}").format(sql.Identifier(db_name))
+                )
                 self.logger.info(f"Database '{db_name}' created successfully.")
 
             # Ensure schema and table are created in the new database
@@ -177,29 +187,34 @@ class TokenRewarder:
             cursor.execute("CREATE SCHEMA IF NOT EXISTS default_schema")
 
             # Check if 'user_rewards' table exists
-            cursor.execute("""
+            cursor.execute(
+                """
                 SELECT EXISTS (
                     SELECT FROM information_schema.tables
                     WHERE table_schema = 'default_schema'
                     AND table_name = 'user_rewards'
                 )
-            """)
+            """
+            )
             table_exists = cursor.fetchone()[0]
 
             if not table_exists:
                 # Create the 'user_rewards' table with an id as primary key
-                cursor.execute("""
+                cursor.execute(
+                    """
                     CREATE TABLE default_schema.user_rewards (
                         id SERIAL PRIMARY KEY,
                         public_key TEXT NOT NULL,
                         job_count INT DEFAULT 0,
                         time_stamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     )
-                """)
+                """
+                )
                 self.logger.info(f"Initialized 'user_rewards' table in '{db_name}'.")
             else:
                 self.logger.info(
-                    f"'user_rewards' table already exists in '{db_name}', skipping creation.")
+                    f"'user_rewards' table already exists in '{db_name}', skipping creation."
+                )
 
         except Exception as e:
             self.logger.error(f"Error creating schema or table: {e}")
@@ -230,10 +245,12 @@ class TokenRewarder:
                 VALUES (%s, %s, CURRENT_TIMESTAMP)
                 ON CONFLICT (public_key)
                 DO UPDATE SET job_count = default_schema.user_rewards.job_count + EXCLUDED.job_count
-                """, (public_key, job_count)
+                """,
+                (public_key, job_count),
             )
             self.logger.info(
-                f"✅ Added entry for user '{public_key}' with job_count {job_count}.")
+                f"✅ Added entry for user '{public_key}' with job_count {job_count}."
+            )
 
         except Exception as e:
             self.logger.error(f"❌ Error adding reward entry: {e}")
@@ -252,22 +269,21 @@ class TokenRewarder:
             return False
 
         try:
-            nonce = self.web3.eth.get_transaction_count(
-                self.owner_address, 'pending')
+            nonce = self.web3.eth.get_transaction_count(self.owner_address, "pending")
 
             txn = self.contract.functions.transfer(
                 str(recipient_address), int(amount * 1e18)
-            ).build_transaction({
-                'chainId': self.chain_id,
-                'gas': 100000,
-                'gasPrice': self.web3.eth.gas_price,
-                'nonce': nonce,
-            })
+            ).build_transaction(
+                {
+                    "chainId": self.chain_id,
+                    "gas": 100000,
+                    "gasPrice": self.web3.eth.gas_price,
+                    "nonce": nonce,
+                }
+            )
 
-            signed_txn = self.web3.eth.account.sign_transaction(
-                txn, self.private_key)
-            tx_hash = self.web3.eth.send_raw_transaction(
-                signed_txn.raw_transaction)
+            signed_txn = self.web3.eth.account.sign_transaction(txn, self.private_key)
+            tx_hash = self.web3.eth.send_raw_transaction(signed_txn.raw_transaction)
             self.logger.info(f"✅ Transaction sent: {self.web3.to_hex(tx_hash)}")
             return True
 
@@ -286,9 +302,10 @@ class TokenRewarder:
             return False
 
         try:
-            nonce = self.web3.eth.get_transaction_count(
-                self.owner_address, 'pending')
-            self.logger.info(f"🏦 Batch issuing tokens to {len(recipients)} recipients...")
+            nonce = self.web3.eth.get_transaction_count(self.owner_address, "pending")
+            self.logger.info(
+                f"🏦 Batch issuing tokens to {len(recipients)} recipients..."
+            )
 
             # Convert amounts to wei (multiply by 10^18)
             wei_amounts = [int(amount * 1e18) for amount in amounts]
@@ -296,18 +313,18 @@ class TokenRewarder:
             # Call the batchDistribute function
             txn = self.contract.functions.batchDistribute(
                 recipients, wei_amounts
-            ).build_transaction({
-                'chainId': self.chain_id,
-                # Base gas + extra for each recipient
-                'gas': 200000 + (70000 * len(recipients)),
-                'gasPrice': self.web3.eth.gas_price,
-                'nonce': nonce,
-            })
+            ).build_transaction(
+                {
+                    "chainId": self.chain_id,
+                    # Base gas + extra for each recipient
+                    "gas": 200000 + (70000 * len(recipients)),
+                    "gasPrice": self.web3.eth.gas_price,
+                    "nonce": nonce,
+                }
+            )
 
-            signed_txn = self.web3.eth.account.sign_transaction(
-                txn, self.private_key)
-            tx_hash = self.web3.eth.send_raw_transaction(
-                signed_txn.raw_transaction)
+            signed_txn = self.web3.eth.account.sign_transaction(txn, self.private_key)
+            tx_hash = self.web3.eth.send_raw_transaction(signed_txn.raw_transaction)
             self.logger.info(f"✅ Batch transaction sent: {self.web3.to_hex(tx_hash)}")
             return True
 
@@ -316,17 +333,17 @@ class TokenRewarder:
             return False
 
     def get_user_rewards(self, db_name):
-        '''
+        """
         Get all user rewards and distribute them in a single batch transaction.
 
-        This method retrieves user rewards from the database and uses the 
+        This method retrieves user rewards from the database and uses the
         batchDistribute function of the ERC20 contract to send all rewards
         in a single transaction, which is more gas-efficient than sending
         individual transactions.
 
         Args:
             db_name (str): The name of the database to query for user rewards
-        '''
+        """
         user_rewards = self.reward_users_constant(db_name)
 
         if not user_rewards:
@@ -345,11 +362,12 @@ class TokenRewarder:
         # Use batch distribution
         if recipients and amounts:
             self.logger.info(
-                f"Issuing tokens to {len(recipients)} users in a single transaction")
+                f"Issuing tokens to {len(recipients)} users in a single transaction"
+            )
             self.batch_issue_tokens(recipients, amounts)
 
     def reward_users_after_time(self, db_name, start_time, reward_per_job=1):
-        '''Rewards users based on a constant reward per job count after a specified time.'''
+        """Rewards users based on a constant reward per job count after a specified time."""
         conn = self._connect(db_name)
         if conn is None:
             self.logger.error(f"Unable to connect to the database '{db_name}'.")
@@ -357,12 +375,15 @@ class TokenRewarder:
 
         cursor = conn.cursor()
         try:
-            cursor.execute("""
+            cursor.execute(
+                """
                 SELECT public_key, SUM(job_count) AS total_jobs
                 FROM default_schema.user_rewards
                 WHERE time_stamp >= %s
                 GROUP BY public_key
-            """, (start_time,))
+            """,
+                (start_time,),
+            )
 
             user_entries = cursor.fetchall()
 
@@ -383,7 +404,7 @@ class TokenRewarder:
             conn.close()
 
     def reward_users_milestone(self, db_name, milestone=10, reward_per_job=1):
-        '''Rewards users based on a milestone-based reward scheme.'''
+        """Rewards users based on a milestone-based reward scheme."""
         conn = self._connect(db_name)
         if conn is None:
             self.logger.error(f"Unable to connect to the database '{db_name}'.")
@@ -391,12 +412,15 @@ class TokenRewarder:
 
         cursor = conn.cursor()
         try:
-            cursor.execute("""
+            cursor.execute(
+                """
                 SELECT public_key, SUM(job_count) AS total_jobs
                 FROM default_schema.user_rewards
                 GROUP BY public_key
                 HAVING SUM(job_count) >= %s
-            """, (milestone,))
+            """,
+                (milestone,),
+            )
 
             user_entries = cursor.fetchall()
 
@@ -416,8 +440,10 @@ class TokenRewarder:
             cursor.close()
             conn.close()
 
-    def reward_users_with_bonus(self, db_name, bonus_threshold=50, bonus=10, reward_per_job=1):
-        '''Rewards users based on a bonus threshold and bonus amount.'''
+    def reward_users_with_bonus(
+        self, db_name, bonus_threshold=50, bonus=10, reward_per_job=1
+    ):
+        """Rewards users based on a bonus threshold and bonus amount."""
         conn = self._connect(db_name)
         if conn is None:
             self.logger.error(f"Unable to connect to the database '{db_name}'.")
@@ -425,11 +451,13 @@ class TokenRewarder:
 
         cursor = conn.cursor()
         try:
-            cursor.execute("""
+            cursor.execute(
+                """
                 SELECT public_key, SUM(job_count) AS total_jobs
                 FROM default_schema.user_rewards
                 GROUP BY public_key
-            """)
+            """
+            )
 
             user_entries = cursor.fetchall()
 
@@ -453,7 +481,7 @@ class TokenRewarder:
             conn.close()
 
     def reward_users_constant(self, db_name, reward_per_job=1):
-        '''Rewards users based on a constant reward per job count.'''
+        """Rewards users based on a constant reward per job count."""
         conn = self._connect(db_name)
         if conn is None:
             self.logger.error(f"Unable to connect to the database '{db_name}'.")
@@ -461,11 +489,13 @@ class TokenRewarder:
 
         cursor = conn.cursor()
         try:
-            cursor.execute("""
+            cursor.execute(
+                """
                 SELECT public_key, SUM(job_count) AS total_jobs
                 FROM default_schema.user_rewards
                 GROUP BY public_key
-            """)
+            """
+            )
 
             user_entries = cursor.fetchall()
 
@@ -486,7 +516,7 @@ class TokenRewarder:
             conn.close()
 
     def reward_users_default(self, db_name):
-        '''Rewards users based on a default exponential decay reward scheme.'''
+        """Rewards users based on a default exponential decay reward scheme."""
         conn = self._connect(db_name)
         if conn is None:
             self.logger.error(f"Unable to connect to the database '{db_name}'.")
@@ -496,11 +526,13 @@ class TokenRewarder:
         n_buckets = 3
 
         try:
-            cursor.execute("""
+            cursor.execute(
+                """
                 SELECT public_key, job_count, time_stamp
                 FROM default_schema.user_rewards
                 ORDER BY public_key, time_stamp
-            """)
+            """
+            )
 
             user_entries = cursor.fetchall()
 
@@ -509,12 +541,12 @@ class TokenRewarder:
                 return
 
             current_time = datetime.now()
-            bucket_duration = (
-                user_entries[-1][2] - user_entries[0][2]) / n_buckets
+            bucket_duration = (user_entries[-1][2] - user_entries[0][2]) / n_buckets
             start_time = current_time - (bucket_duration * n_buckets)
 
-            global_buckets = [start_time + i *
-                              bucket_duration for i in range(n_buckets)]
+            global_buckets = [
+                start_time + i * bucket_duration for i in range(n_buckets)
+            ]
 
             # Initialize the bucket map
             bucket_map = {bucket_start: {} for bucket_start in global_buckets}
@@ -543,12 +575,14 @@ class TokenRewarder:
                         weighted_rewards[user] = 0
                     weighted_rewards[user] += weighted_reward
                     self.logger.info(
-                        f"  User '{user}': {count} contributions, Weighted reward: {weighted_reward:.2f}")
+                        f"  User '{user}': {count} contributions, Weighted reward: {weighted_reward:.2f}"
+                    )
 
             self.logger.info("\nTotal Weighted Rewards:")
             for user, total_reward in weighted_rewards.items():
                 self.logger.info(
-                    f"  User '{user}': {total_reward:.2f} total weighted reward")
+                    f"  User '{user}': {total_reward:.2f} total weighted reward"
+                )
 
             return weighted_rewards
 
@@ -558,8 +592,10 @@ class TokenRewarder:
             cursor.close()
             conn.close()
 
-    def reward_users_within_timeframe(self, db_name, start_time, end_time, reward_per_job=1):
-        '''Rewards users who contributed within a specific timeframe.'''
+    def reward_users_within_timeframe(
+        self, db_name, start_time, end_time, reward_per_job=1
+    ):
+        """Rewards users who contributed within a specific timeframe."""
         conn = self._connect(db_name)
         if conn is None:
             self.logger.error(f"Unable to connect to the database '{db_name}'.")
@@ -567,12 +603,15 @@ class TokenRewarder:
 
         cursor = conn.cursor()
         try:
-            cursor.execute("""
+            cursor.execute(
+                """
                 SELECT public_key, SUM(job_count) AS total_jobs
                 FROM default_schema.user_rewards
                 WHERE time_stamp >= %s AND time_stamp <= %s
                 GROUP BY public_key
-            """, (start_time, end_time))
+            """,
+                (start_time, end_time),
+            )
 
             user_entries = cursor.fetchall()
 
@@ -593,12 +632,12 @@ class TokenRewarder:
             conn.close()
 
     def reward_users_by_tier(self, db_name, tiers=None):
-        '''Rewards users based on their tier of contributions.'''
+        """Rewards users based on their tier of contributions."""
         if tiers is None:
             tiers = {
                 100: 5,  # Contributions >= 100 get 5 tokens per job
-                50: 3,   # Contributions >= 50 get 3 tokens per job
-                0: 1     # Contributions >= 0 get 1 token per job
+                50: 3,  # Contributions >= 50 get 3 tokens per job
+                0: 1,  # Contributions >= 0 get 1 token per job
             }
 
         conn = self._connect(db_name)
@@ -608,11 +647,13 @@ class TokenRewarder:
 
         cursor = conn.cursor()
         try:
-            cursor.execute("""
+            cursor.execute(
+                """
                 SELECT public_key, SUM(job_count) AS total_jobs
                 FROM default_schema.user_rewards
                 GROUP BY public_key
-            """)
+            """
+            )
 
             user_entries = cursor.fetchall()
 
