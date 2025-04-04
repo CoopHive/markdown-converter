@@ -7,15 +7,16 @@ for users contributing to the DeSciDB ecosystem.
 
 import itertools
 import json
+import math
 import os
-from pathlib import Path
 import time
 from datetime import datetime
-import math
+from pathlib import Path
 
 from dotenv import load_dotenv
 from psycopg2 import connect, sql
 from web3 import Web3
+
 from descidb.logging_utils import get_logger
 
 # Get module logger

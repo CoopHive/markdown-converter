@@ -5,13 +5,14 @@ This module provides a PostgresDBManager class for managing PostgreSQL databases
 used to store document metadata and user statistics.
 """
 
+import os
 import pickle
 from typing import List, Tuple
 
 import numpy as np
 import psycopg2
 from psycopg2 import sql
-import os
+
 from descidb.logging_utils import get_logger
 
 # Get module logger

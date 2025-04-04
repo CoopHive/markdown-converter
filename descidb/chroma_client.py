@@ -8,6 +8,7 @@ used to store document embeddings and perform vector similarity searches.
 import itertools
 import os
 from pathlib import Path
+
 import chromadb
 
 

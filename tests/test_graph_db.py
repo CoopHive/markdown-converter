@@ -6,10 +6,12 @@ graph database connections and operations.
 """
 
 import os
+from unittest.mock import MagicMock, call, patch
+
 import pytest
-from unittest.mock import patch, MagicMock, call
 import requests
 from neo4j import GraphDatabase
+
 from descidb.graph_db import IPFSNeo4jGraph
 
 

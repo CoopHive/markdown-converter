@@ -7,22 +7,22 @@ of scientific documents, including conversion, chunking, embedding, and storage.
 
 import json
 import os
-from typing import List
+import subprocess
 from pathlib import Path
+from typing import List
 
-import requests
 import certifi
+import requests
 
+from descidb.chroma_client import VectorDatabaseManager
 from descidb.chunker import chunk
 from descidb.converter import convert
 from descidb.embedder import embed
+from descidb.graph_db import IPFSNeo4jGraph
+from descidb.logging_utils import get_logger
 from descidb.postgres_db import PostgresDBManager
 from descidb.token_rewarder import TokenRewarder
 from descidb.utils import upload_to_lighthouse
-from descidb.chroma_client import VectorDatabaseManager
-from descidb.graph_db import IPFSNeo4jGraph
-from descidb.logging_utils import get_logger
-import subprocess
 
 # Get module logger
 logger = get_logger(__name__)

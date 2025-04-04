@@ -3,9 +3,11 @@ Tests for the embedder module.
 """
 
 import os
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
-from descidb.embedder import embed, openai, embed_from_url
+
+from descidb.embedder import embed, embed_from_url, openai
 
 
 class TestEmbedder:

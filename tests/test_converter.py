@@ -3,14 +3,16 @@ Tests for the converter module.
 """
 
 import os
+from unittest.mock import MagicMock, mock_open, patch
+
 import pytest
-from unittest.mock import patch, MagicMock, mock_open
+
 from descidb.converter import (
-    convert,
     chunk_text,
+    convert,
+    convert_from_url,
     extract_text_from_pdf,
     openai,
-    convert_from_url,
 )
 
 

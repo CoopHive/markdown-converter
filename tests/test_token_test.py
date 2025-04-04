@@ -7,9 +7,11 @@ functionality to test token rewards by fetching author statistics.
 
 import os
 import sys
-import pytest
-from unittest.mock import patch, Mock, MagicMock, call
 from pathlib import Path
+from unittest.mock import MagicMock, Mock, call, patch
+
+import pytest
+
 from descidb.token_test import run_reward_users
 
 

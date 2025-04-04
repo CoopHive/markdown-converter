@@ -5,21 +5,22 @@ This module contains the entry point for the DeSciDB processor, which handles
 PDF processing, conversion, chunking, embedding, and storage in various databases.
 """
 
-import os
-import time
 import hashlib
+import os
 import subprocess
+import time
 from pathlib import Path
+
 from dotenv import load_dotenv
 
-from descidb.postgres_db import PostgresDBManager
+from descidb.chroma_client import VectorDatabaseManager
 from descidb.chunker import chunk_from_url
 from descidb.embedder import embed_from_url
+from descidb.logging_utils import get_logger
+from descidb.postgres_db import PostgresDBManager
 from descidb.processor import Processor
 from descidb.token_rewarder import TokenRewarder
 from descidb.utils import compress, upload_to_lighthouse
-from descidb.chroma_client import VectorDatabaseManager
-from descidb.logging_utils import get_logger
 
 # Get module logger
 logger = get_logger(__name__)

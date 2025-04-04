@@ -5,13 +5,15 @@ This module contains tests for the PostgresDBManager class that manages PostgreS
 databases for storing document metadata and user statistics.
 """
 
-import os
 import json
+import os
 import pickle
-import pytest
+from unittest.mock import Mock, call, patch
+
 import numpy as np
-from unittest.mock import patch, Mock, call
+import pytest
 from psycopg2 import sql
+
 from descidb.postgres_db import PostgresDBManager
 
 

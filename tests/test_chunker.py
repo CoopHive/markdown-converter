@@ -2,15 +2,17 @@
 Tests for the chunker module.
 """
 
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
+
 from descidb.chunker import (
     chunk,
+    chunk_from_url,
+    fixed_length,
     paragraph,
     sentence,
     word,
-    fixed_length,
-    chunk_from_url,
 )
 
 

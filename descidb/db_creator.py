@@ -5,15 +5,17 @@ This module provides functionality to create and populate vector databases
 by retrieving data from IPFS and processing graph relationships.
 """
 
-import logging
-import requests
 import json
+import logging
 import os
 from pathlib import Path
-from descidb.graph_db import IPFSNeo4jGraph
-from descidb.chroma_client import VectorDatabaseManager
-from descidb.logging_utils import get_logger
+
 import dotenv
+import requests
+
+from descidb.chroma_client import VectorDatabaseManager
+from descidb.graph_db import IPFSNeo4jGraph
+from descidb.logging_utils import get_logger
 
 dotenv.load_dotenv()
 

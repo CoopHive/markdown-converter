@@ -6,8 +6,9 @@ to plain text or markdown using different conversion strategies.
 """
 
 import os
-from typing import Literal
 import textwrap
+from typing import Literal
+
 import PyPDF2
 from dotenv import load_dotenv
 

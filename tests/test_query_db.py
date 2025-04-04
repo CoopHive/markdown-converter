@@ -5,11 +5,13 @@ This module contains tests for the query_db.py module which provides
 functionality to query ChromaDB collections with natural language queries.
 """
 
-import os
 import json
-import pytest
-from unittest.mock import patch, Mock, MagicMock
+import os
 from pathlib import Path
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
+
 from descidb.query_db import query_collection
 
 

@@ -5,13 +5,15 @@ This module provides functions for querying ChromaDB collections with natural
 language queries and retrieving relevant document chunks.
 """
 
-import os
 import json
+import os
 from pathlib import Path
+
 import chromadb
 import chromadb.utils.embedding_functions as embedding_functions
 from dotenv import load_dotenv
 from openai import OpenAI
+
 from descidb.logging_utils import get_logger
 
 # Get module logger

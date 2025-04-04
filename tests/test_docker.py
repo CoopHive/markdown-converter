@@ -1,12 +1,12 @@
+import ast
+import json
+import os
+import re
 import subprocess
 
-from descidb import chunker
-from descidb import utils
-import json
-import ast
-import re
-import os
 import requests
+
+from descidb import chunker, utils
 
 
 def upload_to_lighthouse(filepath: str, ipfs_api_key: str) -> str:

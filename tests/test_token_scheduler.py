@@ -7,9 +7,11 @@ functionality to schedule token rewards for users.
 
 import os
 import sys
-import pytest
-from unittest.mock import patch, Mock, MagicMock
 from pathlib import Path
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
+
 from descidb.token_scheduler import run_reward_users
 
 

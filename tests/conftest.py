@@ -5,9 +5,10 @@ This module contains fixtures and setup/teardown functions for tests.
 """
 
 import os
-import pytest
-from unittest.mock import MagicMock
 import tempfile
+from unittest.mock import MagicMock
+
+import pytest
 
 
 @pytest.fixture

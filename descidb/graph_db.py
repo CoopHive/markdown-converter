@@ -5,11 +5,13 @@ This module provides functionality for managing Neo4j graph database connections
 and operations for IPFS CIDs.
 """
 
-import os
-import certifi
 import logging
-from neo4j import GraphDatabase
+import os
+
+import certifi
 import requests
+from neo4j import GraphDatabase
+
 from descidb.logging_utils import get_logger
 
 # Get module logger

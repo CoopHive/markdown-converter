@@ -5,9 +5,10 @@ This module provides functionality to schedule token rewards for users based on
 their contributions to the DeSciDB ecosystem.
 """
 
-from descidb.token_rewarder import TokenRewarder
 from pathlib import Path
+
 from descidb.logging_utils import get_logger
+from descidb.token_rewarder import TokenRewarder
 
 # Get module logger
 logger = get_logger(__name__)

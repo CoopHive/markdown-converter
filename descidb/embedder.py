@@ -8,10 +8,10 @@ using various embedding models like OpenAI's embedding API.
 import os
 from typing import List, Literal
 
-
 from dotenv import load_dotenv
 from openai import OpenAI
 from transformers import AutoModel
+
 from descidb.utils import download_from_url
 
 load_dotenv(override=True)
