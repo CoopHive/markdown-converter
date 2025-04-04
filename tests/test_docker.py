@@ -32,7 +32,7 @@ def run_conversion(conversion_type: str, input_url: str) -> str:
     subprocess.run(remove_command, shell=True, check=False)
 
     run_command = (
-        f"podman run --rm --name job-container job-image {
+        f"podman run - -rm - -name job-container job-image {
             conversion_type} {input_url}"
     )
     try:
@@ -57,7 +57,7 @@ def run_chunking(chunking_type: str, input_url: str) -> str:
     subprocess.run(remove_command, shell=True, check=False)
 
     run_command = (
-        f"podman run --rm --name job-container job-image {
+        f"podman run - -rm - -name job-container job-image {
             chunking_type} {input_url}"
     )
     try:
@@ -109,7 +109,7 @@ def run_embedding(embedding_type: str, input_url: str) -> str:
         print("Command failed:", e.stderr)
 
 
-def test_pipeline(config: dict, input_url: str) -> None:
+def _test_pipeline(config: dict, input_url: str) -> None:
     """Test the pipeline with the specified configuration and input URL."""
     conversion_type = config["converter"]
     chunking_type = config["chunker"]
@@ -160,4 +160,4 @@ if __name__ == "__main__":
         "embedder": "openai",
     }
     input_url = "https://gateway.lighthouse.storage/ipfs/bafkreies5jikyxatomqj2zrg5e7z2fpb5bd62zsgqqhkd2k5eorhy5jc2i"
-    test_pipeline(config, input_url)
+    _test_pipeline(config, input_url)

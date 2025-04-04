@@ -38,6 +38,13 @@ nosetests.xml
 coverage.xml
 *.cover
 *.py,cover
+.pytest_cache/
+pytest-report.xml
+pytest-coverage.txt
+.pytest_report/
+coverage/
+.hypothesis/
+junit/
 
 # Translations
 *.mo
@@ -146,4 +153,34 @@ tmp/
 /erc20-token/artifacts
 /erc20-token/node_modules
 /erc20-token/test/MyToken.test.js
+
+# Additional pytest files
+.pytest.restart
+*.pytest_tmp
+.benchmarks/
+
+# Additional coverage files
+.coverage.*
+*,cover
+cov_html/
+junit-*.xml
+
+# Test artifacts
+test-results/
+.test_results/
+test-output/
+test_output/
+/temp
+/tmp
+/mock_*
+tests/**/reports/
+conftest_*.py
+
+# Temporary test files
+tests/test_*.tmp
+tests/*.temp
+tests/temp/
+
+# Specific to this project's testing
+.test_cache/
 
