@@ -1,19 +1,49 @@
+"""
+Database creation module for DeSciDB.
+
+This module provides functionality to create and populate vector databases
+by retrieving data from IPFS and processing graph relationships.
+"""
+
 import logging
 import requests
 import json
-from descidb.GraphDB import IPFSNeo4jGraph
-from descidb.ChromaClient import VectorDatabaseManager
+from descidb.graph_db import IPFSNeo4jGraph
+from descidb.chroma_client import VectorDatabaseManager
 import dotenv
 
 dotenv.load_dotenv()
 
 
-class CreateDB:
+class DatabaseCreator:
+    """
+    Creates and populates vector databases from graph relationships.
+
+    This class retrieves embeddings and content from IPFS based on graph
+    relationships and inserts them into ChromaDB collections.
+    """
+
     def __init__(self, graph, vector_db_manager):
+        """
+        Initialize the DatabaseCreator.
+
+        Args:
+            graph: IPFSNeo4jGraph instance for graph database operations
+            vector_db_manager: VectorDatabaseManager instance for vector database operations
+        """
         self.graph = graph
         self.vector_db_manager = vector_db_manager
 
     def query_lighthouse_for_embedding(self, cid):
+        """
+        Query Lighthouse IPFS gateway for an embedding vector.
+
+        Args:
+            cid: IPFS CID of the embedding
+
+        Returns:
+            List representation of the embedding vector or None if retrieval fails
+        """
         url = f"https://gateway.lighthouse.storage/ipfs/{cid}"
         try:
             response = requests.get(url)
@@ -83,9 +113,9 @@ class CreateDB:
 
 def main():
     graph = IPFSNeo4jGraph(
-        uri="bolt://b191b806.databases.neo4j.io:7687",
+        uri="bolt://edfa737b.databases.neo4j.io",
         username="neo4j",
-        password="3a9zR8-u38Vn7x8WWerccZUxN8eSNRVD_cyc33C7j1Y"
+        password="Qnzj8c_dgZaTfbftxZOQO-DpRASYE6lqdGl3Vk97g7Y"
     )
 
     components = {
@@ -94,7 +124,7 @@ def main():
         "embedder": ["openai"]
     }
     vector_db_manager = VectorDatabaseManager(components)
-    create_db = CreateDB(graph, vector_db_manager)
+    create_db = DatabaseCreator(graph, vector_db_manager)
 
     relationship_path = [
         "CONVERTED_BY_openai",

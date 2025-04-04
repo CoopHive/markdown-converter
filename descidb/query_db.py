@@ -1,3 +1,10 @@
+"""
+Vector database query module for DeSciDB.
+
+This module provides functions for querying ChromaDB collections with natural
+language queries and retrieving relevant document chunks.
+"""
+
 import os
 import json
 import chromadb
@@ -9,6 +16,20 @@ load_dotenv()
 
 
 def query_collection(collection_name, user_query):
+    """
+    Query a ChromaDB collection with a natural language query.
+
+    This function converts the user query to an embedding using OpenAI's
+    text-embedding model and performs a similarity search in the specified
+    ChromaDB collection.
+
+    Args:
+        collection_name: Name of the ChromaDB collection to query
+        user_query: Natural language query string
+
+    Returns:
+        JSON string containing query results with metadata and similarity scores
+    """
     openaiClient = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
     db_path = "/Users/vardhanshorewala/Desktop/coophive/markdown-converter/descidb/database"

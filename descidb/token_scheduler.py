@@ -1,7 +1,20 @@
-from TokenRewarder import TokenRewarder
+"""
+Token scheduling module for DeSciDB.
+
+This module provides functionality to schedule token rewards for users based on
+their contributions to the DeSciDB ecosystem.
+"""
+
+from descidb.token_rewarder import TokenRewarder
 
 
 def run_reward_users():
+    """
+    Run the token reward process for users across different database configurations.
+
+    This function initializes the TokenRewarder with different database configurations
+    and processes rewards for users in each database.
+    """
     databases = [
         {
             "converter": "openai",

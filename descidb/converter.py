@@ -1,3 +1,10 @@
+"""
+Document conversion module for DeSciDB.
+
+This module provides functions for converting various document formats (like PDF)
+to plain text or markdown using different conversion strategies.
+"""
+
 import os
 from typing import Literal
 import textwrap

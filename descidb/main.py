@@ -1,16 +1,23 @@
-import os
+"""
+Main module for the DeSciDB package.
 
-from dotenv import load_dotenv
-from Postgres import PostgresDBManager
+This module contains the entry point for the DeSciDB processor, which handles
+PDF processing, conversion, chunking, embedding, and storage in various databases.
+"""
+
+import os
 import time
+import hashlib
+import subprocess
+from dotenv import load_dotenv
+
+from descidb.postgres_db import PostgresDBManager
 from descidb.chunker import chunk_from_url
 from descidb.embedder import embed_from_url
 from descidb.processor import Processor
-from descidb.TokenRewarder import TokenRewarder
+from descidb.token_rewarder import TokenRewarder
 from descidb.utils import compress, upload_to_lighthouse
-from descidb.ChromaClient import VectorDatabaseManager
-import hashlib
-import subprocess
+from descidb.chroma_client import VectorDatabaseManager
 
 load_dotenv(override=True)
 

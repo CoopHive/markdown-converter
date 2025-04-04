@@ -1,3 +1,10 @@
+"""
+PostgreSQL database manager for DeSciDB.
+
+This module provides a PostgresDBManager class for managing PostgreSQL databases
+used to store document data and metadata.
+"""
+
 import pickle
 from typing import List, Tuple
 
@@ -7,7 +14,23 @@ from psycopg2 import sql
 
 
 class PostgresDBManager:
+    """
+    Manages connection and operations for PostgreSQL databases.
+
+    This class handles database creation, schema setup, and data operations
+    for storing document data and embeddings in PostgreSQL.
+    """
+
     def __init__(self, host: str, port: int, user: str, password: str):
+        """
+        Initialize the PostgreSQL database manager.
+
+        Args:
+            host: PostgreSQL server hostname
+            port: PostgreSQL server port
+            user: PostgreSQL username
+            password: PostgreSQL password
+        """
         self.host = host
         self.port = port
         self.user = user

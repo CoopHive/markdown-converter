@@ -1,3 +1,10 @@
+"""
+Token reward system for DeSciDB.
+
+This module provides a TokenRewarder class for managing blockchain token rewards
+for users contributing to the DeSciDB ecosystem.
+"""
+
 import itertools
 import json
 import os
@@ -13,14 +20,29 @@ load_dotenv()
 
 
 class TokenRewarder:
-    # NOTE: given the fact that contributions to the dvd creation will be recognized with the attribution of an
-    # attestation to the contributor, the retroactive reward should be based by on-chain data, in particular demand data in such attestations,
-    # so that the token scheduler can (or not) reward intermediate contributions to the db.
+    """
+    Manages token rewards for contributors to the DeSciDB ecosystem.
+
+    This class handles the allocation, tracking, and distribution of blockchain tokens
+    to users who contribute to the system by uploading and processing scientific documents.
+    """
 
     def __init__(self, network='test_base', contract_address='0x3bB10ec2404638c6fB9f98948f8e3730316B7BfA',
                  contract_abi_path="/Users/vardhanshorewala/Desktop/coophive/markdown-converter/contracts/CoopHiveV1.json", db_components=None,
                  host="localhost", port=5432, user="", password=""):
-        """Initializes the TokenRewarder class and sets up blockchain and database connections."""
+        """
+        Initialize the TokenRewarder with blockchain and database connections.
+
+        Args:
+            network: Blockchain network to connect to ('test_base', 'optimism', or 'base')
+            contract_address: Address of the token contract
+            contract_abi_path: Path to the contract ABI JSON file
+            db_components: Dictionary containing converter, chunker, and embedder components
+            host: PostgreSQL server hostname
+            port: PostgreSQL server port
+            user: PostgreSQL username
+            password: PostgreSQL password
+        """
         self._initialize_network(network)
         contract_abi = self.load_contract_abi(contract_abi_path)["abi"]
 

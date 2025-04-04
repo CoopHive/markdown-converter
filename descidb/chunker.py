@@ -1,3 +1,10 @@
+"""
+Text chunking module for DeSciDB.
+
+This module provides functions for chunking text into smaller segments
+using various strategies like fixed length, sentence, or paragraph chunking.
+"""
+
 import re
 from typing import List, Literal
 

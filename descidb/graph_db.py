@@ -1,3 +1,10 @@
+"""
+Neo4j graph database client for DeSciDB.
+
+This module provides a IPFSNeo4jGraph class for managing Neo4j graph databases
+used to store and query relationships between IPFS content identifiers (CIDs).
+"""
+
 import os
 import certifi
 import logging
@@ -7,8 +14,25 @@ logging.basicConfig(level=logging.INFO)
 
 
 class IPFSNeo4jGraph:
+    """
+    Manages Neo4j graph database connections and operations for IPFS CIDs.
+
+    This class handles the creation, querying, and traversal of graph relationships
+    between IPFS content identifiers in a Neo4j database.
+    """
+
     def __init__(self, uri, username, password):
-        """Initialize Neo4j connection with SSL certification."""
+        """
+        Initialize Neo4j connection with SSL certification.
+
+        Args:
+            uri: Neo4j database URI
+            username: Neo4j username
+            password: Neo4j password
+
+        Raises:
+            Exception: If connection to Neo4j fails
+        """
         try:
             os.environ["SSL_CERT_FILE"] = certifi.where()
 
@@ -44,10 +68,10 @@ class IPFSNeo4jGraph:
                 """
                 session.run(query, cid1=cid1, cid2=cid2)
                 logging.info(f"Relationship created: {
-                    cid1} -[{relationship_type}]-> {cid2}")
+                    cid1} - [{relationship_type}] -> {cid2}")
         except Exception as e:
             logging.error(f"Failed to create relationship {
-                cid1} -[{relationship_type}]-> {cid2}: {e}")
+                cid1} - [{relationship_type}] -> {cid2}: {e}")
 
     def query_graph(self):
         """Retrieve all nodes and relationships."""

@@ -1,3 +1,10 @@
+"""
+Document processing module for DeSciDB.
+
+This module provides a Processor class for handling the end-to-end processing
+of scientific documents, including conversion, chunking, embedding, and storage.
+"""
+
 import json
 import os
 from typing import List
@@ -8,11 +15,11 @@ import certifi
 from descidb.chunker import chunk
 from descidb.converter import convert
 from descidb.embedder import embed
-from descidb.Postgres import PostgresDBManager
-from descidb.TokenRewarder import TokenRewarder
+from descidb.postgres_db import PostgresDBManager
+from descidb.token_rewarder import TokenRewarder
 from descidb.utils import upload_to_lighthouse
-from descidb.ChromaClient import VectorDatabaseManager
-from descidb.GraphDB import IPFSNeo4jGraph
+from descidb.chroma_client import VectorDatabaseManager
+from descidb.graph_db import IPFSNeo4jGraph
 import subprocess
 import os
 
@@ -45,9 +52,9 @@ class Processor:
         os.environ["SSL_CERT_FILE"] = certifi.where()
 
         self.graph_db = IPFSNeo4jGraph(
-            uri="bolt://b191b806.databases.neo4j.io:7687", 
-            username="neo4j", 
-            password="3a9zR8-u38Vn7x8WWerccZUxN8eSNRVD_cyc33C7j1Y"
+            uri="bolt://edfa737b.databases.neo4j.io",
+            username="neo4j",
+            password="Qnzj8c_dgZaTfbftxZOQO-DpRASYE6lqdGl3Vk97g7Y"
         )
 
         self.__write_to_file(
@@ -225,39 +232,6 @@ class Processor:
                     chunk_text_ipfs_cid, embedding_ipfs_cid, "EMBEDDED_BY_" + embedder_func)
                 self.graph_db.create_relationship(
                     embedding_ipfs_cid, self.author_cid, "AUTHORED_BY")
-                # db_name = f"{converter_func}_{chunker_func}_{embedder_func}"
-                # metadata.update(
-                #     {
-                #         "convert_method": converter_func,
-                #         "chunk_method": chunker_func,
-                #         "embed_method": embedder_func,
-                #         "chunk_index": chunk_index,
-                #     }
-                # )
-
-                # self.db_manager.insert_document(
-                #     db_name=db_name,
-                #     embedding=embedding,
-                #     metadata=metadata,
-                #     doc_id=f"{doc_id}_chunk_{chunk_index}",
-                # )
-
-                # self.postgres_db_manager.insert_data(
-                #     db_name=db_name,
-                #     data=[
-                #         (
-                #             self.authorPublicKey,
-                #             metadata.get("title", "Unknown Title"),
-                #             chunk_i,
-                #             embedding,
-                #             json.dumps(metadata),
-                #             False,
-                #         )
-                #     ],
-                # )
-                # self.TokenRewarder.add_reward_to_user(
-                #     public_key=self.authorPublicKey, db_name=db_name
-                # )
 
     def get_metadata_for_doc(self, metadata_file: str, doc_id: str):
         """Retrieves metadata for the given document ID from the metadata file.

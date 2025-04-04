@@ -1,3 +1,10 @@
+"""
+Utility functions for DeSciDB.
+
+This module provides various utility functions used across the DeSciDB package,
+including file handling, URL operations, compression, and IPFS integration.
+"""
+
 import mimetypes
 import tarfile
 from pathlib import Path

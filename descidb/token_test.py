@@ -1,13 +1,26 @@
-from descidb.TokenRewarder import TokenRewarder
-from descidb.GraphDB import IPFSNeo4jGraph
+"""
+Token reward testing module for DeSciDB.
+
+This module provides functionality to test token rewards by fetching author statistics
+from Neo4j and distributing rewards based on their contributions.
+"""
+
+from descidb.token_rewarder import TokenRewarder
+from descidb.graph_db import IPFSNeo4jGraph
 
 
 def run_reward_users():
+    """
+    Run a test of the token reward system.
+
+    This function connects to Neo4j, fetches author contribution statistics,
+    and distributes token rewards based on their contributions across different databases.
+    """
     # Initialize Neo4j graph connection
     graph = IPFSNeo4jGraph(
-        uri="bolt://b191b806.databases.neo4j.io:7687",
+        uri="bolt://edfa737b.databases.neo4j.io",
         username="neo4j",
-        password="3a9zR8-u38Vn7x8WWerccZUxN8eSNRVD_cyc33C7j1Y"
+        password="Qnzj8c_dgZaTfbftxZOQO-DpRASYE6lqdGl3Vk97g7Y"
     )
 
     # Fetch author job contributions from Neo4j

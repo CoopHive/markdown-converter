@@ -1,3 +1,10 @@
+"""
+Text embedding module for DeSciDB.
+
+This module provides functions for creating vector embeddings from text chunks
+using various embedding models like OpenAI's embedding API.
+"""
+
 import os
 from typing import List, Literal
 

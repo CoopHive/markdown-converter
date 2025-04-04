@@ -1,14 +1,33 @@
+"""
+ChromaDB vector database client for DeSciDB.
+
+This module provides a VectorDatabaseManager class for managing ChromaDB collections
+used to store document embeddings and perform vector similarity searches.
+"""
+
 import itertools
 import os
 import chromadb
 
 
 class VectorDatabaseManager:
+    """
+    Manages ChromaDB vector database collections for multiple embedding pipelines.
+
+    This class handles the creation, initialization, and interaction with ChromaDB
+    collections, which are used to store document embeddings.
+    """
+
     def __init__(self, components: dict):
         """
         Initializes databases based on the Cartesian product of 'convert', 'chunker', and 'embedder'.
 
-        :param components: A dictionary with keys 'convert', 'chunker', and 'embedder', each containing a list of values.
+        Args:
+            components: A dictionary with keys 'converter', 'chunker', and 'embedder', 
+                       each containing a list of values.
+
+        Raises:
+            ValueError: If the components dictionary doesn't have the required keys.
         """
         if not all(key in components for key in ["converter", "chunker", "embedder"]):
             raise ValueError(
