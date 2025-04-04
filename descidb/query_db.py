@@ -7,6 +7,7 @@ language queries and retrieving relevant document chunks.
 
 import os
 import json
+from pathlib import Path
 import chromadb
 import chromadb.utils.embedding_functions as embedding_functions
 from dotenv import load_dotenv
@@ -15,7 +16,7 @@ from openai import OpenAI
 load_dotenv()
 
 
-def query_collection(collection_name, user_query):
+def query_collection(collection_name, user_query, db_path=None):
     """
     Query a ChromaDB collection with a natural language query.
 
@@ -26,14 +27,25 @@ def query_collection(collection_name, user_query):
     Args:
         collection_name: Name of the ChromaDB collection to query
         user_query: Natural language query string
+        db_path: Optional path to ChromaDB directory. If None, uses default path
 
     Returns:
         JSON string containing query results with metadata and similarity scores
     """
     openaiClient = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-    db_path = "/Users/vardhanshorewala/Desktop/coophive/markdown-converter/descidb/database"
-    client = chromadb.PersistentClient(path=db_path)
+    # Use the provided db_path or create a default path
+    if db_path is None:
+        # Get the directory where this module is located and use its database subdirectory
+        module_dir = Path(__file__).parent
+        db_path = module_dir / "database"
+    else:
+        db_path = Path(db_path)
+
+    # Ensure the db_path exists
+    os.makedirs(db_path, exist_ok=True)
+
+    client = chromadb.PersistentClient(path=str(db_path))
     openai_ef = embedding_functions.OpenAIEmbeddingFunction(
         api_key="", model_name="text-embedding-3-small"
     )

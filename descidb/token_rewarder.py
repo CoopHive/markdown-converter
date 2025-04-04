@@ -8,6 +8,7 @@ for users contributing to the DeSciDB ecosystem.
 import itertools
 import json
 import os
+from pathlib import Path
 import time
 from datetime import datetime
 import math
@@ -28,7 +29,7 @@ class TokenRewarder:
     """
 
     def __init__(self, network='test_base', contract_address='0x3bB10ec2404638c6fB9f98948f8e3730316B7BfA',
-                 contract_abi_path="/Users/vardhanshorewala/Desktop/coophive/markdown-converter/contracts/CoopHiveV1.json", db_components=None,
+                 contract_abi_path=None, db_components=None,
                  host="localhost", port=5432, user="", password=""):
         """
         Initialize the TokenRewarder with blockchain and database connections.
@@ -36,7 +37,7 @@ class TokenRewarder:
         Args:
             network: Blockchain network to connect to ('test_base', 'optimism', or 'base')
             contract_address: Address of the token contract
-            contract_abi_path: Path to the contract ABI JSON file
+            contract_abi_path: Path to the contract ABI JSON file. If None, uses default path
             db_components: Dictionary containing converter, chunker, and embedder components
             host: PostgreSQL server hostname
             port: PostgreSQL server port
@@ -44,6 +45,13 @@ class TokenRewarder:
             password: PostgreSQL password
         """
         self._initialize_network(network)
+
+        # Determine the contract ABI path
+        if contract_abi_path is None:
+            # Use a relative path from the project root
+            project_root = Path(__file__).parent.parent
+            contract_abi_path = project_root / "contracts" / "CoopHiveV1.json"
+
         contract_abi = self.load_contract_abi(contract_abi_path)["abi"]
 
         # Initialize Web3 and contract

@@ -8,6 +8,8 @@ by retrieving data from IPFS and processing graph relationships.
 import logging
 import requests
 import json
+import os
+from pathlib import Path
 from descidb.graph_db import IPFSNeo4jGraph
 from descidb.chroma_client import VectorDatabaseManager
 import dotenv
@@ -112,6 +114,9 @@ class DatabaseCreator:
 
 
 def main():
+    """
+    Main function to create and populate the database from IPFS CIDs.
+    """
     graph = IPFSNeo4jGraph(
         uri="bolt://edfa737b.databases.neo4j.io",
         username="neo4j",
@@ -123,7 +128,13 @@ def main():
         "chunker": ["fixed_length"],
         "embedder": ["openai"]
     }
-    vector_db_manager = VectorDatabaseManager(components)
+
+    # Create database directory
+    project_root = Path(__file__).parent.parent
+    db_path = project_root / "descidb" / "database"
+    os.makedirs(db_path, exist_ok=True)
+
+    vector_db_manager = VectorDatabaseManager(components, db_path=str(db_path))
     create_db = DatabaseCreator(graph, vector_db_manager)
 
     relationship_path = [
@@ -134,7 +145,23 @@ def main():
 
     db_name = "openai_fixed_length_openai"
 
-    with open("cids.txt", "r") as file:
+    # Look for cids.txt file in project root and temp directories
+    cids_file_paths = [
+        project_root / "cids.txt",
+        project_root / "temp" / "cids.txt"
+    ]
+
+    cids_file = None
+    for path in cids_file_paths:
+        if path.exists():
+            cids_file = path
+            break
+
+    if cids_file is None:
+        logging.error("No cids.txt file found. Please run processor first.")
+        return
+
+    with open(cids_file, "r") as file:
         counter = 0
         for line in file:
             start_cid = line.strip()

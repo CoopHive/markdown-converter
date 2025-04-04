@@ -7,6 +7,7 @@ used to store document embeddings and perform vector similarity searches.
 
 import itertools
 import os
+from pathlib import Path
 import chromadb
 
 
@@ -18,13 +19,15 @@ class VectorDatabaseManager:
     collections, which are used to store document embeddings.
     """
 
-    def __init__(self, components: dict):
+    def __init__(self, components: dict, db_path: str = None):
         """
         Initializes databases based on the Cartesian product of 'convert', 'chunker', and 'embedder'.
 
         Args:
             components: A dictionary with keys 'converter', 'chunker', and 'embedder', 
                        each containing a list of values.
+            db_path: Optional path to the database directory. If not provided,
+                    will use the default 'database' directory in the descidb package.
 
         Raises:
             ValueError: If the components dictionary doesn't have the required keys.
@@ -41,10 +44,18 @@ class VectorDatabaseManager:
             )
         ]
 
-        self.db_client = chromadb.PersistentClient(
-            path=os.path.join(os.path.dirname(__file__), "database")
-        )
+        # Use the provided db_path or create a default path
+        if db_path is None:
+            # Get the directory where this module is located
+            module_dir = Path(__file__).parent
+            db_path = module_dir / "database"
+        else:
+            db_path = Path(db_path)
 
+        # Ensure the database directory exists
+        os.makedirs(db_path, exist_ok=True)
+
+        self.db_client = chromadb.PersistentClient(path=str(db_path))
         self.initialize_databases()
 
     def initialize_databases(self):

@@ -7,6 +7,7 @@ from Neo4j and distributing rewards based on their contributions.
 
 from descidb.token_rewarder import TokenRewarder
 from descidb.graph_db import IPFSNeo4jGraph
+from pathlib import Path
 
 
 def run_reward_users():
@@ -18,9 +19,9 @@ def run_reward_users():
     """
     # Initialize Neo4j graph connection
     graph = IPFSNeo4jGraph(
-        uri="bolt://edfa737b.databases.neo4j.io",
+        uri="bolt://b191b806.databases.neo4j.io:7687",
         username="neo4j",
-        password="Qnzj8c_dgZaTfbftxZOQO-DpRASYE6lqdGl3Vk97g7Y"
+        password="3a9zR8-u38Vn7x8WWerccZUxN8eSNRVD_cyc33C7j1Y"
     )
 
     # Fetch author job contributions from Neo4j
@@ -38,11 +39,15 @@ def run_reward_users():
         "embedder": list(set([db_config["embedder"] for db_config in databases])),
     }
 
+    # Get project root directory
+    project_root = Path(__file__).parent.parent
+    contract_abi_path = project_root / "contracts" / "CoopHiveV1.json"
+
     # Initialize the TokenRewarder
     rewarder = TokenRewarder(
         network="test_base",
         contract_address="0x3bB10ec2404638c6fB9f98948f8e3730316B7BfA",
-        contract_abi_path="/Users/vardhanshorewala/Desktop/coophive/markdown-converter/contracts/CoopHiveV1.json",
+        contract_abi_path=str(contract_abi_path),
         db_components=components,
         host="localhost",
         port=5432,

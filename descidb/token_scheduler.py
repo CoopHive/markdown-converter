@@ -6,6 +6,7 @@ their contributions to the DeSciDB ecosystem.
 """
 
 from descidb.token_rewarder import TokenRewarder
+from pathlib import Path
 
 
 def run_reward_users():
@@ -34,10 +35,14 @@ def run_reward_users():
         "embedder": list(set([db_config["embedder"] for db_config in databases]))
     }
 
+    # Get project root directory
+    project_root = Path(__file__).parent.parent
+    contract_abi_path = project_root / "contracts" / "CoopHiveV1.json"
+
     rewarder = TokenRewarder(
         network='test_base',
         contract_address='0x14436f6895B8EC34e0E4994Df29D1856b665B490',
-        contract_abi_path='CoopHiveV1.json',
+        contract_abi_path=str(contract_abi_path),
         db_components=components,
         host="localhost",
         port=5432,

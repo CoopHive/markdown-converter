@@ -9,6 +9,7 @@ import os
 import time
 import hashlib
 import subprocess
+from pathlib import Path
 from dotenv import load_dotenv
 
 from descidb.postgres_db import PostgresDBManager
@@ -21,11 +22,16 @@ from descidb.chroma_client import VectorDatabaseManager
 
 load_dotenv(override=True)
 
+# Get the project root directory
+PROJECT_ROOT = Path(__file__).parent.parent
+# Parent directory of the project (coophive folder)
+COOPHIVE_DIR = PROJECT_ROOT.parent
+
 
 def test_processor():
-    papers_directory = os.getcwd() + "/" + "../papers"
-    metadata_file = os.getcwd() + "/" + "../papers/metadata.json"
-    storage_directory = "/Users/vardhanshorewala/Desktop/coophive/papers-graph-demo"
+    papers_directory = PROJECT_ROOT / "papers"
+    metadata_file = papers_directory / "metadata.json"
+    storage_directory = COOPHIVE_DIR / "papers-graph-demo"
 
     max_papers = 10
 
@@ -88,9 +94,10 @@ def test_processor():
         authorPublicKey="0x55DE19820d5Dfc5761370Beb16Eb041E11272619",
         db_manager=db_manager,
         postgres_db_manager=db_manager_postgres,
-        metadata_file=metadata_file,
+        metadata_file=str(metadata_file),
         ipfs_api_key=lighthouse_api_key,
         TokenRewarder=tokenRewarder,
+        project_root=PROJECT_ROOT,
     )
 
     for paper in papers:
@@ -98,16 +105,22 @@ def test_processor():
         random_data = os.urandom(32)
         hash_value = hashlib.sha256(random_data).hexdigest()
 
+        paper_dir = storage_directory / hash_value
         try:
-            os.makedirs(f"{storage_directory}/{hash_value}")
-            os.chdir(f"{storage_directory}/{hash_value}")
+            os.makedirs(paper_dir, exist_ok=True)
+            # Store the current directory
+            current_dir = os.getcwd()
+            # Change to the paper directory for git operations
+            os.chdir(paper_dir)
             subprocess.run(["git", "init"], check=True)
+            # Change back to the original directory after git init
+            os.chdir(current_dir)
         except Exception as e:
             print(f"Error: {e}")
             continue
 
         processor.process(pdf_path=paper, databases=databases,
-                          git_path=f"{storage_directory}/{hash_value}")
+                          git_path=str(paper_dir))
 
         time.sleep(5)
 

@@ -8,6 +8,7 @@ of scientific documents, including conversion, chunking, embedding, and storage.
 import json
 import os
 from typing import List
+from pathlib import Path
 
 import requests
 import certifi
@@ -21,9 +22,6 @@ from descidb.utils import upload_to_lighthouse
 from descidb.chroma_client import VectorDatabaseManager
 from descidb.graph_db import IPFSNeo4jGraph
 import subprocess
-import os
-
-# Load environment variables
 
 
 class Processor:
@@ -37,8 +35,20 @@ class Processor:
         metadata_file: str,
         ipfs_api_key: str,
         TokenRewarder: TokenRewarder,
+        project_root: Path = None,
     ):
-        """Initialize the processor."""
+        """
+        Initialize the processor.
+
+        Args:
+            authorPublicKey: Public key of the author
+            db_manager: Vector database manager instance
+            postgres_db_manager: PostgreSQL database manager instance
+            metadata_file: Path to metadata file
+            ipfs_api_key: API key for Lighthouse IPFS
+            TokenRewarder: Token rewarder instance
+            project_root: Path to project root directory
+        """
         self.db_manager = db_manager  # Vector Database Manager
         self.TokenRewarder = TokenRewarder
         self.metadata_file = metadata_file
@@ -47,6 +57,15 @@ class Processor:
         self.postgres_db_manager = postgres_db_manager  # Postgres DB Manager
         self.convert_cache = {}  # Cache for converted text
         self.chunk_cache = {}  # Cache for chunked text
+        self.project_root = project_root or Path(__file__).parent.parent
+
+        # Create temp directory for temporary files
+        self.temp_dir = self.project_root / "temp"
+        os.makedirs(self.temp_dir, exist_ok=True)
+
+        # Paths for temporary files
+        self.tmp_file_path = self.temp_dir / "tmp.txt"
+        self.cids_file_path = self.temp_dir / "cids.txt"
 
         # Set SSL certificate path explicitly
         os.environ["SSL_CERT_FILE"] = certifi.where()
@@ -57,10 +76,9 @@ class Processor:
             password="Qnzj8c_dgZaTfbftxZOQO-DpRASYE6lqdGl3Vk97g7Y"
         )
 
-        self.__write_to_file(
-            self.authorPublicKey, os.path.join(os.getcwd(), "tmp.txt"))
+        self.__write_to_file(self.authorPublicKey, str(self.tmp_file_path))
         self.author_cid = self.__upload_text_to_lighthouse(
-            os.path.join(os.getcwd(), "tmp.txt")).split("ipfs/")[-1]
+            str(self.tmp_file_path)).split("ipfs/")[-1]
         self.graph_db.add_ipfs_node(self.author_cid)
 
     def __upload_text_to_lighthouse(self, filename: str) -> str:
@@ -135,15 +153,17 @@ class Processor:
             print(f"Error writing to file: {e}")
 
     def process(self, pdf_path: str, databases: List[dict], git_path: str):
-        """Processes the PDF according to the list of database configurations passed.
+        """
+        Processes the PDF according to the list of database configurations passed.
 
-        - pdf_path: Path to the input PDF.
-        - databases: A list of JSON-like dicts, each containing a specific converter, chunker, and embedder.
+        Args:
+            pdf_path: Path to the input PDF
+            databases: A list of configs, each containing a converter, chunker, and embedder
+            git_path: Path to git repository for storing CIDs
         """
         doc_id = os.path.splitext(os.path.basename(pdf_path))[0]
         self.convert_cache = {}
         self.chunk_cache = {}
-        tmp_file_path = os.path.join(os.getcwd(), "tmp.txt")
 
         metadata = self.get_metadata_for_doc(self.metadata_file, doc_id)
         if not metadata:
@@ -166,9 +186,7 @@ class Processor:
         self.graph_db.create_relationship(metadata["pdf_ipfs_cid"],
                                           self.author_cid, "AUTHORED_BY")
 
-        cid_file_path = os.path.join(os.getcwd(), "cids.txt")
-
-        with open(cid_file_path, "a") as cid_file:
+        with open(self.cids_file_path, "a") as cid_file:
             cid_file.write(metadata["pdf_ipfs_cid"] + "\n")
 
         for db_config in databases:
@@ -186,10 +204,10 @@ class Processor:
                 converted_text = self.convert_cache[converter_func]
 
             # Upload converted text to IPFS and commit to Git
-            self.__write_to_file(converted_text, tmp_file_path)
+            self.__write_to_file(converted_text, self.tmp_file_path)
 
             converted_text_ipfs_cid = self.__lighthouse_and_commit(
-                object=tmp_file_path, git_path=git_path)
+                object=self.tmp_file_path, git_path=git_path)
 
             self.graph_db.add_ipfs_node(converted_text_ipfs_cid)
             self.graph_db.create_relationship(
@@ -208,10 +226,10 @@ class Processor:
 
             for chunk_index, chunk_i in enumerate(chunked_text):
 
-                self.__write_to_file(chunk_i, tmp_file_path)
+                self.__write_to_file(chunk_i, self.tmp_file_path)
 
                 chunk_text_ipfs_cid = self.__lighthouse_and_commit(
-                    object=tmp_file_path, git_path=git_path)
+                    object=self.tmp_file_path, git_path=git_path)
 
                 self.graph_db.add_ipfs_node(chunk_text_ipfs_cid)
                 self.graph_db.create_relationship(
@@ -223,10 +241,10 @@ class Processor:
                 embedding = embed(
                     embeder_type=embedder_func, input_text=chunk_i)
 
-                self.__write_to_file(json.dumps(embedding), tmp_file_path)
+                self.__write_to_file(json.dumps(embedding), self.tmp_file_path)
 
                 embedding_ipfs_cid = self.__lighthouse_and_commit(
-                    object=tmp_file_path, git_path=git_path)
+                    object=self.tmp_file_path, git_path=git_path)
                 self.graph_db.add_ipfs_node(embedding_ipfs_cid)
                 self.graph_db.create_relationship(
                     chunk_text_ipfs_cid, embedding_ipfs_cid, "EMBEDDED_BY_" + embedder_func)
