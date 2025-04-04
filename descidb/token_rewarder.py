@@ -16,6 +16,10 @@ import math
 from dotenv import load_dotenv
 from psycopg2 import connect, sql
 from web3 import Web3
+from descidb.logging_utils import get_logger
+
+# Get module logger
+logger = get_logger(__name__)
 
 load_dotenv()
 
@@ -44,6 +48,7 @@ class TokenRewarder:
             user: PostgreSQL username
             password: PostgreSQL password
         """
+        self.logger = get_logger(__name__ + '.TokenRewarder')
         self._initialize_network(network)
 
         # Determine the contract ABI path
@@ -77,6 +82,9 @@ class TokenRewarder:
         else:
             self.db_names = []
 
+        self.logger.info(f"Initialized TokenRewarder for network: {network}")
+        self.logger.info(f"Contract address: {contract_address}")
+
     def _initialize_network(self, network):
         """Sets the RPC URL and chain ID based on the specified network."""
         if network == "optimism":
@@ -105,7 +113,7 @@ class TokenRewarder:
             conn.autocommit = True
             return conn
         except Exception as e:
-            print(f"Error connecting to the database: {e}")
+            self.logger.error(f"Error connecting to the database: {e}")
             return None
 
     def load_contract_abi(self, abi_path):
@@ -131,7 +139,7 @@ class TokenRewarder:
         """Creates the database and initializes the reward table."""
         conn = self._connect()
         if conn is None:
-            print("Unable to connect to PostgreSQL server.")
+            self.logger.error("Unable to connect to PostgreSQL server.")
             return
 
         cursor = conn.cursor()
@@ -145,13 +153,13 @@ class TokenRewarder:
                 # Create the new database
                 cursor.execute(sql.SQL("CREATE DATABASE {}").format(
                     sql.Identifier(db_name)))
-                print(f"Database '{db_name}' created successfully.")
+                self.logger.info(f"Database '{db_name}' created successfully.")
 
             # Ensure schema and table are created in the new database
             self._create_schema_and_table(db_name)
 
         except Exception as e:
-            print(f"Error creating database or table: {e}")
+            self.logger.error(f"Error creating database or table: {e}")
         finally:
             cursor.close()
             conn.close()
@@ -160,7 +168,7 @@ class TokenRewarder:
         """Creates the schema and 'user_rewards' table in the given database, if they don't already exist."""
         conn = self._connect(db_name)
         if conn is None:
-            print(f"Unable to connect to the database '{db_name}'.")
+            self.logger.error(f"Unable to connect to the database '{db_name}'.")
             return
 
         cursor = conn.cursor()
@@ -188,13 +196,13 @@ class TokenRewarder:
                         time_stamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     )
                 """)
-                print(f"Initialized 'user_rewards' table in '{db_name}'.")
+                self.logger.info(f"Initialized 'user_rewards' table in '{db_name}'.")
             else:
-                print(
+                self.logger.info(
                     f"'user_rewards' table already exists in '{db_name}', skipping creation.")
 
         except Exception as e:
-            print(f"Error creating schema or table: {e}")
+            self.logger.error(f"Error creating schema or table: {e}")
         finally:
             cursor.close()
             conn.close()
@@ -211,7 +219,7 @@ class TokenRewarder:
 
         conn = self._connect(db_name)
         if conn is None:
-            print(f"❌ Unable to connect to the database '{db_name}'.")
+            self.logger.error(f"❌ Unable to connect to the database '{db_name}'.")
             return
 
         cursor = conn.cursor()
@@ -224,11 +232,11 @@ class TokenRewarder:
                 DO UPDATE SET job_count = default_schema.user_rewards.job_count + EXCLUDED.job_count
                 """, (public_key, job_count)
             )
-            print(
+            self.logger.info(
                 f"✅ Added entry for user '{public_key}' with job_count {job_count}.")
 
         except Exception as e:
-            print(f"❌ Error adding reward entry: {e}")
+            self.logger.error(f"❌ Error adding reward entry: {e}")
         finally:
             cursor.close()
             conn.close()
@@ -236,11 +244,11 @@ class TokenRewarder:
     def issue_token(self, recipient_address, amount=1):
         """Issues tokens to the recipient address."""
         if not self.owner_address:
-            print("❌ OWNER_ADDRESS is not set!")
+            self.logger.error("❌ OWNER_ADDRESS is not set!")
             return False
 
         if not recipient_address:
-            print("❌ Recipient address is invalid!")
+            self.logger.error("❌ Recipient address is invalid!")
             return False
 
         try:
@@ -260,27 +268,27 @@ class TokenRewarder:
                 txn, self.private_key)
             tx_hash = self.web3.eth.send_raw_transaction(
                 signed_txn.raw_transaction)
-            print(f"✅ Transaction sent: {self.web3.to_hex(tx_hash)}")
+            self.logger.info(f"✅ Transaction sent: {self.web3.to_hex(tx_hash)}")
             return True
 
         except Exception as e:
-            print(f"❌ Error sending transaction: {e}")
+            self.logger.error(f"❌ Error sending transaction: {e}")
             return False
 
     def batch_issue_tokens(self, recipients, amounts):
         """Issue tokens to multiple addresses in a single transaction using batchDistribute."""
         if not self.owner_address:
-            print("❌ OWNER_ADDRESS is not set!")
+            self.logger.error("❌ OWNER_ADDRESS is not set!")
             return False
 
         if not recipients or not amounts or len(recipients) != len(amounts):
-            print("❌ Invalid recipients or amounts for batch distribution")
+            self.logger.error("❌ Invalid recipients or amounts for batch distribution")
             return False
 
         try:
             nonce = self.web3.eth.get_transaction_count(
                 self.owner_address, 'pending')
-            print(f"🏦 Batch issuing tokens to {len(recipients)} recipients...")
+            self.logger.info(f"🏦 Batch issuing tokens to {len(recipients)} recipients...")
 
             # Convert amounts to wei (multiply by 10^18)
             wei_amounts = [int(amount * 1e18) for amount in amounts]
@@ -300,11 +308,11 @@ class TokenRewarder:
                 txn, self.private_key)
             tx_hash = self.web3.eth.send_raw_transaction(
                 signed_txn.raw_transaction)
-            print(f"✅ Batch transaction sent: {self.web3.to_hex(tx_hash)}")
+            self.logger.info(f"✅ Batch transaction sent: {self.web3.to_hex(tx_hash)}")
             return True
 
         except Exception as e:
-            print(f"❌ Error sending batch transaction: {e}")
+            self.logger.error(f"❌ Error sending batch transaction: {e}")
             return False
 
     def get_user_rewards(self, db_name):
@@ -322,7 +330,7 @@ class TokenRewarder:
         user_rewards = self.reward_users_constant(db_name)
 
         if not user_rewards:
-            print("No rewards to distribute")
+            self.logger.info("No rewards to distribute")
             return
 
         # Collect all recipients and amounts for batch distribution
@@ -330,13 +338,13 @@ class TokenRewarder:
         amounts = []
 
         for user, amount in user_rewards.items():
-            print(f"Adding {amount:.2f} tokens for user '{user}'")
+            self.logger.info(f"Adding {amount:.2f} tokens for user '{user}'")
             recipients.append(user)
             amounts.append(amount)
 
         # Use batch distribution
         if recipients and amounts:
-            print(
+            self.logger.info(
                 f"Issuing tokens to {len(recipients)} users in a single transaction")
             self.batch_issue_tokens(recipients, amounts)
 
@@ -344,7 +352,7 @@ class TokenRewarder:
         '''Rewards users based on a constant reward per job count after a specified time.'''
         conn = self._connect(db_name)
         if conn is None:
-            print(f"Unable to connect to the database '{db_name}'.")
+            self.logger.error(f"Unable to connect to the database '{db_name}'.")
             return
 
         cursor = conn.cursor()
@@ -362,14 +370,14 @@ class TokenRewarder:
             for public_key, total_jobs in user_entries:
                 rewards[public_key] = total_jobs * reward_per_job
 
-            print("\nRewards After Specified Time:")
+            self.logger.info("\nRewards After Specified Time:")
             for user, reward in rewards.items():
-                print(f"  User '{user}': {reward:.2f} tokens")
+                self.logger.info(f"  User '{user}': {reward:.2f} tokens")
 
             return rewards
 
         except Exception as e:
-            print(f"Error calculating time-based rewards: {e}")
+            self.logger.error(f"Error calculating time-based rewards: {e}")
         finally:
             cursor.close()
             conn.close()
@@ -378,7 +386,7 @@ class TokenRewarder:
         '''Rewards users based on a milestone-based reward scheme.'''
         conn = self._connect(db_name)
         if conn is None:
-            print(f"Unable to connect to the database '{db_name}'.")
+            self.logger.error(f"Unable to connect to the database '{db_name}'.")
             return
 
         cursor = conn.cursor()
@@ -396,14 +404,14 @@ class TokenRewarder:
             for public_key, total_jobs in user_entries:
                 rewards[public_key] = total_jobs * reward_per_job
 
-            print("\nMilestone-Based Rewards:")
+            self.logger.info("\nMilestone-Based Rewards:")
             for user, reward in rewards.items():
-                print(f"  User '{user}': {reward:.2f} tokens")
+                self.logger.info(f"  User '{user}': {reward:.2f} tokens")
 
             return rewards
 
         except Exception as e:
-            print(f"Error calculating milestone-based rewards: {e}")
+            self.logger.error(f"Error calculating milestone-based rewards: {e}")
         finally:
             cursor.close()
             conn.close()
@@ -412,7 +420,7 @@ class TokenRewarder:
         '''Rewards users based on a bonus threshold and bonus amount.'''
         conn = self._connect(db_name)
         if conn is None:
-            print(f"Unable to connect to the database '{db_name}'.")
+            self.logger.error(f"Unable to connect to the database '{db_name}'.")
             return
 
         cursor = conn.cursor()
@@ -432,14 +440,14 @@ class TokenRewarder:
                     reward += bonus
                 rewards[public_key] = reward
 
-            print("\nRewards with Bonuses:")
+            self.logger.info("\nRewards with Bonuses:")
             for user, reward in rewards.items():
-                print(f"  User '{user}': {reward:.2f} tokens")
+                self.logger.info(f"  User '{user}': {reward:.2f} tokens")
 
             return rewards
 
         except Exception as e:
-            print(f"Error calculating rewards with bonuses: {e}")
+            self.logger.error(f"Error calculating rewards with bonuses: {e}")
         finally:
             cursor.close()
             conn.close()
@@ -448,7 +456,7 @@ class TokenRewarder:
         '''Rewards users based on a constant reward per job count.'''
         conn = self._connect(db_name)
         if conn is None:
-            print(f"Unable to connect to the database '{db_name}'.")
+            self.logger.error(f"Unable to connect to the database '{db_name}'.")
             return
 
         cursor = conn.cursor()
@@ -465,14 +473,14 @@ class TokenRewarder:
             for public_key, total_jobs in user_entries:
                 rewards[public_key] = total_jobs * reward_per_job
 
-            print("\nConstant Rewards:")
+            self.logger.info("\nConstant Rewards:")
             for user, reward in rewards.items():
-                print(f"  User '{user}': {reward:.2f} tokens")
+                self.logger.info(f"  User '{user}': {reward:.2f} tokens")
 
             return rewards
 
         except Exception as e:
-            print(f"Error calculating constant rewards: {e}")
+            self.logger.error(f"Error calculating constant rewards: {e}")
         finally:
             cursor.close()
             conn.close()
@@ -481,7 +489,7 @@ class TokenRewarder:
         '''Rewards users based on a default exponential decay reward scheme.'''
         conn = self._connect(db_name)
         if conn is None:
-            print(f"Unable to connect to the database '{db_name}'.")
+            self.logger.error(f"Unable to connect to the database '{db_name}'.")
             return
 
         cursor = conn.cursor()
@@ -497,7 +505,7 @@ class TokenRewarder:
             user_entries = cursor.fetchall()
 
             if not user_entries:
-                print("No user entries found.")
+                self.logger.info("No user entries found.")
                 return
 
             current_time = datetime.now()
@@ -528,24 +536,24 @@ class TokenRewarder:
             weighted_rewards = {}
             for i, (bucket_start, users) in enumerate(reversed(bucket_map.items())):
                 weight = weights[i]
-                print(f"Bucket starting {bucket_start} (Weight: {weight}):")
+                self.logger.info(f"Bucket starting {bucket_start} (Weight: {weight}):")
                 for user, count in users.items():
                     weighted_reward = count * weight
                     if user not in weighted_rewards:
                         weighted_rewards[user] = 0
                     weighted_rewards[user] += weighted_reward
-                    print(
+                    self.logger.info(
                         f"  User '{user}': {count} contributions, Weighted reward: {weighted_reward:.2f}")
 
-            print("\nTotal Weighted Rewards:")
+            self.logger.info("\nTotal Weighted Rewards:")
             for user, total_reward in weighted_rewards.items():
-                print(
+                self.logger.info(
                     f"  User '{user}': {total_reward:.2f} total weighted reward")
 
             return weighted_rewards
 
         except Exception as e:
-            print(f"Error fetching user rewards: {e}")
+            self.logger.error(f"Error fetching user rewards: {e}")
         finally:
             cursor.close()
             conn.close()
@@ -554,7 +562,7 @@ class TokenRewarder:
         '''Rewards users who contributed within a specific timeframe.'''
         conn = self._connect(db_name)
         if conn is None:
-            print(f"Unable to connect to the database '{db_name}'.")
+            self.logger.error(f"Unable to connect to the database '{db_name}'.")
             return
 
         cursor = conn.cursor()
@@ -572,14 +580,14 @@ class TokenRewarder:
             for public_key, total_jobs in user_entries:
                 rewards[public_key] = total_jobs * reward_per_job
 
-            print("\nTimeframe-Based Rewards:")
+            self.logger.info("\nTimeframe-Based Rewards:")
             for user, reward in rewards.items():
-                print(f"  User '{user}': {reward:.2f} tokens")
+                self.logger.info(f"  User '{user}': {reward:.2f} tokens")
 
             return rewards
 
         except Exception as e:
-            print(f"Error calculating timeframe-based rewards: {e}")
+            self.logger.error(f"Error calculating timeframe-based rewards: {e}")
         finally:
             cursor.close()
             conn.close()
@@ -595,7 +603,7 @@ class TokenRewarder:
 
         conn = self._connect(db_name)
         if conn is None:
-            print(f"Unable to connect to the database '{db_name}'.")
+            self.logger.error(f"Unable to connect to the database '{db_name}'.")
             return
 
         cursor = conn.cursor()
@@ -617,14 +625,14 @@ class TokenRewarder:
                         break
                 rewards[public_key] = total_jobs * reward_per_job
 
-            print("\nTier-Based Rewards:")
+            self.logger.info("\nTier-Based Rewards:")
             for user, reward in rewards.items():
-                print(f"  User '{user}': {reward:.2f} tokens")
+                self.logger.info(f"  User '{user}': {reward:.2f} tokens")
 
             return rewards
 
         except Exception as e:
-            print(f"Error calculating tier-based rewards: {e}")
+            self.logger.error(f"Error calculating tier-based rewards: {e}")
         finally:
             cursor.close()
             conn.close()

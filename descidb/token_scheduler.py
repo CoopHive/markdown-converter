@@ -7,6 +7,10 @@ their contributions to the DeSciDB ecosystem.
 
 from descidb.token_rewarder import TokenRewarder
 from pathlib import Path
+from descidb.logging_utils import get_logger
+
+# Get module logger
+logger = get_logger(__name__)
 
 
 def run_reward_users():
@@ -16,6 +20,8 @@ def run_reward_users():
     This function initializes the TokenRewarder with different database configurations
     and processes rewards for users in each database.
     """
+    logger.info("Starting token reward process")
+
     databases = [
         {
             "converter": "openai",
@@ -39,6 +45,7 @@ def run_reward_users():
     project_root = Path(__file__).parent.parent
     contract_abi_path = project_root / "contracts" / "CoopHiveV1.json"
 
+    logger.info(f"Initializing TokenRewarder")
     rewarder = TokenRewarder(
         network='test_base',
         contract_address='0x14436f6895B8EC34e0E4994Df29D1856b665B490',
@@ -51,8 +58,11 @@ def run_reward_users():
     )
 
     for component in components:
-        component += '_token'
-        rewarder.get_user_rewards(component)
+        component_name = component + '_token'
+        logger.info(f"Processing rewards for component: {component_name}")
+        rewarder.get_user_rewards(component_name)
+
+    logger.info("Token reward process completed")
 
 
 if __name__ == "__main__":

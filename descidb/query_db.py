@@ -12,6 +12,10 @@ import chromadb
 import chromadb.utils.embedding_functions as embedding_functions
 from dotenv import load_dotenv
 from openai import OpenAI
+from descidb.logging_utils import get_logger
+
+# Get module logger
+logger = get_logger(__name__)
 
 load_dotenv()
 
@@ -32,53 +36,64 @@ def query_collection(collection_name, user_query, db_path=None):
     Returns:
         JSON string containing query results with metadata and similarity scores
     """
-    openaiClient = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    try:
+        openaiClient = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        if not os.getenv("OPENAI_API_KEY"):
+            logger.error("OpenAI API key is not set in environment variables")
+            return json.dumps({"error": "OpenAI API key not configured"})
 
-    # Use the provided db_path or create a default path
-    if db_path is None:
-        # Get the directory where this module is located and use its database subdirectory
-        module_dir = Path(__file__).parent
-        db_path = module_dir / "database"
-    else:
-        db_path = Path(db_path)
+        # Use the provided db_path or create a default path
+        if db_path is None:
+            # Get the directory where this module is located and use its database subdirectory
+            module_dir = Path(__file__).parent
+            db_path = module_dir / "database"
+        else:
+            db_path = Path(db_path)
 
-    # Ensure the db_path exists
-    os.makedirs(db_path, exist_ok=True)
+        # Ensure the db_path exists
+        os.makedirs(db_path, exist_ok=True)
 
-    client = chromadb.PersistentClient(path=str(db_path))
-    openai_ef = embedding_functions.OpenAIEmbeddingFunction(
-        api_key="", model_name="text-embedding-3-small"
-    )
-    collection = client.get_collection(
-        name=f"{collection_name}", embedding_function=openai_ef
-    )
+        logger.info(f"Querying collection '{collection_name}' with: '{user_query[:50]}...'")
+        client = chromadb.PersistentClient(path=str(db_path))
+        openai_ef = embedding_functions.OpenAIEmbeddingFunction(
+            api_key="", model_name="text-embedding-3-small"
+        )
+        collection = client.get_collection(
+            name=f"{collection_name}", embedding_function=openai_ef
+        )
 
-    model_name = "text-embedding-3-small"
-    response = openaiClient.embeddings.create(
-        model=model_name, input=[user_query])
-    embedding = response.data[0].embedding
-    values = collection.query(
-        query_embeddings=[embedding],
-        n_results=4,
-        include=["metadatas", "documents", "distances"]
-    )
+        model_name = "text-embedding-3-small"
+        response = openaiClient.embeddings.create(
+            model=model_name, input=[user_query])
+        embedding = response.data[0].embedding
+        values = collection.query(
+            query_embeddings=[embedding],
+            n_results=4,
+            include=["metadatas", "documents", "distances"]
+        )
 
-    results = []
-    for i, metadata in enumerate(values["metadatas"][0]):
-        results.append({
-            "distance": values["distances"][0][i],
-            "content": metadata["content"],
-            "content_cid": metadata["content_cid"],
-            "embedding_cid": metadata["embedding_cid"],
-            "root_cid": metadata["root_cid"]
-        })
+        result = {
+            "query": user_query,
+            "results": []
+        }
 
-    output = {
-        "query": user_query,
-        "results": results
-    }
+        if values["ids"] and len(values["ids"][0]) > 0:
+            for i in range(len(values["ids"][0])):
+                result["results"].append({
+                    "document": values["documents"][0][i] if i < len(values["documents"][0]) else "",
+                    "metadata": values["metadatas"][0][i] if i < len(values["metadatas"][0]) else {},
+                    "distance": values["distances"][0][i] if i < len(values["distances"][0]) else 0
+                })
 
-    return json.dumps(output, indent=4)
+            logger.info(f"Found {len(result['results'])} results for query")
+            return json.dumps(result)
+        else:
+            logger.warning(f"No results found for query: '{user_query[:50]}...'")
+            return json.dumps({"query": user_query, "results": []})
+
+    except Exception as e:
+        logger.error(f"Error querying collection: {e}")
+        return json.dumps({"error": str(e)})
 
 
 if __name__ == "__main__":

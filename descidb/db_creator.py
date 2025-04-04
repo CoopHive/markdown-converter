@@ -12,9 +12,13 @@ import os
 from pathlib import Path
 from descidb.graph_db import IPFSNeo4jGraph
 from descidb.chroma_client import VectorDatabaseManager
+from descidb.logging_utils import get_logger
 import dotenv
 
 dotenv.load_dotenv()
+
+# Get module logger
+logger = get_logger(__name__)
 
 
 class DatabaseCreator:
@@ -35,6 +39,7 @@ class DatabaseCreator:
         """
         self.graph = graph
         self.vector_db_manager = vector_db_manager
+        self.logger = get_logger(__name__ + '.DatabaseCreator')
 
     def query_lighthouse_for_embedding(self, cid):
         """
@@ -53,7 +58,7 @@ class DatabaseCreator:
             embedding_vector = json.loads(response.text)
             return embedding_vector
         except (requests.exceptions.RequestException, json.JSONDecodeError) as e:
-            logging.error(f"Failed to retrieve embedding for CID {cid}: {e}")
+            self.logger.error(f"Failed to retrieve embedding for CID {cid}: {e}")
             return None
 
     def query_ipfs_content(self, cid):
@@ -64,20 +69,20 @@ class DatabaseCreator:
             content = response.text
             return content
         except requests.exceptions.RequestException as e:
-            logging.error(
+            self.logger.error(
                 f"Failed to retrieve IPFS content for CID {cid}: {e}")
             return None
 
     def process_paths(self, start_cid, path, db_name):
         paths = self.graph.recreate_path(start_cid, path)
-        print(len(paths))
+        self.logger.info(f"Found {len(paths)} paths for CID {start_cid}")
         if not paths:
-            logging.error(f"No valid paths found for CID {start_cid}")
+            self.logger.error(f"No valid paths found for CID {start_cid}")
             return
 
         for path_nodes in paths:
             if len(path_nodes) < 2:
-                logging.error(f"Path {path_nodes} is too short.")
+                self.logger.error(f"Path {path_nodes} is too short.")
                 continue
 
             content_cid = path_nodes[-2]
@@ -86,13 +91,13 @@ class DatabaseCreator:
             embedding_vector = self.query_lighthouse_for_embedding(
                 embedding_cid)
             if embedding_vector is None:
-                logging.error(
+                self.logger.error(
                     f"Skipping path {path_nodes} due to failed embedding retrieval.")
                 continue
 
             content = self.query_ipfs_content(content_cid)
             if content is None:
-                logging.error(
+                self.logger.error(
                     f"Skipping path {path_nodes} due to failed IPFS content retrieval.")
                 continue
 
@@ -106,10 +111,10 @@ class DatabaseCreator:
             try:
                 self.vector_db_manager.insert_document(
                     db_name, embedding_vector, metadata, embedding_cid)
-                logging.info(
+                self.logger.info(
                     f"Inserted document into '{db_name}' with CID {embedding_cid}")
             except Exception as e:
-                logging.error(
+                self.logger.error(
                     f"Failed to insert document into '{db_name}': {e}")
 
 
@@ -162,7 +167,7 @@ def main():
             break
 
     if cids_file is None:
-        logging.error("No cids.txt file found. Please run processor first.")
+        logger.error("No cids.txt file found. Please run processor first.")
         return
 
     with open(cids_file, "r") as file:
@@ -170,12 +175,10 @@ def main():
         for line in file:
             start_cid = line.strip()
             if start_cid:
-                print(counter)
-                logging.info(f"Processing CID: {start_cid}")
+                logger.info(f"Processing CID #{counter}: {start_cid}")
                 create_db.process_paths(start_cid, relationship_path, db_name)
                 counter += 1
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
     main()

@@ -1,8 +1,8 @@
 """
 Neo4j graph database client for DeSciDB.
 
-This module provides a IPFSNeo4jGraph class for managing Neo4j graph databases
-used to store and query relationships between IPFS content identifiers (CIDs).
+This module provides functionality for managing Neo4j graph database connections
+and operations for IPFS CIDs.
 """
 
 import os
@@ -10,7 +10,10 @@ import certifi
 import logging
 from neo4j import GraphDatabase
 import requests
-logging.basicConfig(level=logging.INFO)
+from descidb.logging_utils import get_logger
+
+# Get module logger
+logger = get_logger(__name__)
 
 
 class IPFSNeo4jGraph:
@@ -21,41 +24,62 @@ class IPFSNeo4jGraph:
     between IPFS content identifiers in a Neo4j database.
     """
 
-    def __init__(self, uri, username, password):
+    def __init__(self, uri=None, username=None, password=None):
         """
-        Initialize Neo4j connection with SSL certification.
+        Initialize the Neo4j graph connection with URI and credentials.
 
         Args:
-            uri: Neo4j database URI
+            uri: Neo4j connection URI
             username: Neo4j username
             password: Neo4j password
 
         Raises:
-            Exception: If connection to Neo4j fails
+            ValueError: If URI, username, or password is missing
         """
+        # Use environment variables as fallback
+        self.uri = uri or os.getenv("NEO4J_URI")
+        self.username = username or os.getenv("NEO4J_USERNAME")
+        self.password = password or os.getenv("NEO4J_PASSWORD")
+
+        self.logger = get_logger(__name__ + '.IPFSNeo4jGraph')
+
+        if not all([self.uri, self.username, self.password]):
+            missing = []
+            if not self.uri:
+                missing.append("NEO4J_URI")
+            if not self.username:
+                missing.append("NEO4J_USERNAME")
+            if not self.password:
+                missing.append("NEO4J_PASSWORD")
+
+            error_msg = f"Missing Neo4j connection parameters: {', '.join(missing)}"
+            self.logger.error(error_msg)
+            raise ValueError(error_msg)
+
         try:
             os.environ["SSL_CERT_FILE"] = certifi.where()
 
-            self.driver = GraphDatabase.driver(uri, auth=(username, password), encrypted=True)
+            self.driver = GraphDatabase.driver(
+                self.uri, auth=(self.username, self.password), encrypted=True)
             self.driver.verify_connectivity()
-            logging.info("Successfully connected to Neo4j AuraDB")
+            self.logger.info(f"Connected to Neo4j at {self.uri}")
         except Exception as e:
-            logging.error(f"Connection error: {e}")
+            self.logger.error(f"Failed to connect to Neo4j: {e}")
             raise
 
     def close(self):
         """Close the database connection."""
         self.driver.close()
-        logging.info("Database connection closed.")
+        self.logger.info("Database connection closed.")
 
     def add_ipfs_node(self, cid):
         """Add an IPFS CID as a node in Neo4j."""
         try:
             with self.driver.session() as session:
                 session.run("MERGE (:IPFS {cid: $cid})", cid=cid)
-                logging.info(f"Node added: {cid}")
+                self.logger.info(f"Node added: {cid}")
         except Exception as e:
-            logging.error(f"Failed to add node {cid}: {e}")
+            self.logger.error(f"Failed to add node {cid}: {e}")
 
     def create_relationship(self, cid1, cid2, relationship_type="LINKS_TO"):
         """Create a relationship between two IPFS nodes (avoiding Cartesian Product)."""
@@ -67,10 +91,10 @@ class IPFSNeo4jGraph:
                     MERGE (a)-[:{relationship_type}]->(b)
                 """
                 session.run(query, cid1=cid1, cid2=cid2)
-                logging.info(f"Relationship created: {
+                self.logger.info(f"Relationship created: {
                     cid1} - [{relationship_type}] -> {cid2}")
         except Exception as e:
-            logging.error(f"Failed to create relationship {
+            self.logger.error(f"Failed to create relationship {
                 cid1} - [{relationship_type}] -> {cid2}: {e}")
 
     def query_graph(self):
@@ -80,10 +104,10 @@ class IPFSNeo4jGraph:
                 result = session.run(
                     "MATCH (a)-[r]->(b) RETURN a.cid, TYPE(r), b.cid")
                 for record in result:
-                    print(
+                    self.logger.info(
                         f"{record['a.cid']} -[{record['TYPE(r)']}]→ {record['b.cid']}")
         except Exception as e:
-            logging.error(f"Failed to query graph: {e}")
+            self.logger.error(f"Failed to query graph: {e}")
 
     def recreate_path(self, start_cid, path):
         """
@@ -114,8 +138,8 @@ class IPFSNeo4jGraph:
 
                 return paths if paths else False
         except Exception as e:
-            logging.error(f"Failed to traverse path from {
-                          start_cid} with path {path}: {e}")
+            self.logger.error(f"Failed to traverse path from {
+                start_cid} with path {path}: {e}")
             return False
 
     def traverse_path_end_nodes(self, start_cid, path):
@@ -142,8 +166,8 @@ class IPFSNeo4jGraph:
 
                 return end_nodes if end_nodes else False
         except Exception as e:
-            logging.error(f"Failed to traverse path from {
-                          start_cid} with path {path}: {e}")
+            self.logger.error(f"Failed to traverse path from {
+                start_cid} with path {path}: {e}")
             return False
 
     def _query_ipfs_content(self, cid):
@@ -159,7 +183,7 @@ class IPFSNeo4jGraph:
             response.raise_for_status()
             return response.text.strip()  # Ensure leading/trailing spaces are removed
         except requests.exceptions.RequestException as e:
-            logging.error(
+            self.logger.error(
                 f"Failed to retrieve IPFS content for CID {cid}: {e}")
             return None
 
@@ -189,10 +213,10 @@ class IPFSNeo4jGraph:
                     if author_id:
                         authored_by_dict[author_id.strip()] = incoming_count
                     else:
-                        logging.warning(
+                        self.logger.warning(
                             f"Could not fetch author ID for CID: {cid}")
 
                 return authored_by_dict
         except Exception as e:
-            logging.error(f"Failed to retrieve AUTHORED_BY stats: {e}")
+            self.logger.error(f"Failed to retrieve AUTHORED_BY stats: {e}")
             return {}

@@ -19,6 +19,10 @@ from descidb.processor import Processor
 from descidb.token_rewarder import TokenRewarder
 from descidb.utils import compress, upload_to_lighthouse
 from descidb.chroma_client import VectorDatabaseManager
+from descidb.logging_utils import get_logger
+
+# Get module logger
+logger = get_logger(__name__)
 
 load_dotenv(override=True)
 
@@ -29,6 +33,9 @@ COOPHIVE_DIR = PROJECT_ROOT.parent
 
 
 def test_processor():
+    """
+    Test the document processing pipeline with sample papers.
+    """
     papers_directory = PROJECT_ROOT / "papers"
     metadata_file = papers_directory / "metadata.json"
     storage_directory = COOPHIVE_DIR / "papers-graph-demo"
@@ -101,7 +108,7 @@ def test_processor():
     )
 
     for paper in papers:
-        print(f"Processing {paper}...")
+        logger.info(f"Processing {paper}...")
         random_data = os.urandom(32)
         hash_value = hashlib.sha256(random_data).hexdigest()
 
@@ -116,7 +123,7 @@ def test_processor():
             # Change back to the original directory after git init
             os.chdir(current_dir)
         except Exception as e:
-            print(f"Error: {e}")
+            logger.error(f"Error initializing git repository: {e}")
             continue
 
         processor.process(pdf_path=paper, databases=databases,
@@ -126,5 +133,5 @@ def test_processor():
 
 
 if __name__ == "__main__":
-    print("Running test_processor")
+    logger.info("Running test_processor")
     test_processor()

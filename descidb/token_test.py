@@ -8,7 +8,10 @@ from Neo4j and distributing rewards based on their contributions.
 from descidb.token_rewarder import TokenRewarder
 from descidb.graph_db import IPFSNeo4jGraph
 from pathlib import Path
+from descidb.logging_utils import get_logger
 import os
+# Get module logger
+logger = get_logger(__name__)
 
 
 def run_reward_users():
@@ -18,6 +21,8 @@ def run_reward_users():
     This function connects to Neo4j, fetches author contribution statistics,
     and distributes token rewards based on their contributions across different databases.
     """
+    logger.info("Starting token reward test")
+
     # Initialize Neo4j graph connection
     neo4j_uri = os.getenv("NEO4J_URI")
     neo4j_username = os.getenv("NEO4J_USERNAME")
@@ -30,7 +35,9 @@ def run_reward_users():
     )
 
     # Fetch author job contributions from Neo4j
+    logger.info("Fetching author job contributions from Neo4j")
     author_jobs = graph.get_authored_by_stats()
+    logger.info(f"Found {len(author_jobs)} authors with contributions")
 
     # # Define database configurations
     databases = [
@@ -49,6 +56,7 @@ def run_reward_users():
     contract_abi_path = project_root / "contracts" / "CoopHiveV1.json"
 
     # Initialize the TokenRewarder
+    logger.info("Initializing TokenRewarder")
     rewarder = TokenRewarder(
         network="test_base",
         contract_address="0x3bB10ec2404638c6fB9f98948f8e3730316B7BfA",
@@ -60,16 +68,20 @@ def run_reward_users():
         password="password",
     )
 
-    # Add users and update their job counts
-    for author_id, job_count in author_jobs.items():
-        for db_config in databases:
-            db_name = f"{db_config['converter']}_{db_config['chunker']}_{db_config['embedder']}"
-            rewarder.add_reward_to_user(
-                str(author_id), db_name, job_count)
-            print(f"Added/Updated user {author_id} in {db_name}")
+    # Process the rewards for each database configuration
+    for db_config in databases:
+        db_name = f"{db_config['converter']}_{db_config['chunker']}_{db_config['embedder']}"
+        logger.info(f"Processing database: {db_name}")
 
-    # Now reward users
-    rewarder.get_user_rewards("openai_paragraph_openai_token")
+        # Create the database if it doesn't exist
+        rewarder.create_database_and_table(db_name)
+
+        # Add rewards for each author
+        for author, jobs in author_jobs.items():
+            logger.info(f"Adding rewards for author {author}: {jobs} jobs")
+            rewarder.add_reward_to_user(db_name, author, jobs)
+
+    logger.info("Token reward test completed")
 
 
 if __name__ == "__main__":

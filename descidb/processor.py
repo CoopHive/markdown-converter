@@ -21,7 +21,11 @@ from descidb.token_rewarder import TokenRewarder
 from descidb.utils import upload_to_lighthouse
 from descidb.chroma_client import VectorDatabaseManager
 from descidb.graph_db import IPFSNeo4jGraph
+from descidb.logging_utils import get_logger
 import subprocess
+
+# Get module logger
+logger = get_logger(__name__)
 
 
 class Processor:
@@ -49,6 +53,7 @@ class Processor:
             TokenRewarder: Token rewarder instance
             project_root: Path to project root directory
         """
+        self.logger = get_logger(__name__ + '.Processor')
         self.db_manager = db_manager  # Vector Database Manager
         self.TokenRewarder = TokenRewarder
         self.metadata_file = metadata_file
@@ -62,6 +67,7 @@ class Processor:
         # Create temp directory for temporary files
         self.temp_dir = self.project_root / "temp"
         os.makedirs(self.temp_dir, exist_ok=True)
+        self.logger.info(f"Using temp directory: {self.temp_dir}")
 
         # Paths for temporary files
         self.tmp_file_path = self.temp_dir / "tmp.txt"
@@ -81,8 +87,10 @@ class Processor:
         )
 
         self.__write_to_file(self.authorPublicKey, str(self.tmp_file_path))
+        self.logger.info(f"Uploading author public key to Lighthouse: {self.authorPublicKey[:10]}...")
         self.author_cid = self.__upload_text_to_lighthouse(
             str(self.tmp_file_path)).split("ipfs/")[-1]
+        self.logger.info(f"Author CID: {self.author_cid}")
         self.graph_db.add_ipfs_node(self.author_cid)
 
     def __upload_text_to_lighthouse(self, filename: str) -> str:
@@ -116,7 +124,7 @@ class Processor:
             with open(file_path, "w") as file:
                 file.write(content)
         except Exception as e:
-            print(f"Error creating file: {e}")
+            self.logger.error(f"Error creating file {file_path}: {e}")
 
     def __lighthouse_and_commit(self, object: str, git_path: str) -> str:
         """Uploads a file to Lighthouse IPFS and commits the CID to git.
@@ -125,9 +133,11 @@ class Processor:
         - Returns: IPFS hash (CID) of the uploaded file.
         """
         try:
+            self.logger.info(f"Uploading to Lighthouse: {object}")
             ipfs_cid = self.__upload_text_to_lighthouse(object)
 
             hash_value = ipfs_cid.split("ipfs/")[-1]
+            self.logger.info(f"Generated IPFS CID: {hash_value}")
 
             file_path = os.path.join(git_path, f"{hash_value}.txt")
 
@@ -141,7 +151,8 @@ class Processor:
             return ipfs_cid
 
         except Exception as e:
-            print(f"Error during Git commit process: {e}")
+            self.logger.error(f"Error during Git commit process: {e}")
+            return None
 
     def __write_to_file(self, content: str, file_path: str):
         """Writes the content to a file.
@@ -154,7 +165,7 @@ class Processor:
             with open(file_path, "w") as file:
                 file.write(content)
         except Exception as e:
-            print(f"Error writing to file: {e}")
+            self.logger.error(f"Error writing to file {file_path}: {e}")
 
     def process(self, pdf_path: str, databases: List[dict], git_path: str):
         """
@@ -166,11 +177,13 @@ class Processor:
             git_path: Path to git repository for storing CIDs
         """
         doc_id = os.path.splitext(os.path.basename(pdf_path))[0]
+        self.logger.info(f"Processing document: {doc_id}")
         self.convert_cache = {}
         self.chunk_cache = {}
 
         metadata = self.get_metadata_for_doc(self.metadata_file, doc_id)
         if not metadata:
+            self.logger.warning(f"No metadata found for {doc_id}, using default")
             metadata = self.default_metadata(doc_id)
 
         metadata = {
@@ -183,15 +196,23 @@ class Processor:
             )
             for key, value in metadata.items()
         }
+
+        self.logger.info(f"Uploading PDF to IPFS: {pdf_path}")
         metadata["pdf_ipfs_cid"] = self.__lighthouse_and_commit(
             object=pdf_path, git_path=git_path)
 
+        if not metadata["pdf_ipfs_cid"]:
+            self.logger.error(f"Failed to upload PDF to IPFS: {pdf_path}")
+            return
+
+        self.logger.info(f"Adding PDF CID to graph: {metadata['pdf_ipfs_cid']}")
         self.graph_db.add_ipfs_node(metadata["pdf_ipfs_cid"])
         self.graph_db.create_relationship(metadata["pdf_ipfs_cid"],
                                           self.author_cid, "AUTHORED_BY")
 
         with open(self.cids_file_path, "a") as cid_file:
             cid_file.write(metadata["pdf_ipfs_cid"] + "\n")
+            self.logger.debug(f"Recorded CID in {self.cids_file_path}")
 
         for db_config in databases:
             converter_func = db_config["converter"]
