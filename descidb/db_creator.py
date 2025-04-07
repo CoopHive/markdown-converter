@@ -135,7 +135,7 @@ def main():
 
     components = {
         "converter": ["openai"],
-        "chunker": ["fixed_length"],
+        "chunker": ["paragraph"],
         "embedder": ["openai"],
     }
 
@@ -149,11 +149,11 @@ def main():
 
     relationship_path = [
         "CONVERTED_BY_openai",
-        "CHUNKED_BY_fixed_length",
+        "CHUNKED_BY_paragraph",
         "EMBEDDED_BY_openai",
     ]
 
-    db_name = "openai_fixed_length_openai"
+    db_name = "openai_paragraph_openai"
 
     # Look for cids.txt file in project root and temp directories
     cids_file_paths = [project_root / "cids.txt", project_root / "temp" / "cids.txt"]
