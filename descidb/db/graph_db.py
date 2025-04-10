@@ -62,7 +62,7 @@ class IPFSNeo4jGraph:
             os.environ["SSL_CERT_FILE"] = certifi.where()
 
             self.driver = GraphDatabase.driver(
-                self.uri, auth=(self.username, self.password), encrypted=True)
+                self.uri, auth=(self.username, self.password), encrypted=False)
             self.driver.verify_connectivity()
             self.logger.info(f"Connected to Neo4j at {self.uri}")
         except Exception as e:
