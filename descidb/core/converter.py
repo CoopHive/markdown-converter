@@ -8,9 +8,11 @@ using various methods including OpenAI's API and local tools.
 import os
 import subprocess
 import tempfile
+import textwrap
 from pathlib import Path
 from typing import Literal, Optional
 
+import PyPDF2
 import openai
 import requests
 from dotenv import load_dotenv
