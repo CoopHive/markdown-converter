@@ -14,6 +14,7 @@ from transformers import AutoModel
 
 from descidb.utils.logging_utils import get_logger
 from descidb.utils.utils import download_from_url
+from openai import OpenAI
 
 # Get module logger
 logger = get_logger(__name__)
