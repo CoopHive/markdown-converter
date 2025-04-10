@@ -107,7 +107,7 @@ def query_collection(collection_name, user_query, db_path=None):
 if __name__ == "__main__":
     print(
         query_collection(
-            "openai_fixed_length_openai",
+            "openai_paragraph_openai",
             "What are the challenges in assessing gene editing outcomes in human embryos?",
         )
     )
