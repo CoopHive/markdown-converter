@@ -14,15 +14,15 @@ from typing import List
 import certifi
 import requests
 
-from descidb.chroma_client import VectorDatabaseManager
-from descidb.chunker import chunk
-from descidb.converter import convert
-from descidb.embedder import embed
-from descidb.graph_db import IPFSNeo4jGraph
-from descidb.logging_utils import get_logger
-from descidb.postgres_db import PostgresDBManager
-from descidb.token_rewarder import TokenRewarder
-from descidb.utils import upload_to_lighthouse
+from descidb.core.chunker import chunk
+from descidb.core.converter import convert
+from descidb.core.embedder import embed
+from descidb.db.chroma_client import VectorDatabaseManager
+from descidb.db.graph_db import IPFSNeo4jGraph
+from descidb.db.postgres_db import PostgresDBManager
+from descidb.rewards.token_rewarder import TokenRewarder
+from descidb.utils.logging_utils import get_logger
+from descidb.utils.utils import upload_to_lighthouse
 
 # Get module logger
 logger = get_logger(__name__)
@@ -62,7 +62,7 @@ class Processor:
         self.postgres_db_manager = postgres_db_manager  # Postgres DB Manager
         self.convert_cache = {}  # Cache for converted text
         self.chunk_cache = {}  # Cache for chunked text
-        self.project_root = project_root or Path(__file__).parent.parent
+        self.project_root = project_root or Path(__file__).parent.parent.parent
 
         # Create temp directory for temporary files
         self.temp_dir = self.project_root / "temp"

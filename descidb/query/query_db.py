@@ -14,7 +14,7 @@ import chromadb.utils.embedding_functions as embedding_functions
 from dotenv import load_dotenv
 from openai import OpenAI
 
-from descidb.logging_utils import get_logger
+from descidb.utils.logging_utils import get_logger
 
 # Get module logger
 logger = get_logger(__name__)
@@ -47,7 +47,7 @@ def query_collection(collection_name, user_query, db_path=None):
         # Use the provided db_path or create a default path
         if db_path is None:
             # Get the directory where this module is located and use its database subdirectory
-            module_dir = Path(__file__).parent
+            module_dir = Path(__file__).parent.parent
             db_path = module_dir / "database"
         else:
             db_path = Path(db_path)

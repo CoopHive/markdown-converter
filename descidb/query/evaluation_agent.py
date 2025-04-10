@@ -1,22 +1,26 @@
 """
 Evaluation agent module for DeSciDB.
 
-This module provides a class for evaluating and ranking query results 
-from different collections against the original query.
+This module provides an EvaluationAgent class for assessing the quality
+of document processing and query results.
 """
 
 import json
 import os
-import requests
-from pathlib import Path
 import time
-from typing import Dict, List, Any, Optional
+from datetime import datetime
+from pathlib import Path
+from typing import Dict, List, Optional, Tuple, Union
 
+import numpy as np
+import requests
 from dotenv import load_dotenv
 
-from descidb.logging_utils import get_logger
-from descidb.query_db import query_collection
+from descidb.query.query_db import query_collection
+from descidb.utils.logging_utils import get_logger
+from descidb.utils.utils import download_from_url
 
+# Get module logger
 logger = get_logger(__name__)
 
 load_dotenv()
@@ -41,7 +45,7 @@ class EvaluationAgent:
                        (e.g., "openai/gpt-3.5-turbo", "anthropic/claude-3-opus-20240229")
         """
         self.model_name = model_name
-        self.temp_dir = Path(__file__).parents[1] / "temp"
+        self.temp_dir = Path(__file__).parents[1].parent / "temp"
         os.makedirs(self.temp_dir, exist_ok=True)
 
         # Get OpenRouter API key
@@ -87,7 +91,7 @@ class EvaluationAgent:
         logger.info(f"Saved query results to {results_file}")
         return str(results_file)
 
-    def evaluate_results(self, results_file: str) -> Dict[str, Any]:
+    def evaluate_results(self, results_file: str) -> Dict[str, any]:
         """
         Evaluate and rank results from different collections.
 
@@ -153,7 +157,7 @@ class EvaluationAgent:
         logger.info(f"Saved evaluation to {eval_file}")
         return evaluation
 
-    def _generate_evaluation_prompt(self, query: str, collections: Dict[str, Any]) -> str:
+    def _generate_evaluation_prompt(self, query: str, collections: Dict[str, any]) -> str:
         """
         Generate prompt for LLM to evaluate results.
 

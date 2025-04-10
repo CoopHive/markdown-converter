@@ -1,16 +1,16 @@
 """
-Token reward testing module for DeSciDB.
+Token testing module for DeSciDB.
 
-This module provides functionality to test token rewards by fetching author statistics
-from Neo4j and distributing rewards based on their contributions.
+This module provides test functions for the token reward system,
+allowing verification of token distribution functionality.
 """
 
 import os
 from pathlib import Path
 
-from descidb.graph_db import IPFSNeo4jGraph
-from descidb.logging_utils import get_logger
-from descidb.token_rewarder import TokenRewarder
+from descidb.db.graph_db import IPFSNeo4jGraph
+from descidb.rewards.token_rewarder import TokenRewarder
+from descidb.utils.logging_utils import get_logger
 
 # Get module logger
 logger = get_logger(__name__)
@@ -52,7 +52,7 @@ def run_reward_users():
     }
 
     # Get project root directory
-    project_root = Path(__file__).parent.parent
+    project_root = Path(__file__).parent.parent.parent
     contract_abi_path = project_root / "contracts" / "CoopHiveV1.json"
 
     # Initialize the TokenRewarder
@@ -76,12 +76,12 @@ def run_reward_users():
         logger.info(f"Processing database: {db_name}")
 
         # Create the database if it doesn't exist
-        rewarder.create_database_and_table(db_name)
+        rewarder._create_database_and_table(db_name)
 
         # Add rewards for each author
         for author, jobs in author_jobs.items():
             logger.info(f"Adding rewards for author {author}: {jobs} jobs")
-            rewarder.add_reward_to_user(db_name, author, jobs)
+            rewarder.add_reward_to_user(author, db_name, jobs)
 
     logger.info("Token reward test completed")
 
