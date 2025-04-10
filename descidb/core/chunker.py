@@ -1,14 +1,22 @@
 """
 Text chunking module for DeSciDB.
 
-This module provides functions for chunking text into smaller segments
-using various strategies like fixed length, sentence, or paragraph chunking.
+This module provides functions for splitting text into smaller chunks
+for processing and embedding.
 """
 
+import os
 import re
-from typing import List, Literal
+from pathlib import Path
+from typing import List, Literal, Optional
 
-from descidb.utils import download_from_url
+from dotenv import load_dotenv
+
+from descidb.utils.logging_utils import get_logger
+from descidb.utils.utils import download_from_url
+
+# Get module logger
+logger = get_logger(__name__)
 
 ChunkerType = Literal["paragraph", "sentence", "word", "fixed_length"]
 

@@ -13,7 +13,7 @@ import numpy as np
 import psycopg2
 from psycopg2 import sql
 
-from descidb.logging_utils import get_logger
+from descidb.utils.logging_utils import get_logger
 
 # Get module logger
 logger = get_logger(__name__)

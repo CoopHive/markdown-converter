@@ -1,24 +1,32 @@
 """
-Document conversion module for DeSciDB.
+PDF conversion module for DeSciDB.
 
-This module provides functions for converting various document formats (like PDF)
-to plain text or markdown using different conversion strategies.
+This module provides functions for converting PDF documents to text
+using various methods including OpenAI's API and local tools.
 """
 
 import os
-import textwrap
-from typing import Literal
+import subprocess
+import tempfile
+from pathlib import Path
+from typing import Literal, Optional
 
-import PyPDF2
+import openai
+import requests
 from dotenv import load_dotenv
+from openai import OpenAI
+
+from descidb.utils.logging_utils import get_logger
+from descidb.utils.utils import download_from_url, extract
+
+# Get module logger
+logger = get_logger(__name__)
 
 # from marker.config.parser import ConfigParser
 # from marker.converters.pdf import PdfConverter
 # from marker.logger import configure_logging
 # from marker.models import create_model_dict
-from openai import OpenAI
 
-from descidb.utils import download_from_url, extract
 
 load_dotenv(override=True)
 

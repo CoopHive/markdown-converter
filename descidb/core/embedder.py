@@ -1,18 +1,22 @@
 """
 Text embedding module for DeSciDB.
 
-This module provides functions for creating vector embeddings from text chunks
-using various embedding models like OpenAI's embedding API.
+This module provides functions for generating embeddings from text chunks
+using various embedding models including OpenAI's API.
 """
 
 import os
 from typing import List, Literal
 
+import openai
 from dotenv import load_dotenv
-from openai import OpenAI
 from transformers import AutoModel
 
-from descidb.utils import download_from_url
+from descidb.utils.logging_utils import get_logger
+from descidb.utils.utils import download_from_url
+
+# Get module logger
+logger = get_logger(__name__)
 
 load_dotenv(override=True)
 

@@ -13,14 +13,14 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from descidb.chroma_client import VectorDatabaseManager
-from descidb.chunker import chunk_from_url
-from descidb.embedder import embed_from_url
-from descidb.logging_utils import get_logger
-from descidb.postgres_db import PostgresDBManager
-from descidb.processor import Processor
-from descidb.token_rewarder import TokenRewarder
-from descidb.utils import compress, upload_to_lighthouse
+from descidb.core.chunker import chunk_from_url
+from descidb.core.embedder import embed_from_url
+from descidb.core.processor import Processor
+from descidb.db.chroma_client import VectorDatabaseManager
+from descidb.db.postgres_db import PostgresDBManager
+from descidb.rewards.token_rewarder import TokenRewarder
+from descidb.utils.logging_utils import get_logger
+from descidb.utils.utils import compress, upload_to_lighthouse
 
 # Get module logger
 logger = get_logger(__name__)
@@ -28,7 +28,7 @@ logger = get_logger(__name__)
 load_dotenv(override=True)
 
 # Get the project root directory
-PROJECT_ROOT = Path(__file__).parent.parent
+PROJECT_ROOT = Path(__file__).parent.parent.parent
 # Parent directory of the project (coophive folder)
 COOPHIVE_DIR = PROJECT_ROOT.parent
 

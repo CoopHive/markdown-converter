@@ -1,23 +1,23 @@
 """
-Token reward system for DeSciDB.
+Token reward module for DeSciDB.
 
-This module provides a TokenRewarder class for managing blockchain token rewards
-for users contributing to the DeSciDB ecosystem.
+This module provides a TokenRewarder class for calculating and distributing
+rewards to users based on their contributions to the DeSciDB system.
 """
 
 import itertools
 import json
 import math
 import os
-import time
 from datetime import datetime
 from pathlib import Path
 
+import numpy as np
 from dotenv import load_dotenv
 from psycopg2 import connect, sql
 from web3 import Web3
 
-from descidb.logging_utils import get_logger
+from descidb.utils.logging_utils import get_logger
 
 # Get module logger
 logger = get_logger(__name__)
@@ -63,7 +63,7 @@ class TokenRewarder:
         # Determine the contract ABI path
         if contract_abi_path is None:
             # Use a relative path from the project root
-            project_root = Path(__file__).parent.parent
+            project_root = Path(__file__).parent.parent.parent
             contract_abi_path = project_root / "contracts" / "CoopHiveV1.json"
 
         contract_abi = self.load_contract_abi(contract_abi_path)["abi"]

@@ -1,26 +1,25 @@
 """
 Database creation module for DeSciDB.
 
-This module provides functionality to create and populate vector databases
-by retrieving data from IPFS and processing graph relationships.
+This module provides functionality for creating and populating databases
+with scientific document data for the DeSciDB system.
 """
 
 import json
-import logging
 import os
 from pathlib import Path
 
-import dotenv
 import requests
+from dotenv import load_dotenv
 
-from descidb.chroma_client import VectorDatabaseManager
-from descidb.graph_db import IPFSNeo4jGraph
-from descidb.logging_utils import get_logger
-
-dotenv.load_dotenv()
+from descidb.db.chroma_client import VectorDatabaseManager
+from descidb.db.graph_db import IPFSNeo4jGraph
+from descidb.utils.logging_utils import get_logger
 
 # Get module logger
 logger = get_logger(__name__)
+
+load_dotenv()
 
 
 class DatabaseCreator:
@@ -140,7 +139,7 @@ def main():
     }
 
     # Create database directory
-    project_root = Path(__file__).parent.parent
+    project_root = Path(__file__).parent.parent.parent
     db_path = project_root / "descidb" / "database"
     os.makedirs(db_path, exist_ok=True)
 

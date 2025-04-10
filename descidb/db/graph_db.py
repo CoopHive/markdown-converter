@@ -1,18 +1,18 @@
 """
-Neo4j graph database client for DeSciDB.
+Neo4j graph database manager for DeSciDB.
 
-This module provides functionality for managing Neo4j graph database connections
-and operations for IPFS CIDs.
+This module provides a Neo4jGraph class for managing graph database connections
+and operations related to IPFS content identifiers (CIDs).
 """
 
-import logging
 import os
+from typing import List, Optional, Union
 
 import certifi
 import requests
 from neo4j import GraphDatabase
 
-from descidb.logging_utils import get_logger
+from descidb.utils.logging_utils import get_logger
 
 # Get module logger
 logger = get_logger(__name__)
