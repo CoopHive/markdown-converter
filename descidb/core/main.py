@@ -64,7 +64,7 @@ def test_processor():
 
     databases = [
         {
-            "converter": "openai",
+            "converter": "marker",
             "chunker": "fixed_length",
             "embedder": "openai",
         },

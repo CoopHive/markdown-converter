@@ -5,6 +5,10 @@ This module provides functions for converting PDF documents to text
 using various methods including OpenAI's API and local tools.
 """
 
+from marker.models import create_model_dict
+from marker.logger import configure_logging
+from marker.converters.pdf import PdfConverter
+from marker.config.parser import ConfigParser
 import os
 import subprocess
 import tempfile
@@ -23,11 +27,6 @@ from descidb.utils.utils import download_from_url, extract
 
 # Get module logger
 logger = get_logger(__name__)
-
-# from marker.config.parser import ConfigParser
-# from marker.converters.pdf import PdfConverter
-# from marker.logger import configure_logging
-# from marker.models import create_model_dict
 
 
 load_dotenv(override=True)
@@ -68,57 +67,57 @@ def chunk_text(text: str, chunk_size: int = 4000) -> list:
 def marker(input_path: str) -> str:
     """Convert text using the marker module, where input_path is either a path to pdf file or a path to a folder containing a set of pdf files."""
     pass
-    # try:
-    #     # Ensure the input_path is a valid file
-    #     if not os.path.exists(input_path):
-    #         raise FileNotFoundError(f"Input path not found: {input_path}")
+    try:
+        # Ensure the input_path is a valid file
+        if not os.path.exists(input_path):
+            raise FileNotFoundError(f"Input path not found: {input_path}")
 
-    #     # Check if the path is a file and a PDF
-    #     if os.path.isfile(input_path):
-    #         if input_path.lower().endswith(".pdf"):
-    #             input_pdf_paths = [input_path]
-    #         else:
-    #             raise ValueError(f"File at {input_path} is not a PDF.")
+        # Check if the path is a file and a PDF
+        if os.path.isfile(input_path):
+            if input_path.lower().endswith(".pdf"):
+                input_pdf_paths = [input_path]
+            else:
+                raise ValueError(f"File at {input_path} is not a PDF.")
 
-    #     # Check if the path is a folder containing PDFs
-    #     elif os.path.isdir(input_path):
-    #         input_pdf_paths = [
-    #             os.path.join(input_path, f)
-    #             for f in os.listdir(input_path)
-    #             if f.lower().endswith(".pdf")
-    #         ]
-    #         if not input_pdf_paths:
-    #             raise ValueError(
-    #                 f"No PDF files found in directory: {input_path}")
-    #     else:
-    #         raise ValueError(f"Invalid input path: {input_path}")
+        # Check if the path is a folder containing PDFs
+        elif os.path.isdir(input_path):
+            input_pdf_paths = [
+                os.path.join(input_path, f)
+                for f in os.listdir(input_path)
+                if f.lower().endswith(".pdf")
+            ]
+            if not input_pdf_paths:
+                raise ValueError(
+                    f"No PDF files found in directory: {input_path}")
+        else:
+            raise ValueError(f"Invalid input path: {input_path}")
 
-    #     models = create_model_dict()
-    #     config_parser = ConfigParser(
-    #         {
-    #             "languages": "en",
-    #             "output_format": "markdown",
-    #         }
-    #     )
+        models = create_model_dict()
+        config_parser = ConfigParser(
+            {
+                "languages": "en",
+                "output_format": "markdown",
+            }
+        )
 
-    #     converter = PdfConverter(
-    #         config=config_parser.generate_config_dict(),
-    #         artifact_dict=models,
-    #         processor_list=config_parser.get_processors(),
-    #         renderer=config_parser.get_renderer(),
-    #     )
+        converter = PdfConverter(
+            config=config_parser.generate_config_dict(),
+            artifact_dict=models,
+            processor_list=config_parser.get_processors(),
+            renderer=config_parser.get_renderer(),
+        )
 
-    #     std_out = ""
-    #     for pdf_path in input_pdf_paths:
-    #         rendered = converter(pdf_path)
-    #         rendered_markdown = rendered.markdown
-    #         std_out += rendered_markdown
+        std_out = ""
+        for pdf_path in input_pdf_paths:
+            rendered = converter(pdf_path)
+            rendered_markdown = rendered.markdown
+            std_out += rendered_markdown
 
-    #     return std_out
+        return std_out
 
-    # except FileNotFoundError as e:
-    #     print(f"File not found: {e}")
-    #     return ""  # Return empty string in case of error
+    except FileNotFoundError as e:
+        print(f"File not found: {e}")
+        return ""  # Return empty string in case of error
 
 
 def extract_text_from_pdf(input_path: str) -> str:
