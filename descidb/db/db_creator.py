@@ -75,10 +75,12 @@ class DatabaseCreator:
 
     def process_paths(self, start_cid, path, db_name):
         paths = self.graph.recreate_path(start_cid, path)
-        self.logger.info(f"Found {len(paths)} paths for CID {start_cid}")
-        if not paths:
+
+        if paths is False:
             self.logger.error(f"No valid paths found for CID {start_cid}")
             return
+
+        self.logger.info(f"Found {len(paths)} paths for CID {start_cid}")
 
         for path_nodes in paths:
             if len(path_nodes) < 2:
