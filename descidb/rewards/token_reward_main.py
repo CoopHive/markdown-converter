@@ -8,12 +8,39 @@ allowing verification of token distribution functionality.
 import os
 from pathlib import Path
 
+import yaml
+from dotenv import load_dotenv
+
 from descidb.db.graph_db import IPFSNeo4jGraph
 from descidb.rewards.token_rewarder import TokenRewarder
 from descidb.utils.logging_utils import get_logger
 
 # Get module logger
 logger = get_logger(__name__)
+
+# Get the project root directory
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+
+# Load environment variables
+load_dotenv(override=True)
+
+
+def load_config():
+    """
+    Load configuration from the config file.
+
+    Returns:
+        dict: Configuration dictionary
+    """
+    config_path = PROJECT_ROOT / "config" / "token_test.yml"
+
+    try:
+        with open(config_path, "r") as file:
+            config = yaml.safe_load(file)
+        return config
+    except Exception as e:
+        logger.error(f"Error loading configuration from {config_path}: {e}")
+        raise
 
 
 def run_reward_users():
@@ -25,11 +52,16 @@ def run_reward_users():
     """
     logger.info("Starting token reward test")
 
-    # Initialize Neo4j graph connection
-    neo4j_uri = os.getenv("NEO4J_URI")
-    neo4j_username = os.getenv("NEO4J_USERNAME")
-    neo4j_password = os.getenv("NEO4J_PASSWORD")
+    # Load configuration
+    config = load_config()
 
+    # Extract Neo4j connection parameters
+    neo4j_config = config["neo4j"]
+    neo4j_uri = os.getenv(neo4j_config["uri"].replace("${", "").replace("}", ""))
+    neo4j_username = os.getenv(neo4j_config["username"].replace("${", "").replace("}", ""))
+    neo4j_password = os.getenv(neo4j_config["password"].replace("${", "").replace("}", ""))
+
+    # Initialize Neo4j graph connection
     graph = IPFSNeo4jGraph(
         uri=neo4j_uri, username=neo4j_username, password=neo4j_password
     )
@@ -39,33 +71,32 @@ def run_reward_users():
     author_jobs = graph.get_authored_by_stats()
     logger.info(f"Found {len(author_jobs)} authors with contributions")
 
-    # # Define database configurations
-    databases = [
-        {"converter": "openai", "chunker": "paragraph", "embedder": "openai"},
-    ]
+    # Get database configurations
+    databases = config["databases"]
 
-    # # Extract components
+    # Extract components from database configurations
     components = {
         "converter": list(set([db_config["converter"] for db_config in databases])),
         "chunker": list(set([db_config["chunker"] for db_config in databases])),
         "embedder": list(set([db_config["embedder"] for db_config in databases])),
     }
 
-    # Get project root directory
-    project_root = Path(__file__).parent.parent.parent
-    contract_abi_path = project_root / "contracts" / "CoopHiveV1.json"
+    # Get token rewarder configuration
+    token_config = config["token_rewarder"]
+    postgres_config = config["postgres"]
+    contract_abi_path = PROJECT_ROOT / token_config["contract_abi_path"]
 
     # Initialize the TokenRewarder
     logger.info("Initializing TokenRewarder")
     rewarder = TokenRewarder(
-        network="test_base",
-        contract_address="0x3bB10ec2404638c6fB9f98948f8e3730316B7BfA",
+        network=token_config["network"],
+        contract_address=token_config["contract_address"],
         contract_abi_path=str(contract_abi_path),
         db_components=components,
-        host="localhost",
-        port=5432,
-        user="vardhanshorewala",
-        password="password",
+        host=postgres_config["host"],
+        port=postgres_config["port"],
+        user=postgres_config["user"],
+        password=postgres_config["password"],
     )
 
     # Process the rewards for each database configuration

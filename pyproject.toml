@@ -16,19 +16,21 @@ keywords = ["database", "document-processing", "embedding"]
 maintainers = ["Vardhan Shorewala <vardhanshorewala@coophive.com>"]
 
 [tool.poetry.dependencies]
-python = ">=3.9.0,<4.0"
+python = ">=3.10,<4.0"
 neo4j = "5.27.0"
 certifi = "2025.1.31"
-requests = "2.32.3"
+requests = ">=2.28,<3.0"
 psycopg2 = "2.9.9"
 numpy = ">=1.22.5,<2.0.0"
 chromadb = "0.5.3"
 python-dotenv = "1.0.1"
-openai = "1.63.0"
+openai = ">=1.65.2,<2.0.0"
 PyPDF2 = "3.0.1"
 transformers = "4.48.3"
 web3 = "7.2.0"
 flask = "3.0.2"
+pyyaml = "6.0.1"
+marker-pdf = "^1.6.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "7.4.0"

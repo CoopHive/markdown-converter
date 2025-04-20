@@ -1,4 +1,7 @@
 #!/bin/bash
+# test.sh
+# DESCRIPTION: Execute pytest suite with coverage output
+
 set -e
 
 # Check if a specific file is provided

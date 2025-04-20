@@ -11,6 +11,7 @@ import subprocess
 import time
 from pathlib import Path
 
+import yaml
 from dotenv import load_dotenv
 
 from descidb.core.chunker import chunk_from_url
@@ -33,43 +34,63 @@ PROJECT_ROOT = Path(__file__).parent.parent.parent
 COOPHIVE_DIR = PROJECT_ROOT.parent
 
 
+def load_config():
+    """
+    Load configuration from the config file.
+
+    Returns:
+        dict: Configuration dictionary
+    """
+    config_path = PROJECT_ROOT / "config" / "processor.yml"
+
+    try:
+        with open(config_path, "r") as file:
+            config = yaml.safe_load(file)
+        return config
+    except Exception as e:
+        logger.error(f"Error loading configuration from {config_path}: {e}")
+        raise
+
+
 def test_processor():
     """
     Test the document processing pipeline with sample papers.
     """
-    papers_directory = PROJECT_ROOT / "papers"
-    metadata_file = papers_directory / "metadata.json"
-    storage_directory = COOPHIVE_DIR / "papers-graph-demo"
+    # Load configuration
+    config = load_config()
 
-    max_papers = 10
+    # Process configuration
+    processing_config = config["processing"]
+    postgres_config = config["postgres"]
+    author_config = config["author"]
+    api_keys = config["api_keys"]
 
-    lighthouse_api_key = os.getenv("LIGHTHOUSE_TOKEN")
-    postgres_host = "localhost"
-    postgres_port = 5432
-    postgres_user = "vardhanshorewala"
-    postgres_password = "password"
+    # Setup paths
+    papers_directory = PROJECT_ROOT / processing_config["papers_directory"]
+    metadata_file = PROJECT_ROOT / processing_config["metadata_file"]
+    storage_directory = COOPHIVE_DIR / processing_config["storage_directory"]
+
+    # Setup API keys and database connection
+    lighthouse_api_key = os.getenv(api_keys["lighthouse_token"].replace("${", "").replace("}", ""))
 
     db_manager_postgres = PostgresDBManager(
-        host=postgres_host,
-        port=postgres_port,
-        user=postgres_user,
-        password=postgres_password,
+        host=postgres_config["host"],
+        port=postgres_config["port"],
+        user=postgres_config["user"],
+        password=postgres_config["password"],
     )
 
+    # Get papers
     papers = [
         os.path.join(papers_directory, f)
         for f in os.listdir(papers_directory)
         if f.endswith(".pdf")
-    ][:max_papers]
+    ][:processing_config["max_papers"]]
 
-    databases = [
-        {
-            "converter": "marker",
-            "chunker": "fixed_length",
-            "embedder": "openai",
-        },
-    ]
+    # Setup database configurations
+    databases = config["databases"]
 
+    # Extract components from database configurations
     components = {
         "converter": list(set([db_config["converter"] for db_config in databases])),
         "chunker": list(set([db_config["chunker"] for db_config in databases])),
@@ -80,12 +101,13 @@ def test_processor():
 
     tokenRewarder = TokenRewarder(
         db_components=components,
-        host=postgres_host,
-        port=postgres_port,
-        user=postgres_user,
-        password=postgres_password,
+        host=postgres_config["host"],
+        port=postgres_config["port"],
+        user=postgres_config["user"],
+        password=postgres_config["password"],
     )
 
+    # Generate db_names from configurations
     for db_config in databases:
         converter = db_config["converter"]
         chunker = db_config["chunker"]
@@ -99,7 +121,7 @@ def test_processor():
     db_manager_postgres.create_databases(db_names)
 
     processor = Processor(
-        authorPublicKey="0x55DE19820d5Dfc5761370Beb16Eb041E11272619",
+        authorPublicKey=author_config["public_key"],
         db_manager=db_manager,
         postgres_db_manager=db_manager_postgres,
         metadata_file=str(metadata_file),

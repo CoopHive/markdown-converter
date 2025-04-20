@@ -1,4 +1,7 @@
 #!/bin/bash
+# setup.sh
+# DESCRIPTION: Bootstrap the project — create venv/Poetry env and install all dependencies
+
 set -e
 
 # Check if Poetry is installed

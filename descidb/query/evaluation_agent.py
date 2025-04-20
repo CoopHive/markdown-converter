@@ -219,31 +219,3 @@ class EvaluationAgent:
         }
         """
         return prompt
-
-
-if __name__ == "__main__":
-    agent = EvaluationAgent(model_name="openai/gpt-3.5-turbo-0613")
-    results_file = agent.query_collections(
-        "What are the challenges in assessing gene editing outcomes in human embryos?",
-        ["openai_paragraph_openai", "openai_fixed_length_openai", "marker_paragraph_openai", "marker_fixed_length_openai"]
-    )
-    evaluation = agent.evaluate_results(results_file)
-    print(json.dumps(evaluation, indent=2))
-
-
-#   url="https://openrouter.ai/api/v1/chat/completions",
-#   headers={
-#     "Authorization": "Bearer <OPENROUTER_API_KEY>",
-#     "HTTP-Referer": "<YOUR_SITE_URL>", # Optional. Site URL for rankings on openrouter.ai.
-#     "X-Title": "<YOUR_SITE_NAME>", # Optional. Site title for rankings on openrouter.ai.
-#   },
-#   data=json.dumps({
-#     "model": "openai/gpt-4o", # Optional
-#     "messages": [
-#       {
-#         "role": "user",
-#         "content": "What is the meaning of life?"
-#       }
-#     ]
-#   })
-# )

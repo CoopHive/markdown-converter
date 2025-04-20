@@ -21,6 +21,9 @@ logger = get_logger(__name__)
 
 load_dotenv()
 
+# Get the project root directory
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+
 
 class DatabaseCreator:
     """
@@ -120,65 +123,3 @@ class DatabaseCreator:
                 )
             except Exception as e:
                 self.logger.error(f"Failed to insert document into '{db_name}': {e}")
-
-
-def main():
-    """
-    Main function to create and populate the database from IPFS CIDs.
-    """
-    neo4j_uri = os.getenv("NEO4J_URI")
-    neo4j_username = os.getenv("NEO4J_USERNAME")
-    neo4j_password = os.getenv("NEO4J_PASSWORD")
-
-    graph = IPFSNeo4jGraph(
-        uri=neo4j_uri, username=neo4j_username, password=neo4j_password
-    )
-
-    components = {
-        "converter": ["marker"],
-        "chunker": ["fixed_length"],
-        "embedder": ["openai"],
-    }
-
-    # Create database directory
-    project_root = Path(__file__).parent.parent.parent
-    db_path = project_root / "descidb" / "database"
-    print(db_path)
-    os.makedirs(db_path, exist_ok=True)
-
-    vector_db_manager = VectorDatabaseManager(components, db_path=str(db_path))
-    create_db = DatabaseCreator(graph, vector_db_manager)
-
-    relationship_path = [
-        "CONVERTED_BY_marker",
-        "CHUNKED_BY_fixed_length",
-        "EMBEDDED_BY_openai",
-    ]
-
-    db_name = "marker_fixed_length_openai"
-
-    # Look for cids.txt file in project root and temp directories
-    cids_file_paths = [project_root / "cids.txt", project_root / "temp" / "cids.txt"]
-
-    cids_file = None
-    for path in cids_file_paths:
-        if path.exists():
-            cids_file = path
-            break
-
-    if cids_file is None:
-        logger.error("No cids.txt file found. Please run processor first.")
-        return
-
-    with open(cids_file, "r") as file:
-        counter = 0
-        for line in file:
-            start_cid = line.strip()
-            if start_cid:
-                logger.info(f"Processing CID #{counter}: {start_cid}")
-                create_db.process_paths(start_cid, relationship_path, db_name)
-                counter += 1
-
-
-if __name__ == "__main__":
-    main()

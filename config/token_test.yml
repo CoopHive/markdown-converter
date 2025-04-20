@@ -1,0 +1,26 @@
+# Token Reward Test Configuration
+
+# Neo4j connection parameters
+neo4j:
+  uri: ${NEO4J_URI}
+  username: ${NEO4J_USERNAME}
+  password: ${NEO4J_PASSWORD}
+
+# Database configurations
+databases:
+  - converter: openai
+    chunker: paragraph
+    embedder: openai
+
+# Postgres connection parameters
+postgres:
+  host: localhost
+  port: 5432
+  user: vardhanshorewala
+  password: password
+
+# Token rewarder configuration
+token_rewarder:
+  network: test_base
+  contract_address: "0x3bB10ec2404638c6fB9f98948f8e3730316B7BfA"
+  contract_abi_path: contracts/CoopHiveV1.json

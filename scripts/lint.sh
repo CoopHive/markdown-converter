@@ -1,4 +1,6 @@
 #!/bin/bash
+# lint.sh
+# DESCRIPTION: Run Black, isort, Flake8, and MyPy on src/ and tests/ for full style + type checks
 set -e
 
 echo "Running black formatter..."

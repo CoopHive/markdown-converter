@@ -1,0 +1,29 @@
+# Processor Configuration
+
+# Database connection parameters
+postgres:
+  host: localhost
+  port: 5432
+  user: vardhanshorewala
+  password: password
+
+# Processing parameters
+processing:
+  max_papers: 10
+  papers_directory: papers
+  metadata_file: papers/metadata.json
+  storage_directory: ../papers-graph-demo
+
+# API Keys
+api_keys:
+  lighthouse_token: ${LIGHTHOUSE_TOKEN}
+
+# Database configurations
+databases:
+  - converter: openai
+    chunker: fixed_length
+    embedder: openai
+
+# Author configuration
+author:
+  public_key: "0x55DE19820d5Dfc5761370Beb16Eb041E11272619"

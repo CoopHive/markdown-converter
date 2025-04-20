@@ -93,11 +93,9 @@ class IPFSNeo4jGraph:
                     MERGE (a)-[:{relationship_type}]->(b)
                 """
                 session.run(query, cid1=cid1, cid2=cid2)
-                self.logger.info(f"Relationship created: {
-                    cid1} - [{relationship_type}] -> {cid2}")
+                self.logger.info(f"Relationship created: {cid1} - [{relationship_type}] -> {cid2}")
         except Exception as e:
-            self.logger.error(f"Failed to create relationship {
-                cid1} - [{relationship_type}] -> {cid2}: {e}")
+            self.logger.error(f"Failed to create relationship {cid1} - [{relationship_type}] -> {cid2}: {e}")
 
     def query_graph(self):
         """Retrieve all nodes and relationships."""
@@ -140,8 +138,7 @@ class IPFSNeo4jGraph:
 
                 return paths if paths else False
         except Exception as e:
-            self.logger.error(f"Failed to traverse path from {
-                start_cid} with path {path}: {e}")
+            self.logger.error(f"Failed to traverse path from {start_cid} with path {path}: {e}")
             return False
 
     def traverse_path_end_nodes(self, start_cid, path):
@@ -168,8 +165,7 @@ class IPFSNeo4jGraph:
 
                 return end_nodes if end_nodes else False
         except Exception as e:
-            self.logger.error(f"Failed to traverse path from {
-                start_cid} with path {path}: {e}")
+            self.logger.error(f"Failed to traverse path from {start_cid} with path {path}: {e}")
             return False
 
     def _query_ipfs_content(self, cid):

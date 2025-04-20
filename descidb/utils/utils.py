@@ -26,8 +26,7 @@ def compress(list_of_input_paths: List[str], output_path: str):
         for input_path in list_of_input_paths:
             input_path = Path(input_path)
             if not input_path.exists():
-                print(f"Warning: {
-                      input_path} does not exist and will be skipped.")
+                print(f"Warning: {input_path} does not exist and will be skipped.")
                 continue
             # Add the file or directory to the tar file
             tar.add(input_path, arcname=input_path.name)

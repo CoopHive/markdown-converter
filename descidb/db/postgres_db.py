@@ -116,8 +116,7 @@ class PostgresDBManager:
             cursor.execute(
                 sql.SQL("CREATE SCHEMA IF NOT EXISTS default_schema"))
             self.logger.info(
-                f"Schema 'default_schema' created successfully in database '{
-                    db_name}'."
+                f"Schema 'default_schema' created successfully in database '{db_name}'."
             )
 
             cursor.execute(
@@ -133,13 +132,11 @@ class PostgresDBManager:
             """)
             )
             self.logger.info(
-                f"Table 'papers' created successfully in schema 'default_schema' of database '{
-                    db_name}'."
+                f"Table 'papers' created successfully in schema 'default_schema' of database '{db_name}'."
             )
 
         except Exception as e:
-            self.logger.error(f"Error creating schema or table in database '{
-                db_name}': {e}")
+            self.logger.error(f"Error creating schema or table in database '{db_name}': {e}")
 
         cursor.close()
         conn.close()
@@ -149,8 +146,7 @@ class PostgresDBManager:
     ):
         conn = self._connect(db_name)
         if conn is None:
-            self.logger.error(f"Unable to connect to the database '{
-                db_name}' for data insertion.")
+            self.logger.error(f"Unable to connect to the database '{db_name}' for data insertion.")
             return
 
         cursor = conn.cursor()
@@ -180,8 +176,7 @@ class PostgresDBManager:
     def query(self, db_name: str, query_string: str, params: Tuple = ()):
         conn = self._connect(db_name)
         if conn is None:
-            self.logger.error(f"Unable to connect to the database '{
-                db_name}' for query execution.")
+            self.logger.error(f"Unable to connect to the database '{db_name}' for query execution.")
             return None
 
         cursor = conn.cursor()

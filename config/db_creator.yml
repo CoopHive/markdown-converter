@@ -1,0 +1,31 @@
+# Database Creator Configuration
+
+# Neo4j connection parameters
+neo4j:
+  uri: ${NEO4J_URI}
+  username: ${NEO4J_USERNAME}
+  password: ${NEO4J_PASSWORD}
+
+# Database components
+components:
+  converter:
+    - marker
+  chunker:
+    - fixed_length
+  embedder:
+    - openai
+
+# Vector database configuration
+vector_db:
+  path: descidb/database
+
+# Relationship paths
+relationships:
+  - CONVERTED_BY_marker
+  - CHUNKED_BY_fixed_length
+  - EMBEDDED_BY_openai
+
+# CIDs file paths to check
+cids_file_paths:
+  - cids.txt
+  - temp/cids.txt

@@ -102,12 +102,3 @@ def query_collection(collection_name, user_query, db_path=None):
     except Exception as e:
         logger.error(f"Error querying collection: {e}")
         return json.dumps({"error": str(e)})
-
-
-if __name__ == "__main__":
-    print(
-        query_collection(
-            "openai_paragraph_openai",
-            "What are the challenges in assessing gene editing outcomes in human embryos?",
-        )
-    )
