@@ -1,16 +1,9 @@
-"""
-Tests for the graph_db module.
+"""Tests for Neo4j graph database manager in DeSciDB."""
 
-This module contains tests for the IPFSNeo4jGraph class that manages Neo4j
-graph database connections and operations.
-"""
-
-import os
 from unittest.mock import MagicMock, call, patch
 
 import pytest
 import requests
-from neo4j import GraphDatabase
 
 from descidb.graph_db import IPFSNeo4jGraph
 
@@ -48,7 +41,12 @@ class TestIPFSNeo4jGraph:
 
         with patch("os.environ"):
             with patch("certifi.where", return_value="/path/to/certifi"):
-                graph = IPFSNeo4jGraph(uri=uri, username=username, password=password)
+                graph_instance = IPFSNeo4jGraph(
+                    uri=uri, username=username, password=password
+                )
+
+                # Assert the graph instance was created successfully
+                assert graph_instance is not None
 
                 # Verify driver was initialized with correct parameters
                 mock_driver.assert_called_once_with(
@@ -69,7 +67,10 @@ class TestIPFSNeo4jGraph:
 
                 mock_getenv.side_effect = getenv_side_effect
 
-                graph = IPFSNeo4jGraph()
+                graph_instance = IPFSNeo4jGraph()
+
+                # Assert the graph instance was created successfully
+                assert graph_instance is not None
 
                 # Verify driver was initialized with environment variables
                 mock_driver.assert_called_once_with(

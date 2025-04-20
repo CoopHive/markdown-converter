@@ -6,7 +6,6 @@ and operations related to IPFS content identifiers (CIDs).
 """
 
 import os
-from typing import List, Optional, Union
 
 import certifi
 import requests
@@ -43,7 +42,7 @@ class IPFSNeo4jGraph:
         self.username = username or os.getenv("NEO4J_USERNAME")
         self.password = password or os.getenv("NEO4J_PASSWORD")
 
-        self.logger = get_logger(__name__ + '.IPFSNeo4jGraph')
+        self.logger = get_logger(__name__ + ".IPFSNeo4jGraph")
 
         if not all([self.uri, self.username, self.password]):
             missing = []
@@ -62,7 +61,8 @@ class IPFSNeo4jGraph:
             os.environ["SSL_CERT_FILE"] = certifi.where()
 
             self.driver = GraphDatabase.driver(
-                self.uri, auth=(self.username, self.password), encrypted=False)
+                self.uri, auth=(self.username, self.password), encrypted=False
+            )
             self.driver.verify_connectivity()
             self.logger.info(f"Connected to Neo4j at {self.uri}")
         except Exception as e:
@@ -93,19 +93,23 @@ class IPFSNeo4jGraph:
                     MERGE (a)-[:{relationship_type}]->(b)
                 """
                 session.run(query, cid1=cid1, cid2=cid2)
-                self.logger.info(f"Relationship created: {cid1} - [{relationship_type}] -> {cid2}")
+                self.logger.info(
+                    f"Relationship created: {cid1} - [{relationship_type}] -> {cid2}"
+                )
         except Exception as e:
-            self.logger.error(f"Failed to create relationship {cid1} - [{relationship_type}] -> {cid2}: {e}")
+            self.logger.error(
+                f"Failed to create relationship {cid1} - [{relationship_type}] -> {cid2}: {e}"
+            )
 
     def query_graph(self):
         """Retrieve all nodes and relationships."""
         try:
             with self.driver.session() as session:
-                result = session.run(
-                    "MATCH (a)-[r]->(b) RETURN a.cid, TYPE(r), b.cid")
+                result = session.run("MATCH (a)-[r]->(b) RETURN a.cid, TYPE(r), b.cid")
                 for record in result:
                     self.logger.info(
-                        f"{record['a.cid']} -[{record['TYPE(r)']}]→ {record['b.cid']}")
+                        f"{record['a.cid']} -[{record['TYPE(r)']}]→ {record['b.cid']}"
+                    )
         except Exception as e:
             self.logger.error(f"Failed to query graph: {e}")
 
@@ -133,17 +137,18 @@ class IPFSNeo4jGraph:
                 query += f" RETURN {', '.join(path_return)}"
 
                 result = session.run(query, start_cid=start_cid)
-                paths = [[record[key] for key in path_return]
-                         for record in result]
+                paths = [[record[key] for key in path_return] for record in result]
 
                 return paths if paths else False
         except Exception as e:
-            self.logger.error(f"Failed to traverse path from {start_cid} with path {path}: {e}")
+            self.logger.error(
+                f"Failed to traverse path from {start_cid} with path {path}: {e}"
+            )
             return False
 
     def traverse_path_end_nodes(self, start_cid, path):
         """
-        Given a starting node and an ordered list of relationship steps, 
+        Given a starting node and an ordered list of relationship steps,
         return all node CIDs that exist at the end of the given path.
 
         :param start_cid: The CID of the starting node.
@@ -165,7 +170,9 @@ class IPFSNeo4jGraph:
 
                 return end_nodes if end_nodes else False
         except Exception as e:
-            self.logger.error(f"Failed to traverse path from {start_cid} with path {path}: {e}")
+            self.logger.error(
+                f"Failed to traverse path from {start_cid} with path {path}: {e}"
+            )
             return False
 
     def _query_ipfs_content(self, cid):
@@ -181,8 +188,7 @@ class IPFSNeo4jGraph:
             response.raise_for_status()
             return response.text.strip()  # Ensure leading/trailing spaces are removed
         except requests.exceptions.RequestException as e:
-            self.logger.error(
-                f"Failed to retrieve IPFS content for CID {cid}: {e}")
+            self.logger.error(f"Failed to retrieve IPFS content for CID {cid}: {e}")
             return None
 
     def get_authored_by_stats(self):
@@ -211,8 +217,7 @@ class IPFSNeo4jGraph:
                     if author_id:
                         authored_by_dict[author_id.strip()] = incoming_count
                     else:
-                        self.logger.warning(
-                            f"Could not fetch author ID for CID: {cid}")
+                        self.logger.warning(f"Could not fetch author ID for CID: {cid}")
 
                 return authored_by_dict
         except Exception as e:

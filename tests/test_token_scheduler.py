@@ -5,9 +5,6 @@ This module contains tests for the token_scheduler.py module which provides
 functionality to schedule token rewards for users.
 """
 
-import os
-import sys
-from pathlib import Path
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest

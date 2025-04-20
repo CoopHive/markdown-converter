@@ -1,19 +1,10 @@
-"""
-Tests for the token_rewarder module.
-
-This module contains tests for the TokenRewarder class that manages blockchain token rewards
-for users contributing to the DeSciDB ecosystem.
-"""
+"""Tests for the token_rewarder module in DeSciDB."""
 
 import itertools
 import json
-import os
-import sys
-from pathlib import Path
-from unittest.mock import MagicMock, Mock, call, patch
+from unittest.mock import Mock, call, patch
 
 import pytest
-from web3 import Web3
 
 from descidb.token_rewarder import TokenRewarder
 

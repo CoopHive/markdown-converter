@@ -1,12 +1,6 @@
 [flake8]
 max-line-length = 150
 exclude = .git,__pycache__,build,dist
-ignore = E203, W503, W504, F841, W291, E226
 per-file-ignores =
     __init__.py: F401
-    main.py: F401
-    embedder.py: F401
-    processor.py: F401, F811
-    TokenRewarder.py: F401
-    QueryDB.py: F401
-    chunker.py: F811, F821 
+    chunker.py: E203

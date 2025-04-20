@@ -1,9 +1,7 @@
-"""
-Tests for the converter module.
-"""
+"""Tests for PDF conversion functionality in DeSciDB."""
 
-import os
-from unittest.mock import MagicMock, mock_open, patch
+
+from unittest.mock import MagicMock, patch
 
 import pytest
 

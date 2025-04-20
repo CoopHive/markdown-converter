@@ -6,14 +6,11 @@ with scientific document data for the DeSciDB system.
 """
 
 import json
-import os
 from pathlib import Path
 
 import requests
 from dotenv import load_dotenv
 
-from descidb.db.chroma_client import VectorDatabaseManager
-from descidb.db.graph_db import IPFSNeo4jGraph
 from descidb.utils.logging_utils import get_logger
 
 # Get module logger

@@ -8,6 +8,7 @@ the evaluation agent with the specified parameters.
 import json
 import os
 from pathlib import Path
+
 import yaml
 
 from descidb.query.evaluation_agent import EvaluationAgent
@@ -29,7 +30,7 @@ def load_config() -> dict:
     Returns:
         Dictionary containing configuration parameters
     """
-    with open(CONFIG_PATH, 'r') as f:
+    with open(CONFIG_PATH, "r") as f:
         config = yaml.safe_load(f)
 
     logger.info(f"Loaded configuration from {CONFIG_PATH}")
@@ -48,7 +49,7 @@ def main():
     results_file = agent.query_collections(
         query=config.get("query"),
         collection_names=config.get("collections"),
-        db_path=config.get("db_path")
+        db_path=config.get("db_path"),
     )
 
     # Evaluate results
@@ -59,7 +60,7 @@ def main():
     if output_dir:
         os.makedirs(output_dir, exist_ok=True)
         output_file = Path(output_dir) / "evaluation_results.json"
-        with open(output_file, 'w') as f:
+        with open(output_file, "w") as f:
             json.dump(evaluation, f, indent=2)
         logger.info(f"Saved evaluation results to {output_file}")
 

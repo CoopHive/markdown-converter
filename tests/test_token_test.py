@@ -5,10 +5,7 @@ This module contains tests for the token_test.py module which provides
 functionality to test token rewards by fetching author statistics.
 """
 
-import os
-import sys
-from pathlib import Path
-from unittest.mock import MagicMock, Mock, call, patch
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 

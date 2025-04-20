@@ -6,9 +6,8 @@ functionality to query ChromaDB collections with natural language queries.
 """
 
 import json
-import os
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -54,8 +53,8 @@ class TestQueryDB:
             with patch("descidb.query_db.chromadb.PersistentClient") as mock_client:
                 with patch(
                     "descidb.query_db.embedding_functions.OpenAIEmbeddingFunction"
-                ) as mock_ef:
-                    with patch("descidb.query_db.os.makedirs") as mock_makedirs:
+                ):
+                    with patch("descidb.query_db.os.makedirs"):
                         with patch("descidb.query_db.logger") as mock_logger:
                             # Configure OpenAI mock
                             mock_openai_instance = Mock()
@@ -102,15 +101,15 @@ class TestQueryDB:
 
                             # Verify logging
                             mock_logger.info.assert_any_call(
-                                f"Querying collection 'test_collection' with: 'test query'..."
+                                "Querying collection 'test_collection' with: 'test query'..."
                             )
                             mock_logger.info.assert_any_call(
-                                f"Found 2 results for query"
+                                "Found 2 results for query"
                             )
 
     def test_query_collection_no_api_key(self):
         """Test behavior when the OpenAI API key is not set."""
-        with patch("descidb.query_db.OpenAI") as mock_openai_class:
+        with patch("descidb.query_db.OpenAI"):
             with patch("descidb.query_db.os.getenv", return_value=None) as mock_getenv:
                 with patch("descidb.query_db.logger") as mock_logger:
                     # Call the function
@@ -140,7 +139,7 @@ class TestQueryDB:
             "distances": [[]],
         }
 
-        with patch("descidb.query_db.OpenAI") as mock_openai_class:
+        with patch("descidb.query_db.OpenAI") as mock_openai:
             with patch("descidb.query_db.chromadb.PersistentClient") as mock_client:
                 with patch(
                     "descidb.query_db.embedding_functions.OpenAIEmbeddingFunction"
@@ -149,7 +148,7 @@ class TestQueryDB:
                         with patch("descidb.query_db.logger") as mock_logger:
                             # Configure OpenAI mock
                             mock_openai_instance = Mock()
-                            mock_openai_class.return_value = mock_openai_instance
+                            mock_openai.return_value = mock_openai_instance
                             mock_embeddings = Mock()
                             mock_openai_instance.embeddings = mock_embeddings
                             mock_embeddings.create.return_value = mock_openai_response

@@ -5,21 +5,15 @@ This module provides functions for converting PDF documents to text
 using various methods including OpenAI's API and local tools.
 """
 
-from marker.models import create_model_dict
-from marker.logger import configure_logging
-from marker.converters.pdf import PdfConverter
-from marker.config.parser import ConfigParser
 import os
-import subprocess
-import tempfile
 import textwrap
-from pathlib import Path
-from typing import Literal, Optional
+from typing import Literal
 
 import PyPDF2
-import openai
-import requests
 from dotenv import load_dotenv
+from marker.config.parser import ConfigParser
+from marker.converters.pdf import PdfConverter
+from marker.models import create_model_dict
 from openai import OpenAI
 
 from descidb.utils.logging_utils import get_logger
@@ -51,7 +45,7 @@ def convert(conversion_type: ConversionType, input_path: str) -> str:
     # Mapping conversion types to functions
     conversion_methods = {
         "marker": marker,
-        "openai": openai,
+        "openai_converter": openai,
     }
 
     return conversion_methods[conversion_type](input_path)
@@ -87,8 +81,7 @@ def marker(input_path: str) -> str:
                 if f.lower().endswith(".pdf")
             ]
             if not input_pdf_paths:
-                raise ValueError(
-                    f"No PDF files found in directory: {input_path}")
+                raise ValueError(f"No PDF files found in directory: {input_path}")
         else:
             raise ValueError(f"Invalid input path: {input_path}")
 

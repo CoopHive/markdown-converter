@@ -8,17 +8,14 @@ of document processing and query results.
 import json
 import os
 import time
-from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional
 
-import numpy as np
 import requests
 from dotenv import load_dotenv
 
 from descidb.query.query_db import query_collection
 from descidb.utils.logging_utils import get_logger
-from descidb.utils.utils import download_from_url
 
 # Get module logger
 logger = get_logger(__name__)
@@ -41,7 +38,7 @@ class EvaluationAgent:
         Initialize the evaluation agent.
 
         Args:
-            model_name: Full model name in the format "provider/model" 
+            model_name: Full model name in the format "provider/model"
                        (e.g., "openai/gpt-3.5-turbo", "anthropic/claude-3-opus-20240229")
         """
         self.model_name = model_name
@@ -54,8 +51,9 @@ class EvaluationAgent:
             logger.error("OpenRouter API key is not set in environment variables")
             raise ValueError("OpenRouter API key not configured")
 
-    def query_collections(self, query: str, collection_names: List[str], 
-                          db_path: Optional[str] = None) -> str:
+    def query_collections(
+        self, query: str, collection_names: List[str], db_path: Optional[str] = None
+    ) -> str:
         """
         Query multiple collections with the same query and store results.
 
@@ -70,10 +68,7 @@ class EvaluationAgent:
         timestamp = int(time.time())
         results_file = self.temp_dir / f"query_results_{timestamp}.json"
 
-        all_results = {
-            "query": query,
-            "collection_results": {}
-        }
+        all_results = {"query": query, "collection_results": {}}
 
         for collection_name in collection_names:
             logger.info(f"Querying collection: {collection_name}")
@@ -85,7 +80,7 @@ class EvaluationAgent:
                 logger.error(f"Error querying collection {collection_name}: {e}")
                 all_results["collection_results"][collection_name] = {"error": str(e)}
 
-        with open(results_file, 'w') as f:
+        with open(results_file, "w") as f:
             json.dump(all_results, f, indent=2)
 
         logger.info(f"Saved query results to {results_file}")
@@ -102,7 +97,7 @@ class EvaluationAgent:
             Dictionary with evaluation results and rankings
         """
 
-        with open(results_file, 'r') as f:
+        with open(results_file, "r") as f:
             all_results = json.load(f)
 
         original_query = all_results["query"]
@@ -112,7 +107,7 @@ class EvaluationAgent:
             "query": original_query,
             "rankings": {},
             "overall_best_collection": "",
-            "reasoning": ""
+            "reasoning": "",
         }
 
         prompt = self._generate_evaluation_prompt(original_query, collections)
@@ -122,17 +117,20 @@ class EvaluationAgent:
                 url="https://openrouter.ai/api/v1/chat/completions",
                 headers={
                     "Authorization": f"Bearer {self.api_key}",
-                    "HTTP-Referer": "https://coophive.com", 
+                    "HTTP-Referer": "https://coophive.com",
                     "Content-Type": "application/json",
                 },
                 json={
                     "model": self.model_name,
                     "messages": [
-                        {"role": "system", "content": "You are a helpful assistant that evaluates search results."},
-                        {"role": "user", "content": prompt}
+                        {
+                            "role": "system",
+                            "content": "You are a helpful assistant that evaluates search results.",
+                        },
+                        {"role": "user", "content": prompt},
                     ],
-                    "temperature": 0.1
-                }
+                    "temperature": 0.1,
+                },
             )
 
             response.raise_for_status()
@@ -150,14 +148,18 @@ class EvaluationAgent:
             logger.error(f"Error evaluating results with model {self.model_name}: {e}")
             evaluation["error"] = str(e)
 
-        eval_file = Path(results_file).with_name(f"{Path(results_file).stem}_evaluation.json")
-        with open(eval_file, 'w') as f:
+        eval_file = Path(results_file).with_name(
+            f"{Path(results_file).stem}_evaluation.json"
+        )
+        with open(eval_file, "w") as f:
             json.dump(evaluation, f, indent=2)
 
         logger.info(f"Saved evaluation to {eval_file}")
         return evaluation
 
-    def _generate_evaluation_prompt(self, query: str, collections: Dict[str, any]) -> str:
+    def _generate_evaluation_prompt(
+        self, query: str, collections: Dict[str, any]
+    ) -> str:
         """
         Generate prompt for LLM to evaluate results.
 

@@ -12,7 +12,6 @@ import os
 from datetime import datetime
 from pathlib import Path
 
-import numpy as np
 from dotenv import load_dotenv
 from psycopg2 import connect, sql
 from web3 import Web3

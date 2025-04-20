@@ -53,8 +53,12 @@ def main():
     # Extract Neo4j connection parameters
     neo4j_config = config["neo4j"]
     neo4j_uri = os.getenv(neo4j_config["uri"].replace("${", "").replace("}", ""))
-    neo4j_username = os.getenv(neo4j_config["username"].replace("${", "").replace("}", ""))
-    neo4j_password = os.getenv(neo4j_config["password"].replace("${", "").replace("}", ""))
+    neo4j_username = os.getenv(
+        neo4j_config["username"].replace("${", "").replace("}", "")
+    )
+    neo4j_password = os.getenv(
+        neo4j_config["password"].replace("${", "").replace("}", "")
+    )
 
     # Initialize Neo4j graph
     graph = IPFSNeo4jGraph(

@@ -22,8 +22,6 @@ from descidb.db.graph_db import IPFSNeo4jGraph
 from descidb.db.postgres_db import PostgresDBManager
 from descidb.rewards.token_rewarder import TokenRewarder
 from descidb.utils.logging_utils import get_logger
-from descidb.utils.utils import upload_to_lighthouse
-
 
 # Get module logger
 logger = get_logger(__name__)

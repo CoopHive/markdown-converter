@@ -37,7 +37,7 @@ class PostgresDBManager:
             user: PostgreSQL username
             password: PostgreSQL password
         """
-        self.logger = get_logger(__name__ + '.PostgresDBManager')
+        self.logger = get_logger(__name__ + ".PostgresDBManager")
         self.host = host or os.getenv("POSTGRES_HOST", "localhost")
         self.port = port or os.getenv("POSTGRES_PORT", "5432")
         self.user = user or os.getenv("POSTGRES_USER", "postgres")
@@ -50,7 +50,7 @@ class PostgresDBManager:
                 port=self.port,
                 user=self.user,
                 password=self.password,
-                dbname="postgres"
+                dbname="postgres",
             )
             self.conn.autocommit = True
             self.logger.info(f"Connected to PostgreSQL at {self.host}:{self.port}")
@@ -83,21 +83,21 @@ class PostgresDBManager:
         for db_name in db_names:
             try:
                 cursor.execute(
-                    sql.SQL("SELECT 1 FROM pg_database WHERE datname = %s"), [
-                        db_name]
+                    sql.SQL("SELECT 1 FROM pg_database WHERE datname = %s"), [db_name]
                 )
                 exists = cursor.fetchone()
 
                 if not exists:
                     cursor.execute(
-                        sql.SQL("CREATE DATABASE {}").format(
-                            sql.Identifier(db_name))
+                        sql.SQL("CREATE DATABASE {}").format(sql.Identifier(db_name))
                     )
                     self.logger.info(f"Database '{db_name}' created successfully.")
 
                     self._create_schema_and_table_in_db(db_name)
                 else:
-                    self.logger.info(f"Database '{db_name}' already exists. Skipping creation.")
+                    self.logger.info(
+                        f"Database '{db_name}' already exists. Skipping creation."
+                    )
 
             except Exception as e:
                 self.logger.error(f"Error creating database '{db_name}': {e}")
@@ -113,14 +113,14 @@ class PostgresDBManager:
 
         cursor = conn.cursor()
         try:
-            cursor.execute(
-                sql.SQL("CREATE SCHEMA IF NOT EXISTS default_schema"))
+            cursor.execute(sql.SQL("CREATE SCHEMA IF NOT EXISTS default_schema"))
             self.logger.info(
                 f"Schema 'default_schema' created successfully in database '{db_name}'."
             )
 
             cursor.execute(
-                sql.SQL("""
+                sql.SQL(
+                    """
                 CREATE TABLE IF NOT EXISTS default_schema.papers (
                     author TEXT,
                     paper_name TEXT,
@@ -129,14 +129,17 @@ class PostgresDBManager:
                     metadata JSON,
                     public_key TEXT,
                 )
-            """)
+            """
+                )
             )
             self.logger.info(
                 f"Table 'papers' created successfully in schema 'default_schema' of database '{db_name}'."
             )
 
         except Exception as e:
-            self.logger.error(f"Error creating schema or table in database '{db_name}': {e}")
+            self.logger.error(
+                f"Error creating schema or table in database '{db_name}': {e}"
+            )
 
         cursor.close()
         conn.close()
@@ -146,15 +149,19 @@ class PostgresDBManager:
     ):
         conn = self._connect(db_name)
         if conn is None:
-            self.logger.error(f"Unable to connect to the database '{db_name}' for data insertion.")
+            self.logger.error(
+                f"Unable to connect to the database '{db_name}' for data insertion."
+            )
             return
 
         cursor = conn.cursor()
         try:
-            insert_query = sql.SQL("""
+            insert_query = sql.SQL(
+                """
                     INSERT INTO default_schema.papers (author, paper_name, markdown, embedding, metadata)
                     VALUES (%s, %s, %s, %s, %s)
-                """)
+                """
+            )
 
             for record in data:
                 binary_embedding = pickle.dumps(np.array(record[3]))
@@ -176,7 +183,9 @@ class PostgresDBManager:
     def query(self, db_name: str, query_string: str, params: Tuple = ()):
         conn = self._connect(db_name)
         if conn is None:
-            self.logger.error(f"Unable to connect to the database '{db_name}' for query execution.")
+            self.logger.error(
+                f"Unable to connect to the database '{db_name}' for query execution."
+            )
             return None
 
         cursor = conn.cursor()

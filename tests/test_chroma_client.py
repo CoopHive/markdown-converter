@@ -5,7 +5,6 @@ This module contains tests for the VectorDatabaseManager class that manages
 ChromaDB vector database collections.
 """
 
-import os
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -51,11 +50,6 @@ class TestVectorDatabaseManager:
 
     def test_init_with_custom_db_path(self):
         """Test initialization with custom database path."""
-        components = {
-            "converter": ["openai"],
-            "chunker": ["paragraph"],
-            "embedder": ["openai"],
-        }
         custom_path = "/tmp/test_chromadb"
 
         with patch("chromadb.PersistentClient") as mock_client:
@@ -63,11 +57,6 @@ class TestVectorDatabaseManager:
                 # Setup mock
                 mock_instance = mock_client.return_value
                 mock_instance.get_or_create_collection.return_value = MagicMock()
-
-                # Initialize the manager
-                manager = VectorDatabaseManager(
-                    components=components, db_path=custom_path
-                )
 
                 # Verify
                 mock_makedirs.assert_called_once_with(Path(custom_path), exist_ok=True)
@@ -178,12 +167,12 @@ class TestVectorDatabaseManager:
                 # Mock collection.get() to return test metadata
                 mock_collection.get.return_value = {"metadatas": metadata}
 
-                # Initialize the manager
-                manager = VectorDatabaseManager(components=components)
+                # Initialize the manager and call the method
+                db_manager = VectorDatabaseManager(components=components)
 
                 # Call the method
                 with patch("builtins.print") as mock_print:
-                    manager.print_all_metadata()
+                    db_manager.print_all_metadata()
 
                     # Verify print calls
                     mock_print.assert_any_call(

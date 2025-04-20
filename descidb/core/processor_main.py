@@ -14,14 +14,11 @@ from pathlib import Path
 import yaml
 from dotenv import load_dotenv
 
-from descidb.core.chunker import chunk_from_url
-from descidb.core.embedder import embed_from_url
 from descidb.core.processor import Processor
 from descidb.db.chroma_client import VectorDatabaseManager
 from descidb.db.postgres_db import PostgresDBManager
 from descidb.rewards.token_rewarder import TokenRewarder
 from descidb.utils.logging_utils import get_logger
-from descidb.utils.utils import compress, upload_to_lighthouse
 
 # Get module logger
 logger = get_logger(__name__)
@@ -71,7 +68,9 @@ def test_processor():
     storage_directory = COOPHIVE_DIR / processing_config["storage_directory"]
 
     # Setup API keys and database connection
-    lighthouse_api_key = os.getenv(api_keys["lighthouse_token"].replace("${", "").replace("}", ""))
+    lighthouse_api_key = os.getenv(
+        api_keys["lighthouse_token"].replace("${", "").replace("}", "")
+    )
 
     db_manager_postgres = PostgresDBManager(
         host=postgres_config["host"],
@@ -85,7 +84,7 @@ def test_processor():
         os.path.join(papers_directory, f)
         for f in os.listdir(papers_directory)
         if f.endswith(".pdf")
-    ][:processing_config["max_papers"]]
+    ][: processing_config["max_papers"]]
 
     # Setup database configurations
     databases = config["databases"]

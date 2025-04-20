@@ -38,8 +38,7 @@ def extract(tar_file_path: str, output_path: str):
     # Ensure the tar file exists
     tar_path = Path(tar_file_path)
     if not tar_path.exists():
-        raise FileNotFoundError(
-            f"The tar file '{tar_file_path}' does not exist.")
+        raise FileNotFoundError(f"The tar file '{tar_file_path}' does not exist.")
 
     # Ensure the output directory exists
     output_dir = Path(output_path)
@@ -81,8 +80,7 @@ def download_from_url(url: str, output_folder: str = "./tmp"):
     file_name = Path(parsed_url.path).name
 
     content_type = response.headers.get("content-type")
-    extension = mimetypes.guess_extension(
-        content_type) if content_type else ".bin"
+    extension = mimetypes.guess_extension(content_type) if content_type else ".bin"
     file_name = f"{file_name}{extension}"
 
     # Save the file in the output folder

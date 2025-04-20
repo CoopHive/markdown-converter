@@ -5,12 +5,8 @@ This module provides functions for splitting text into smaller chunks
 for processing and embedding.
 """
 
-import os
 import re
-from pathlib import Path
-from typing import List, Literal, Optional
-
-from dotenv import load_dotenv
+from typing import List, Literal
 
 from descidb.utils.logging_utils import get_logger
 from descidb.utils.utils import download_from_url
