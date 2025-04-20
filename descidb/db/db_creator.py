@@ -135,26 +135,27 @@ def main():
     )
 
     components = {
-        "converter": ["openai"],
-        "chunker": ["paragraph"],
+        "converter": ["marker"],
+        "chunker": ["fixed_length"],
         "embedder": ["openai"],
     }
 
     # Create database directory
     project_root = Path(__file__).parent.parent.parent
     db_path = project_root / "descidb" / "database"
+    print(db_path)
     os.makedirs(db_path, exist_ok=True)
 
     vector_db_manager = VectorDatabaseManager(components, db_path=str(db_path))
     create_db = DatabaseCreator(graph, vector_db_manager)
 
     relationship_path = [
-        "CONVERTED_BY_openai",
-        "CHUNKED_BY_paragraph",
+        "CONVERTED_BY_marker",
+        "CHUNKED_BY_fixed_length",
         "EMBEDDED_BY_openai",
     ]
 
-    db_name = "openai_paragraph_openai"
+    db_name = "marker_fixed_length_openai"
 
     # Look for cids.txt file in project root and temp directories
     cids_file_paths = [project_root / "cids.txt", project_root / "temp" / "cids.txt"]
