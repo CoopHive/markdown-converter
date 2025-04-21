@@ -1,153 +1,161 @@
-# Research Paper Processing Pipeline and Querying Database
+# CoopHive Markdown Converter
 
-This document provides a comprehensive guide to processing research papers into custom databases and querying those databases using the CoopHive SDK.
+## 📌 Overview
 
-## Part 1: Processing Research Papers
+The **CoopHive Markdown Converter** is a sophisticated Python-based pipeline designed for processing, converting, chunking, embedding, querying, and rewarding activities around scientific documents. Primarily tailored for decentralized science (DeSci) applications, it integrates powerful tools such as ChromaDB, Neo4j graph databases, IPFS storage, and blockchain-based reward mechanisms.
 
-This section explains how to the conversion of research papers (PDFs) into markdown format, extract metadata, and insert the processed documents into custom databases.
+---
 
-### Prerequisites
+## 🗂️ Project Directory Structure
 
-Before running the script, ensure that you have the following:
-
-- **Python 3.12** installed
-- Access to OpenAI API (with an API key)
-- Lighthouse API key for file storage
-- A set of research papers in PDF format
-
-### Installation
-
-1. **Clone the Repository:**
-
-   ```bash
-   git clone git@github.com:CoopHive/markdown-converter.git
-   cd markdown-converter
-   ```
-
-2. **Install Required Packages:**
-
-   Install the necessary Python packages using `uv`:
-
-   ```bash
-   make uv-download
-   make install
-   ```
-
-3. **Prepare Your Enviornment and Metadata Files:**
-
-   - **.env** This file should contain your API keys and other configurations.
-
-   See .env.example as a reference.
-
-   ```env
-      OPENAI_API_KEY=your_openai_api_key
-      LIGHTHOUSE_TOKEN=your_lighthouse_token
-   ```
-
-   - **metadata.json:** A JSON file containing metadata for your papers. A sample file has been created, containing the metadata of arXiv papers. Hence, unless using arXiv papers, a custom metadata file would have to be created in the format below. If metadata if not provided, it will default it to blank.
-
-   Example metadata.json:
-
-   ```json
-   {
-     "id": "paper1",
-     "title": "Sample Paper",
-     "authors": ["Author 1", "Author 2"],
-     "categories": ["Category 1"],
-     "abstract": "This is a sample abstract.",
-     "doi": "10.1234/sample.doi"
-   }
-   ```
-
-4. **Prepare Your Papers Directory:**
-
-   - Place all your research paper
-
-5. **Selecting Database Creation Methods**
-
-   By default, the script allows you to choose from the following processing methods:
-
-   1. **Conversion Methods:** Convert PDFs to markdown using one of the following:
-
-      - **OpenAI Model:** Uses OpenAI's model to convert PDFs to markdown.
-      - **Marker Library:** Uses the marker library/repository to convert PDFs to markdown.
-
-   2. **Text Marking Level:**
-
-      - **Paragraph Level:** Processes and chunks the text at the paragraph level.
-      - **Sentence Level:** Processes and chunks the text at the sentence level.
-
-   3. **Chunking Model:**
-
-      - **NVIDIA Model:** Uses NVIDIA's model for text chunking.
-      - **OpenAI Model:** Uses OpenAI's model for text chunking.
-
-   These default methods provide a versatile framework for processing research papers into databases. Each combination of methods results in a unique database tailored to specific use cases. Select the options that best suit your research needs.
-
-### Running the Script
-
-## Part 2: Token Rewarding Mechanism
-
-The **TokenRewarder** class automates the rewarding process for contributions to the research paper processing pipeline. It integrates with a PostgreSQL database and a smart contract to calculate and issue rewards to contributors. Token pools can be created by the owner of the smart contract using the contract template found in /contracts.
-
-### Setting Up the Token Rewarder
-
-The TokenRewarder class requires the following parameters:
-
-- **network**: The network to connect to.
-- **contract_address**: The address of the smart contract.
-- **contract_abi_path**: The path to the smart contract ABI.
-- **db_components**: The components of the database.
-- **host**: The host of the PostgreSQL database.
-- **port**: The port of the PostgreSQL
-  The .env file should contain the following environment variables:
-
-```env
-   OWNER_ADDRESS=your_owner_address
-   PRIVATE_KEY=your_private_key
+```bash
+coophive-markdown-converter/
+├── README.md                          # Documentation overview
+├── pyproject.toml                     # Python project metadata and dependencies
+├── pytest.ini                         # Pytest configuration
+├── .env.example                       # Template for environment variables
+├── .flake8                            # Flake8 linting rules
+├── config/                            # Runtime configuration files
+│   ├── db_creator.yml                 # Config for database creation from Neo4j/IPFS
+│   ├── evaluation.yml                 # Config for evaluating query results
+│   ├── processor.yml                  # Config for document processing pipeline
+│   └── token_test.yml                 # Config for blockchain-based token rewards
+├── contracts/                         # Blockchain contract ABIs
+│   ├── CoopHiveV1.json                # Current smart contract ABI
+│   └── old.json                       # Older contract ABI
+├── descidb/                           # Core application modules
+│   ├── core/                          # Main document processing logic
+│   │   ├── chunker.py                 # Text chunking logic
+│   │   ├── converter.py               # PDF to markdown conversion
+│   │   ├── embedder.py                # Text embedding generation
+│   │   ├── processor.py               # Processing pipeline class
+│   │   └── processor_main.py          # Entrypoint for running processing
+│   ├── db/                            # Database management modules
+│   │   ├── chroma_client.py           # ChromaDB client for embeddings
+│   │   ├── db_creator.py              # Populate DBs from Neo4j/IPFS
+│   │   ├── db_creator_main.py         # Entrypoint to run DB creation
+│   │   ├── graph_db.py                # Neo4j Graph DB client
+│   │   └── postgres_db.py             # PostgreSQL DB management
+│   ├── query/                         # Querying and evaluation modules
+│   │   ├── evaluation_agent.py        # Agent-based evaluation logic
+│   │   ├── evaluation_main.py         # Entrypoint for evaluation tasks
+│   │   └── query_db.py                # ChromaDB querying functionality
+│   ├── rewards/                       # Reward mechanisms
+│   │   ├── token_rewarder.py          # Blockchain token reward logic
+│   │   └── token_reward_main.py       # Entrypoint to execute reward logic
+│   └── utils/                         # Utility functions
+│       ├── logging_utils.py           # Logging utilities
+│       └── utils.py                   # File handling and IPFS helpers
+├── docker/                            # Dockerfiles for containerization
+├── erc20-token/                       # ERC20 blockchain token setup
+├── papers/                            # Sample documents and metadata
+├── scripts/                           # Shell scripts for easy task execution
+├── tests/                             # Unit tests for modules
+└── .github/workflows/                 # CI/CD workflows
 ```
 
-### Database Structure
+---
 
-The `user_rewards` table is created within each database and has the following schema:
+## ⚙️ Components and What They Do
 
-| Column       | Type      | Description                                  |
-| ------------ | --------- | -------------------------------------------- |
-| `id`         | SERIAL    | Primary key for the table.                   |
-| `public_key` | TEXT      | The public key of the contributor.           |
-| `job_count`  | INT       | The number of jobs completed by the user.    |
-| `time_stamp` | TIMESTAMP | The time of the last contribution or update. |
+### 🔄 Processor (processor_main.py)
 
-### Rewarding Users
+This is the main entrypoint to run a full pipeline:
 
-The rewards are added to the `user_rewards` table and can be distributed to users by calling the `get_user_rewards()` function. By default, this function uses:
+1. Converts PDFs to markdown using Marker or OpenAI
+2. Chunks the markdown
+3. Embeds the chunks
+4. Uploads to IPFS and stores metadata in ChromaDB, Neo4j, and Postgres
 
-````python
-user_rewards = self.reward_users_default(db_name)
-```sfksdfkdskf
+👉 Controlled by: `config/processor.yml`
 
-However, this can be swapped with any of the following functions depending on the desired reward logic:
+Customize the converter, chunker, and embedder types here. You can add new options by extending `converter.py`, `chunker.py`, and `embedder.py` with your custom logic, and referencing them via the config.
 
-- **`reward_users_constant`**: Rewards users based on a constant reward per job count.
-- **`reward_users_milestone`**: Rewards users who reach specified milestones.
-- **`reward_users_after_time`**: Rewards users for contributions made after a specified time.
-- **`reward_users_with_bonus`**: Adds a bonus reward for users exceeding a contribution threshold.
-- **`reward_users_within_timeframe`**: Rewards users for contributions made within a specific timeframe.
-- **`reward_users_by_tier`**: Rewards users based on tiers of contribution levels.
+### 🧠 Evaluation Agent (evaluation_main.py)
 
-These functions calculate the rewards based on their respective logic and update the blockchain by issuing tokens to users.
+Evaluates multiple DBs for a user query, compares results using LLMs (e.g., via OpenRouter), and outputs ranking + reasoning.
 
-### Issuing Tokens
+👉 Controlled by: `config/evaluation.yml`
 
-Tokens are issued using the `issue_token()` method, which transfers the calculated reward to the contributor's blockchain address. The transaction details are managed securely using the owner's private key stored in the environment variables.
+Change models, query text, and DBs to query in the config. Extend `evaluation_agent.py` to plug in new evaluation strategies or ranking heuristics.
 
-### Example Usage
+### 🧱 DB Creator (db_creator_main.py)
 
-See descidb/TokenScheduler.py for an example of how to use the TokenRewarder class to reward users. The TokenScheduler class is used to reward users for contributions to multiple databases. The parameters for the TokenRewarder class are passed in from the TokenScheduler class. You can add specific databases to reward users for by adding them to the databases list in TokenScheduler.py:
+Reconstructs databases using paths from Neo4j that lead from original PDFs to embeddings stored in IPFS.
 
-```python
-databases = [
-    {"converter": "openai", "chunker": "sentence", "embedder": "openai"},
-    {"converter": "openai", "chunker": "paragraph", "embedder": "openai"},
-]
-````
+👉 Controlled by: `config/db_creator.yml`
+
+Used when rebuilding vector databases from CIDs and relationships. Customize traversal logic in `graph_db.py`, or modify data ingestion from IPFS in `db_creator.py`.
+
+### 🎖️ Token Rewarding (token_reward_main.py)
+
+Reads user job stats (based on Neo4j-authored edges or DB logs), calculates reward scores, and distributes ERC20 tokens using a custom smart contract.
+
+👉 Controlled by: `config/token_test.yml`
+
+Change reward strategy (milestone, time-decay, flat) by modifying logic in `token_rewarder.py`. Supports different networks and ABIs from `.env` + `contracts/`.
+
+---
+
+## 🚀 Running the Project
+
+### ⚙️ Initial Setup
+
+```bash
+git clone https://github.com/your-repo/coophive-markdown-converter.git
+cd coophive-markdown-converter
+bash scripts/setup.sh
+cp .env.example .env
+# Edit the .env file with actual credentials
+```
+
+### 🛠️ Execute Main Workflows
+
+```bash
+bash scripts/run_processor.sh         # Convert, chunk, embed, store
+bash scripts/run_db_creator.sh        # Recreate DBs from IPFS graph
+bash scripts/run_evaluation.sh        # Compare results across DBs
+bash scripts/run_token_reward.sh      # Distribute token rewards
+```
+
+### 🔍 Code Quality & Testing
+
+```bash
+bash scripts/lint.sh                  # Run black, isort, flake8, mypy
+bash scripts/test.sh                  # Unit tests with pytest
+```
+
+---
+
+## 🧩 Customization
+
+Each module can be customized via:
+
+- `config/*.yml` to control which converter/embedder/etc. to use
+- `descidb/core` and `descidb/rewards` to add new functionality
+- `.env` for runtime secrets
+
+Add your new embedder in `embedder.py`, and reference its name in `config/processor.yml`. The system will pick it up dynamically.
+
+---
+
+## 🔧 Environment Variables
+
+A `.env` file (based on `.env.example`) should include:
+
+```bash
+OPENAI_API_KEY=
+NEO4J_URI=
+NEO4J_USER=
+NEO4J_PASSWORD=
+OWNER_ADDRESS=
+PRIVATE_KEY=
+LIGHTHOUSE_TOKEN=
+OPENROUTER_API_KEY=
+```
+
+---
+
+## 📜 License
+
+This project is open-sourced under the MIT License.
