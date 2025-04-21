@@ -3,11 +3,9 @@ Integration tests for the token reward system.
 """
 
 import os
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 import pytest
-
-from descidb.db.graph_db import IPFSNeo4jGraph
 
 
 @pytest.mark.integration
@@ -108,13 +106,14 @@ class TestTokenRewardIntegration:
             f.write('{"abi": []}')
 
         # Mock getenv to return our test values
-        with patch("pathlib.Path.exists", return_value=True), \
-                patch("pathlib.Path.__truediv__", return_value=mock_contract_path), \
-                patch("os.path.exists", return_value=True), \
-                patch("os.getenv", side_effect=self.mock_getenv):
-
+        with patch("pathlib.Path.exists", return_value=True), patch(
+            "pathlib.Path.__truediv__", return_value=mock_contract_path
+        ), patch("os.path.exists", return_value=True), patch(
+            "os.getenv", side_effect=self.mock_getenv
+        ):
             # Import and run the main function
             from descidb.rewards.token_reward_main import run_reward_users
+
             run_reward_users()
 
         # Verify the workflow

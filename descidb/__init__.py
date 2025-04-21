@@ -5,6 +5,12 @@ This package provides tools for processing, chunking, embedding, and
 storing scientific documents in various database systems.
 """
 
+# Import submodules to make them available
+import descidb.core
+import descidb.db
+import descidb.query
+import descidb.rewards
+import descidb.utils
 from descidb.core.chunker import chunk, chunk_from_url
 from descidb.core.converter import convert
 from descidb.core.embedder import embed, embed_from_url

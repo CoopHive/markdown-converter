@@ -11,7 +11,6 @@ from descidb.core.converter import (
     convert,
     convert_from_url,
     extract_text_from_pdf,
-    marker,
     openai,
 )
 

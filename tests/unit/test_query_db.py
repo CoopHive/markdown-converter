@@ -50,7 +50,9 @@ class TestQueryDB:
     ):
         """Test successful querying of a collection."""
         with patch("descidb.query.query_db.OpenAI") as mock_openai_class:
-            with patch("descidb.query.query_db.chromadb.PersistentClient") as mock_client:
+            with patch(
+                "descidb.query.query_db.chromadb.PersistentClient"
+            ) as mock_client:
                 with patch(
                     "descidb.query.query_db.embedding_functions.OpenAIEmbeddingFunction"
                 ):
@@ -110,7 +112,9 @@ class TestQueryDB:
     def test_query_collection_no_api_key(self):
         """Test behavior when the OpenAI API key is not set."""
         with patch("descidb.query.query_db.OpenAI"):
-            with patch("descidb.query.query_db.os.getenv", return_value=None) as mock_getenv:
+            with patch(
+                "descidb.query.query_db.os.getenv", return_value=None
+            ) as mock_getenv:
                 with patch("descidb.query.query_db.logger") as mock_logger:
                     # Call the function
                     result = query_collection("test_collection", "test query")
@@ -140,7 +144,9 @@ class TestQueryDB:
         }
 
         with patch("descidb.query.query_db.OpenAI") as mock_openai:
-            with patch("descidb.query.query_db.chromadb.PersistentClient") as mock_client:
+            with patch(
+                "descidb.query.query_db.chromadb.PersistentClient"
+            ) as mock_client:
                 with patch(
                     "descidb.query.query_db.embedding_functions.OpenAIEmbeddingFunction"
                 ):
@@ -183,7 +189,9 @@ class TestQueryDB:
     ):
         """Test using a custom DB path."""
         with patch("descidb.query.query_db.OpenAI") as mock_openai_class:
-            with patch("descidb.query.query_db.chromadb.PersistentClient") as mock_client:
+            with patch(
+                "descidb.query.query_db.chromadb.PersistentClient"
+            ) as mock_client:
                 with patch(
                     "descidb.query.query_db.embedding_functions.OpenAIEmbeddingFunction"
                 ):

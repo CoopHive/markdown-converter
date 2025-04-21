@@ -44,17 +44,15 @@ class TestProcessorIntegration:
                 "papers_directory": "papers",
                 "metadata_file": "metadata.json",
                 "storage_directory": "storage",
-                "max_papers": 1
+                "max_papers": 1,
             },
             "postgres": {
                 "host": "localhost",
                 "port": 5432,
                 "user": "postgres",
-                "password": "postgres"
+                "password": "postgres",
             },
-            "api_keys": {
-                "lighthouse_token": "LIGHTHOUSE_TOKEN"
-            }
+            "api_keys": {"lighthouse_token": "LIGHTHOUSE_TOKEN"},
         }
 
     @pytest.fixture
@@ -94,14 +92,11 @@ class TestProcessorIntegration:
         mock_processor = mock_processor_class.return_value
         mock_load_config.return_value = mock_config
 
-        # Mock the vector DB manager
-        mock_vector_db = mock_vector_db_class.return_value
-
-        # Mock the postgres DB manager
-        mock_postgres_db = mock_postgres_class.return_value
-
-        # Mock the token rewarder
-        mock_token_rewarder = mock_token_rewarder_class.return_value
+        # These variables are used by the patched code internally
+        # so we don't need to use them directly in our test
+        _ = mock_vector_db_class.return_value
+        _ = mock_postgres_class.return_value
+        _ = mock_token_rewarder_class.return_value
 
         # Create a temp directory for papers
         papers_dir = tmp_path / "papers"
@@ -113,19 +108,26 @@ class TestProcessorIntegration:
             f.write(b"Sample PDF content")
 
         # Set up the directory patching
-        with patch("pathlib.Path.parent", return_value=tmp_path), \
-                patch("os.listdir", return_value=["sample.pdf"]), \
-                patch("os.path.join", return_value=str(sample_pdf)), \
-                patch("os.makedirs"), \
-                patch("os.getcwd", return_value="/tmp"), \
-                patch("os.chdir"), \
-                patch("subprocess.run"), \
-                patch("os.urandom", return_value=b"random"), \
-                patch("hashlib.sha256", return_value=MagicMock(hexdigest=lambda: "hash")), \
-                patch("time.sleep"):
-
+        with patch("pathlib.Path.parent", return_value=tmp_path), patch(
+            "os.listdir", return_value=["sample.pdf"]
+        ), patch("os.path.join", return_value=str(sample_pdf)), patch(
+            "os.makedirs"
+        ), patch(
+            "os.getcwd", return_value="/tmp"
+        ), patch(
+            "os.chdir"
+        ), patch(
+            "subprocess.run"
+        ), patch(
+            "os.urandom", return_value=b"random"
+        ), patch(
+            "hashlib.sha256", return_value=MagicMock(hexdigest=lambda: "hash")
+        ), patch(
+            "time.sleep"
+        ):
             # Call the processor function
             from descidb.core.processor_main import test_processor
+
             test_processor()
 
         # Assertions

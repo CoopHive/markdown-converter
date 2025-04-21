@@ -2,7 +2,6 @@
 Unit tests for the chunker module.
 """
 
-import os
 from unittest.mock import MagicMock, patch
 
 import pytest

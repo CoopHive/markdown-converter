@@ -12,7 +12,7 @@ import pytest
 class TestDBCreatorIntegration:
     """Integration tests for the database creator workflow."""
 
-    @pytest.fixture
+    @pytest.fixture(autouse=True)
     def mock_environment(self):
         """Set up mock environment variables."""
         with patch.dict(
@@ -44,19 +44,25 @@ class TestDBCreatorIntegration:
             "cids_file_paths": ["mock_cids.txt"],
         }
 
+    def mock_getenv(self, key, default=None):
+        """Mock os.getenv to return test values."""
+        env_values = {
+            "NEO4J_URI": "mock_neo4j_uri",
+            "NEO4J_USERNAME": "mock_neo4j_username",
+            "NEO4J_PASSWORD": "mock_neo4j_password",
+        }
+        return env_values.get(key, default)
+
     @patch("descidb.db.db_creator_main.load_config")
     @patch("descidb.db.db_creator_main.IPFSNeo4jGraph")
     @patch("descidb.db.db_creator_main.VectorDatabaseManager")
     @patch("descidb.db.db_creator_main.DatabaseCreator")
-    @patch("builtins.open")
     def test_db_creator_workflow(
         self,
-        mock_open,
         mock_creator,
         mock_vector_db,
         mock_graph,
         mock_load_config,
-        mock_environment,
         mock_config,
         tmp_path,
     ):
@@ -67,18 +73,39 @@ class TestDBCreatorIntegration:
         mock_vector_db_instance = mock_vector_db.return_value
         mock_creator_instance = mock_creator.return_value
 
-        # Mock file operations
-        mock_file = MagicMock()
-        mock_file.__enter__.return_value = mock_file
-        mock_file.__iter__.return_value = ["mock_cid1", "mock_cid2"]
-        mock_open.return_value = mock_file
+        # Create a temporary CIDs file
+        cids_file = tmp_path / "mock_cids.txt"
+        with open(cids_file, "w") as f:
+            f.write("mock_cid1\nmock_cid2")
 
-        # Mock path exists check
-        with patch("pathlib.Path.exists", return_value=True):
-            # Import and run the main function
-            from descidb.db.db_creator_main import main
+        # Mock getenv to ensure environment variables are correctly used
+        with patch("os.getenv", side_effect=self.mock_getenv):
+            # Properly patch open to handle different paths
+            with patch("builtins.open") as mock_open:
+                # Handle file operations without recursion
+                def mock_open_side_effect(file_path, *args, **kwargs):
+                    if "mock_cids.txt" in str(file_path):
+                        mock_file = MagicMock()
+                        mock_file.__enter__.return_value = mock_file
+                        mock_file.__iter__.return_value = ["mock_cid1", "mock_cid2"]
+                        return mock_file
 
-            main()
+                    # Default for other files
+                    mock_file = MagicMock()
+                    mock_file.__enter__.return_value = mock_file
+                    mock_file.read.return_value = "mock content"
+                    return mock_file
+
+                mock_open.side_effect = mock_open_side_effect
+
+                # Mock path exists check
+                with patch("pathlib.Path.exists", return_value=True), patch(
+                    "os.path.exists", return_value=True
+                ):
+                    # Import and run the main function
+                    from descidb.db.db_creator_main import main
+
+                    main()
 
         # Verify the workflow
         mock_graph.assert_called_once_with(
