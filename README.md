@@ -69,7 +69,11 @@ This is the main entrypoint to run a full pipeline:
 
 👉 Controlled by: `config/processor.yml`
 
-Customize the converter, chunker, and embedder types here. You can add new options by extending `converter.py`, `chunker.py`, and `embedder.py` with your custom logic, and referencing them via the config.
+**Customize:**
+
+- `converter`: Use `marker` or `openai`, or define your own in `converter.py`
+- `chunker`: Choose between `paragraph`, `sentence`, `fixed_length`, etc.
+- `embedder`: Use `openai`, `nvidia`, or extend `embedder.py` with your own
 
 ### 🧠 Evaluation Agent (evaluation_main.py)
 
@@ -77,7 +81,10 @@ Evaluates multiple DBs for a user query, compares results using LLMs (e.g., via 
 
 👉 Controlled by: `config/evaluation.yml`
 
-Change models, query text, and DBs to query in the config. Extend `evaluation_agent.py` to plug in new evaluation strategies or ranking heuristics.
+**Customize:**
+
+- Modify the evaluation query and model in the config
+- Add your own ranking logic inside `evaluation_agent.py`
 
 ### 🧱 DB Creator (db_creator_main.py)
 
@@ -85,7 +92,10 @@ Reconstructs databases using paths from Neo4j that lead from original PDFs to em
 
 👉 Controlled by: `config/db_creator.yml`
 
-Used when rebuilding vector databases from CIDs and relationships. Customize traversal logic in `graph_db.py`, or modify data ingestion from IPFS in `db_creator.py`.
+**Customize:**
+
+- Adjust traversal depth and path in the config
+- Extend `graph_db.py` to support new graph logic
 
 ### 🎖️ Token Rewarding (token_reward_main.py)
 
@@ -93,7 +103,10 @@ Reads user job stats (based on Neo4j-authored edges or DB logs), calculates rewa
 
 👉 Controlled by: `config/token_test.yml`
 
-Change reward strategy (milestone, time-decay, flat) by modifying logic in `token_rewarder.py`. Supports different networks and ABIs from `.env` + `contracts/`.
+**Customize:**
+
+- Choose from strategies: `milestone`, `bonus`, `decay`, or create your own in `token_rewarder.py`
+- Replace the ABI or contract address in `.env` and `contracts/`
 
 ---
 
@@ -105,6 +118,8 @@ Change reward strategy (milestone, time-decay, flat) by modifying logic in `toke
 git clone https://github.com/your-repo/coophive-markdown-converter.git
 cd coophive-markdown-converter
 bash scripts/setup.sh
+poetry lock --no-update
+poetry install
 cp .env.example .env
 # Edit the .env file with actual credentials
 ```
@@ -123,6 +138,12 @@ bash scripts/run_token_reward.sh      # Distribute token rewards
 ```bash
 bash scripts/lint.sh                  # Run black, isort, flake8, mypy
 bash scripts/test.sh                  # Unit tests with pytest
+```
+
+### 💻 Poetry Shell (Optional Interactive Mode)
+
+```bash
+poetry shell                          # Drop into a virtualenv shell
 ```
 
 ---
