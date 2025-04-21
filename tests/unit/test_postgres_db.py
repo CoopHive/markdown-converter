@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from descidb.postgres_db import PostgresDBManager
+from descidb.db.postgres_db import PostgresDBManager
 
 
 class TestPostgresDBManager:

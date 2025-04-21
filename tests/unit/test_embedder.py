@@ -1,5 +1,5 @@
 """
-Tests for the embedder module.
+Unit tests for the embedder module.
 """
 
 import os
@@ -7,13 +7,13 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from descidb.embedder import embed, embed_from_url, openai
+from descidb.core.embedder import embed, embed_from_url, openai_embed
 
 
 class TestEmbedder:
     """Test cases for embedder functions."""
 
-    @patch("descidb.embedder.OpenAI")
+    @patch("descidb.core.embedder.OpenAI")
     def test_openai_embedder(self, mock_openai):
         """Test the OpenAI embedder function."""
         # Mock OpenAI client and response
@@ -30,7 +30,7 @@ class TestEmbedder:
         mock_response.data = [mock_data]
 
         # Call the function
-        result = openai("Test text")
+        result = openai_embed("Test text")
 
         # Verify the expected behavior
         mock_openai.assert_called_once()
@@ -39,7 +39,7 @@ class TestEmbedder:
         )
         assert result == mock_embedding
 
-    @patch("descidb.embedder.openai")
+    @patch("descidb.core.embedder.openai_embed")
     def test_embed_with_openai(self, mock_openai_func):
         """Test the embed function with OpenAI embedder."""
         # Mock openai function
@@ -58,8 +58,8 @@ class TestEmbedder:
         with pytest.raises(KeyError):
             embed("invalid_embedder", "Test text")
 
-    @patch("descidb.embedder.embed")
-    @patch("descidb.embedder.download_from_url")
+    @patch("descidb.core.embedder.embed")
+    @patch("descidb.core.embedder.download_from_url")
     def test_embed_from_url(self, mock_download, mock_embed):
         """Test the embed_from_url function."""
         # Mock download
@@ -86,7 +86,7 @@ class TestEmbedder:
         )
         assert result == expected_embedding
 
-    @patch("descidb.embedder.OpenAI")
+    @patch("descidb.core.embedder.OpenAI")
     def test_openai_embedder_with_environment_variable(self, mock_openai):
         """Test the OpenAI embedder function with API key from environment."""
         # Store the original environment variable
@@ -111,7 +111,7 @@ class TestEmbedder:
             mock_response.data = [mock_data]
 
             # Call the function
-            openai("Test text")
+            openai_embed("Test text")
 
             # Verify the API key was passed correctly
             mock_openai.assert_called_once_with(api_key=test_api_key)

@@ -1,7 +1,7 @@
 """
-Tests for the token_test module.
+Unit tests for the token reward system.
 
-This module contains tests for the token_test.py module which provides
+This module contains tests for the token_reward_main.py module which provides
 functionality to test token rewards by fetching author statistics.
 """
 
@@ -9,11 +9,11 @@ from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
-from descidb.token_test import run_reward_users
+from descidb.rewards.token_reward_main import run_reward_users
 
 
-class TestTokenTest:
-    """Test suite for token_test module."""
+class TestTokenReward:
+    """Test suite for token_reward_main module."""
 
     @pytest.fixture
     def mock_env_vars(self, monkeypatch):
@@ -29,11 +29,11 @@ class TestTokenTest:
 
     def test_run_reward_users(self, mock_env_vars):
         """Test the token reward test function."""
-        with patch("descidb.token_test.IPFSNeo4jGraph") as mock_graph:
-            with patch("descidb.token_test.TokenRewarder") as mock_rewarder:
-                with patch("descidb.token_test.Path") as mock_path:
-                    with patch("descidb.token_test.logger") as mock_logger:
-                        with patch("descidb.token_test.os.getenv") as mock_getenv:
+        with patch("descidb.rewards.token_reward_main.IPFSNeo4jGraph") as mock_graph:
+            with patch("descidb.rewards.token_reward_main.TokenRewarder") as mock_rewarder:
+                with patch("descidb.rewards.token_reward_main.Path") as mock_path:
+                    with patch("descidb.rewards.token_reward_main.logger") as mock_logger:
+                        with patch("descidb.rewards.token_reward_main.os.getenv") as mock_getenv:
                             # Configure environment variable mock
                             def getenv_side_effect(key):
                                 return mock_env_vars.get(key)
@@ -114,11 +114,11 @@ class TestTokenTest:
 
     def test_run_reward_users_no_authors(self):
         """Test behavior when no authors are found."""
-        with patch("descidb.token_test.IPFSNeo4jGraph") as mock_graph:
-            with patch("descidb.token_test.TokenRewarder") as mock_rewarder:
-                with patch("descidb.token_test.Path"):
-                    with patch("descidb.token_test.logger") as mock_logger:
-                        with patch("descidb.token_test.os.getenv"):
+        with patch("descidb.rewards.token_reward_main.IPFSNeo4jGraph") as mock_graph:
+            with patch("descidb.rewards.token_reward_main.TokenRewarder") as mock_rewarder:
+                with patch("descidb.rewards.token_reward_main.Path"):
+                    with patch("descidb.rewards.token_reward_main.logger") as mock_logger:
+                        with patch("descidb.rewards.token_reward_main.os.getenv"):
                             # Configure graph mock to return empty author stats
                             mock_graph_instance = Mock()
                             mock_graph.return_value = mock_graph_instance
@@ -147,11 +147,11 @@ class TestTokenTest:
 
     def test_neo4j_connection_failure(self):
         """Test behavior when Neo4j connection fails."""
-        with patch("descidb.token_test.IPFSNeo4jGraph") as mock_graph:
-            with patch("descidb.token_test.TokenRewarder"):
-                with patch("descidb.token_test.Path"):
-                    with patch("descidb.token_test.logger") as mock_logger:
-                        with patch("descidb.token_test.os.getenv"):
+        with patch("descidb.rewards.token_reward_main.IPFSNeo4jGraph") as mock_graph:
+            with patch("descidb.rewards.token_reward_main.TokenRewarder"):
+                with patch("descidb.rewards.token_reward_main.Path"):
+                    with patch("descidb.rewards.token_reward_main.logger") as mock_logger:
+                        with patch("descidb.rewards.token_reward_main.os.getenv"):
                             # Configure graph mock to raise an exception on initialization
                             mock_graph.side_effect = Exception("Connection failed")
 
@@ -169,17 +169,17 @@ class TestTokenTest:
 
     def test_main_execution(self):
         """Test the script execution when run as __main__."""
-        with patch("descidb.token_test.run_reward_users") as mock_run:
+        with patch("descidb.rewards.token_reward_main.run_reward_users") as mock_run:
             # Directly test the __name__ == "__main__" condition by mocking the entire module
             with patch.dict(
-                "sys.modules", {"descidb.token_test": Mock(__name__="__main__")}
+                "sys.modules", {"descidb.rewards.token_reward_main": Mock(__name__="__main__")}
             ):
-                # Import the token_test module to execute the __name__ == "__main__" block
+                # Import the token_reward_main module to execute the __name__ == "__main__" block
                 import importlib
 
                 try:
                     # This might raise an ImportError since we're mocking the module
-                    importlib.reload(importlib.import_module("descidb.token_test"))
+                    importlib.reload(importlib.import_module("descidb.rewards.token_reward_main"))
                 except ImportError:
                     pass
 

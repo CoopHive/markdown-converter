@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, call, patch
 import pytest
 import requests
 
-from descidb.graph_db import IPFSNeo4jGraph
+from descidb.db.graph_db import IPFSNeo4jGraph
 
 
 class TestIPFSNeo4jGraph:

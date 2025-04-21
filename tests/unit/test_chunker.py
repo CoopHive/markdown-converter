@@ -1,12 +1,13 @@
 """
-Tests for the chunker module.
+Unit tests for the chunker module.
 """
 
+import os
 from unittest.mock import MagicMock, patch
 
 import pytest
 
-from descidb.chunker import (
+from descidb.core.chunker import (
     chunk,
     chunk_from_url,
     fixed_length,

@@ -10,7 +10,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from descidb.chroma_client import VectorDatabaseManager
+from descidb.db.chroma_client import VectorDatabaseManager
 
 
 class TestVectorDatabaseManager:

@@ -6,7 +6,7 @@ from unittest.mock import Mock, call, patch
 
 import pytest
 
-from descidb.token_rewarder import TokenRewarder
+from descidb.rewards.token_rewarder import TokenRewarder
 
 
 class TestTokenRewarder:

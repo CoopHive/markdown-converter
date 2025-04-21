@@ -137,7 +137,9 @@ bash scripts/run_token_reward.sh      # Distribute token rewards
 
 ```bash
 bash scripts/lint.sh                  # Run black, isort, flake8, mypy
-bash scripts/test.sh                  # Unit tests with pytest
+bash scripts/test.sh                  # Run all tests with pytest
+bash scripts/test.sh --unit           # Run only unit tests
+bash scripts/test.sh --integration    # Run only integration tests
 ```
 
 ### 💻 Poetry Shell (Optional Interactive Mode)
