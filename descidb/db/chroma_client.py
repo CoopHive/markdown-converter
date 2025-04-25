@@ -8,6 +8,7 @@ used to store document embeddings and perform vector similarity searches.
 import itertools
 import os
 from pathlib import Path
+from typing import Optional
 
 import chromadb
 
@@ -20,7 +21,7 @@ class VectorDatabaseManager:
     collections, which are used to store document embeddings.
     """
 
-    def __init__(self, components: dict, db_path: str = None):
+    def __init__(self, components: dict, db_path: Optional[str] = None):
         """
         Initializes databases based on the Cartesian product of 'convert', 'chunker', and 'embedder'.
 
@@ -49,14 +50,14 @@ class VectorDatabaseManager:
         if db_path is None:
             # Get the directory where this module is located
             module_dir = Path(__file__).parent
-            db_path = module_dir / "database"
+            db_path_obj = module_dir / "database"
         else:
-            db_path = Path(db_path)
+            db_path_obj = Path(db_path)
 
         # Ensure the database directory exists
-        os.makedirs(db_path, exist_ok=True)
+        os.makedirs(db_path_obj, exist_ok=True)
 
-        self.db_client = chromadb.PersistentClient(path=str(db_path))
+        self.db_client = chromadb.PersistentClient(path=str(db_path_obj))
         self.initialize_databases()
 
     def initialize_databases(self):

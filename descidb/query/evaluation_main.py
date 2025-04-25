@@ -8,6 +8,7 @@ the evaluation agent with the specified parameters.
 import json
 import os
 from pathlib import Path
+from typing import Any, Dict
 
 import yaml
 
@@ -23,7 +24,7 @@ PROJECT_ROOT = Path(__file__).parents[2]
 CONFIG_PATH = PROJECT_ROOT / "config" / "evaluation.yml"
 
 
-def load_config() -> dict:
+def load_config() -> Dict[str, Any]:
     """
     Load configuration from YAML file.
 
@@ -34,7 +35,12 @@ def load_config() -> dict:
         config = yaml.safe_load(f)
 
     logger.info(f"Loaded configuration from {CONFIG_PATH}")
-    return config
+    if config is None:
+        return {}
+
+    # Explicitly cast to the expected return type
+    result: Dict[str, Any] = config
+    return result
 
 
 def main():

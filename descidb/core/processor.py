@@ -9,7 +9,7 @@ import json
 import os
 import subprocess
 from pathlib import Path
-from typing import List
+from typing import Any, Dict, List, Optional, Union
 
 import certifi
 import requests
@@ -38,7 +38,7 @@ class Processor:
         metadata_file: str,
         ipfs_api_key: str,
         TokenRewarder: TokenRewarder,
-        project_root: Path = None,
+        project_root: Optional[Path] = None,
     ):
         """
         Initialize the processor.
@@ -59,8 +59,8 @@ class Processor:
         self.authorPublicKey = authorPublicKey  # Author Public Key
         self.ipfs_api_key = ipfs_api_key  # IPFS API Key
         self.postgres_db_manager = postgres_db_manager  # Postgres DB Manager
-        self.convert_cache = {}  # Cache for converted text
-        self.chunk_cache = {}  # Cache for chunked text
+        self.convert_cache: Dict[str, str] = {}  # Cache for converted text
+        self.chunk_cache: Dict[str, List[str]] = {}  # Cache for chunked text
         self.project_root = project_root or Path(__file__).parent.parent.parent
 
         # Create temp directory for temporary files
@@ -110,7 +110,9 @@ class Processor:
 
         response.raise_for_status()
 
-        return response.json()["Hash"]
+        # Explicitly cast to string to satisfy type checker
+        hash_value: str = response.json()["Hash"]
+        return hash_value
 
     def __create_file_with_ipfs(self, content: str, file_path: str) -> str:
         """Creates a file with the IPFS CID and returns the CID.
@@ -123,18 +125,21 @@ class Processor:
             os.makedirs(os.path.dirname(file_path), exist_ok=True)
             with open(file_path, "w") as file:
                 file.write(content)
+            return file_path  # Return the file path as a string
         except Exception as e:
             self.logger.error(f"Error creating file {file_path}: {e}")
+            return ""  # Return empty string in case of error
 
-    def __lighthouse_and_commit(self, object: str, git_path: str) -> str:
+    def __lighthouse_and_commit(self, object: Union[str, Path], git_path: str) -> str:
         """Uploads a file to Lighthouse IPFS and commits the CID to git.
 
         - object: Path to the object to be uploaded.
         - Returns: IPFS hash (CID) of the uploaded file.
         """
         try:
-            self.logger.info(f"Uploading to Lighthouse: {object}")
-            ipfs_cid = self.__upload_text_to_lighthouse(object)
+            object_str = str(object)
+            self.logger.info(f"Uploading to Lighthouse: {object_str}")
+            ipfs_cid = self.__upload_text_to_lighthouse(object_str)
 
             hash_value = ipfs_cid.split("ipfs/")[-1]
             self.logger.info(f"Generated IPFS CID: {hash_value}")
@@ -160,22 +165,23 @@ class Processor:
 
         except Exception as e:
             self.logger.error(f"Error during Git commit process: {e}")
-            return None
+            return ""
 
-    def __write_to_file(self, content: str, file_path: str):
+    def __write_to_file(self, content: str, file_path: Union[str, Path]) -> None:
         """Writes the content to a file.
 
         - content: The content to be written to the file.
         - file_path: The path to the file to write the content to.
         """
         try:
-            os.makedirs(os.path.dirname(file_path), exist_ok=True)
-            with open(file_path, "w") as file:
+            path_str = str(file_path)
+            os.makedirs(os.path.dirname(path_str), exist_ok=True)
+            with open(path_str, "w") as file:
                 file.write(content)
         except Exception as e:
             self.logger.error(f"Error writing to file {file_path}: {e}")
 
-    def process(self, pdf_path: str, databases: List[dict], git_path: str):
+    def process(self, pdf_path: str, databases: List[dict], git_path: str) -> None:
         """
         Processes the PDF according to the list of database configurations passed.
 
@@ -299,31 +305,39 @@ class Processor:
                     embedding_ipfs_cid, self.author_cid, "AUTHORED_BY"
                 )
 
-    def get_metadata_for_doc(self, metadata_file: str, doc_id: str):
+    def get_metadata_for_doc(self, metadata_file: str, doc_id: str) -> Dict[str, Any]:
         """Retrieves metadata for the given document ID from the metadata file.
 
         - metadata_file: Path to the metadata file.
         - doc_id: Document ID to retrieve metadata for.
+        - Returns: Dictionary containing metadata or empty dict if not found.
         """
         with open(metadata_file, "r") as file:
             for line in file:
                 try:
                     data = json.loads(line)
                     if data.get("id") == doc_id:
-                        return data
+                        return data  # type: ignore[no-any-return]
                 except json.JSONDecodeError:
                     continue
         return {}
 
-    def default_metadata(self, doc_id: str) -> dict:
+    def default_metadata(self, doc_id: str) -> Dict[str, Any]:
         """Returns default metadata in case None is found.
 
         The metadata.json file aready exists for Arxiv papers.
+
+        Returns:
+            A dictionary with default metadata values
         """
-        return {
-            "title": "Unknown Title",
-            "authors": "Unknown Authors",
-            "categories": "Unknown Categories",
-            "abstract": "No abstract available.",
-            "doi": "No DOI available",
-        }
+        # Define a dictionary with an explicit type cast
+        metadata: Dict[str, Any] = {}
+
+        # Add each field individually
+        metadata["title"] = "Unknown Title"
+        metadata["authors"] = "Unknown Authors"
+        metadata["categories"] = "Unknown Categories"
+        metadata["abstract"] = "No abstract available."
+        metadata["doi"] = "No DOI available"
+
+        return metadata

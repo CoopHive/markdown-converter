@@ -9,7 +9,7 @@ import json
 import os
 import time
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 import requests
 from dotenv import load_dotenv
@@ -68,17 +68,21 @@ class EvaluationAgent:
         timestamp = int(time.time())
         results_file = self.temp_dir / f"query_results_{timestamp}.json"
 
-        all_results = {"query": query, "collection_results": {}}
+        collection_results: Dict[str, Any] = {}
+        all_results: Dict[str, Any] = {
+            "query": query,
+            "collection_results": collection_results,
+        }
 
         for collection_name in collection_names:
             logger.info(f"Querying collection: {collection_name}")
             try:
                 result_json = query_collection(collection_name, query, db_path)
                 result_data = json.loads(result_json)
-                all_results["collection_results"][collection_name] = result_data
+                collection_results[collection_name] = result_data
             except Exception as e:
                 logger.error(f"Error querying collection {collection_name}: {e}")
-                all_results["collection_results"][collection_name] = {"error": str(e)}
+                collection_results[collection_name] = {"error": str(e)}
 
         with open(results_file, "w") as f:
             json.dump(all_results, f, indent=2)
@@ -86,7 +90,7 @@ class EvaluationAgent:
         logger.info(f"Saved query results to {results_file}")
         return str(results_file)
 
-    def evaluate_results(self, results_file: str) -> Dict[str, any]:
+    def evaluate_results(self, results_file: str) -> Dict[str, Any]:
         """
         Evaluate and rank results from different collections.
 
@@ -158,7 +162,7 @@ class EvaluationAgent:
         return evaluation
 
     def _generate_evaluation_prompt(
-        self, query: str, collections: Dict[str, any]
+        self, query: str, collections: Dict[str, Any]
     ) -> str:
         """
         Generate prompt for LLM to evaluate results.

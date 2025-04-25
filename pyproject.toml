@@ -31,6 +31,8 @@ web3 = "7.2.0"
 flask = "3.0.2"
 pyyaml = "6.0.1"
 marker-pdf = "^1.6.2"
+types-psycopg2 = "^2.9.21.20250318"
+types-pyyaml = "^6.0.12.20250402"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "7.4.0"

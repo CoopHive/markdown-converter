@@ -11,9 +11,9 @@ from typing import Literal
 
 import PyPDF2
 from dotenv import load_dotenv
-from marker.config.parser import ConfigParser
-from marker.converters.pdf import PdfConverter
-from marker.models import create_model_dict
+from marker.config.parser import ConfigParser  # type: ignore
+from marker.converters.pdf import PdfConverter  # type: ignore
+from marker.models import create_model_dict  # type: ignore
 from openai import OpenAI
 
 from descidb.utils.logging_utils import get_logger
@@ -45,7 +45,7 @@ def convert(conversion_type: ConversionType, input_path: str) -> str:
     # Mapping conversion types to functions
     conversion_methods = {
         "marker": marker,
-        "openai_converter": openai,
+        "openai": openai,
     }
 
     return conversion_methods[conversion_type](input_path)
@@ -153,7 +153,8 @@ def openai(input_path: str) -> str:
                 print("Failed to convert a chunk using OpenAI.")
                 markdown_chunks.append(chunk)
 
-        return "\n\n".join(markdown_chunks)
+        filtered_chunks = [chunk for chunk in markdown_chunks if chunk is not None]
+        return "\n\n".join(filtered_chunks)
 
     except FileNotFoundError as e:
         print(f"File not found: {e}")

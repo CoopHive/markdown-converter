@@ -29,6 +29,9 @@ jobs:
       - name: Check code style
         run: poetry run flake8 descidb
 
+      - name: Check types
+        run: poetry run mypy descidb
+
       - name: Build package
         run: poetry build
 

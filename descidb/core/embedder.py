@@ -50,4 +50,6 @@ def openai_embed(text: str) -> list:
 
 
 def nvidia(text: str) -> list:
-    pass
+    """Embed text using NVIDIA embeddings. Returns a list."""
+    # Implementation not available yet
+    return []  # Return empty list for now
