@@ -26,6 +26,9 @@ jobs:
       - name: Install dependencies
         run: poetry install
 
+      - name: Run integration tests
+        run: bash scripts/test.sh --integration
+
       - name: Check code style
         run: poetry run flake8 descidb
 
