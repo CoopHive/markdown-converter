@@ -8,7 +8,8 @@ CoopHive builds RAG framework pipelines for scientific literature by providing a
 
 - **Modular Architecture**: Customize each stage—conversion, chunking, embedding, storage, querying, and rewards—via configuration files.
 - **Reproducibility**: Deterministic pipelines with version-controlled configurations ensure consistent results.
-- **Multi-Backend Support**:
+- **Transparency**: All operations are logged as Git commits and IPFS hashes, ensuring traceability of authorship and contributions.
+- **Out-of-the-box pipelines**:
   - **Conversion**: Marker, OpenAI, or custom converters.
   - **Chunking**: Paragraph, sentence, fixed-length, or custom strategies.
   - **Embedding**: OpenAI, NVIDIA, or your own models.
@@ -16,25 +17,16 @@ CoopHive builds RAG framework pipelines for scientific literature by providing a
 - **Incentivization**: Distribute ERC20 tokens based on user contributions using customizable reward strategies.
 - **Evaluation**: Evaluate and compare database performance using LLMs via OpenRouter.
 
-### Philosophy
-
-CoopHive is designed to be **modular** and **reproducible**:
-
-- Add new conversion, chunking, and embedding strategies without affecting the core logic of the project.
-- Configurable through YAML files.
-- Seperate pipelines for knowledge graph creation, querying, and token incentivization.
-
-### Tech Stack
-
-- **Python** (project core, orchestration)
-- **ChromaDB** (vector database for embeddings)
-- **Neo4j** (graph database for document lineage)
-- **IPFS / Lighthouse** (storage of document versions)
-- **OpenAI / NVIDIA / Custom** (embedders for RAG)
-- **Hardhat, Solidity** (ERC20 contracts for reward distribution)
-- **Docker + Nomad** (optional containerization and deployment)
-
 ---
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Python 3.10+
+- Poetry
+- Node.js 18+
+- Access to required APIs (OpenAI, Lighthouse, OpenRouter, etc.)
 
 ## 🚀 Quick Start
 
@@ -56,14 +48,6 @@ poetry install
 cp .env.example .env
 ```
 
-### Development Commands
-
-```bash
-poetry shell                          # Open interactive dev environment
-bash scripts/lint.sh                  # Code quality (black, isort, flake8, mypy)
-bash scripts/test.sh --integration    # Integration tests
-```
-
 ### 💡 Environment Variables
 
 Create a `.env` file (template available in `.env.example`) with the following keys:
@@ -79,26 +63,27 @@ LIGHTHOUSE_TOKEN=
 OPENROUTER_API_KEY=
 ```
 
----
-
-## 🛠️ Running Workflows
-
-Execute the main pipelines using provided shell scripts:
+### Running Modules
 
 ```bash
 bash scripts/run_processor.sh         # Convert, chunk, embed, store documents
-bash scripts/run_db_creator.sh        # Recreate databases from IPFS and Neo4j graph to ChromaDB
-bash scripts/run_evaluation.sh        # Query and evaluate across databases using agents
-bash scripts/run_token_reward.sh      # Distribute blockchain-based token rewards for creation of databases
+bash scripts/run_db_creator.sh         # Recreate DBs from IPFS graph
+bash scripts/run_evaluation.sh         # Query and evaluate across DBs
+bash scripts/run_token_reward.sh       # Distribute ERC20 token rewards
 ```
 
-Or drop into a virtual environment for manual work:
+Or enter an interactive environment:
 
 ```bash
 poetry shell
 ```
 
----
+### Code Quality and Testing
+
+```bash
+bash scripts/lint.sh                   # Lint (black, isort, flake8, mypy)
+bash scripts/test.sh --integration      # Only integration tests
+```
 
 ## 🧬 Module Configuration
 
@@ -172,11 +157,25 @@ Extend `descidb/rewards/token_rewarder.py` for new reward calculation methods.
 
 ---
 
-## 📦 Reproducibility
+## 🎯 Philosophy
 
-- All document uploads are hashed and tracked deterministically on **IPFS**.
-- Stores each object (chunk, embedding, etc.) as seperate git commits to ensure reproducibility and traceability.
-- Runs can be reproduced exactly by using pinned dependency versions (`poetry.lock`) and fixed configs.
+CoopHive is built around three ideas:
+
+- **Modularity**: New converters, chunkers, embedders, and reward strategies can be plugged into pipelines without touching the core codebase.
+- **Reproducibility**: Pipelines are deterministic, with artifacts stored immutably and parameters pinned in config files.
+- **Incentivization**: Contributors who help build, expand, or query the knowledge graph are rewarded transparently via blockchain tokens.
+
+---
+
+## 🛠️ Tech Stack
+
+- **Python** (main orchestration)
+- **ChromaDB** (vector database)
+- **Neo4j** (graph lineage and job tracking)
+- **IPFS / Lighthouse** (document storage)
+- **OpenAI / NVIDIA / Custom** (embedding backends)
+- **Hardhat + Solidity** (ERC20 reward contracts)
+- **Docker + Nomad** (optional containerization)
 
 ---
 
