@@ -6,16 +6,18 @@ CoopHive builds RAG framework pipelines for scientific literature by providing a
 
 ## ✨ Features
 
-- **Modular Architecture**: Customize each stage—conversion, chunking, embedding, storage, querying, and rewards—via configuration files.
-- **Reproducibility**: Deterministic pipelines with version-controlled configurations ensure consistent results.
-- **Transparency**: All operations are logged as Git commits and IPFS hashes, ensuring traceability of authorship and contributions.
-- **Out-of-the-box pipelines**:
-  - **Conversion**: Marker, OpenAI, or custom converters.
-  - **Chunking**: Paragraph, sentence, fixed-length, or custom strategies.
-  - **Embedding**: OpenAI, NVIDIA, or your own models.
-  - **Storage**: ChromaDB (vector database), PostgreSQL (metadata), Neo4j (graph database), IPFS (document storage).
-- **Incentivization**: Distribute ERC20 tokens based on user contributions using customizable reward strategies.
-- **Evaluation**: Evaluate and compare database performance using LLMs via OpenRouter.
+- **Modular Architecture**: Swap out converters, chunkers, embedders, and reward strategies easily via configuration files.
+- **Reproducibility**: Deterministic pipelines with version-controlled configs ensure consistent, repeatable results.
+- **Transparency**: All document processing and contributions are traceable via Git commits and IPFS hashes.
+- **Built-in Pipelines**:
+  - Document **conversion** to markdown (Marker, OpenAI, or custom)
+  - Text **chunking** (by paragraph, sentence, fixed length, or custom logic)
+  - **Embedding** of chunks (OpenAI, NVIDIA, or custom models)
+  - **Storage** of documents, chunks, and embeddings in Neo4j and IPFS.
+  - **Recreation** of documents, chunks, and embeddings from IPFS/Neo4j to ChromaDB.
+  - **Querying** of documents, chunks, and embeddings using a RAG pipeline.
+  - **Evaluation** of vector DBs using an LLM via OpenRouter.
+  - **Token Rewarding** of contributors based on job count, bonuses, time decay, etc.
 
 ---
 
@@ -155,16 +157,6 @@ databases: # List of databases combinations to reward
 ```
 
 Extend `descidb/rewards/token_rewarder.py` for new reward calculation methods.
-
----
-
-## 🎯 Philosophy
-
-CoopHive is built around three ideas:
-
-- **Modularity**: New converters, chunkers, embedders, and reward strategies can be plugged into pipelines without touching the core codebase.
-- **Reproducibility**: Pipelines are deterministic, with artifacts stored immutably and parameters pinned in config files.
-- **Incentivization**: Contributors who help build, expand, or query the knowledge graph are rewarded transparently via blockchain tokens.
 
 ---
 
