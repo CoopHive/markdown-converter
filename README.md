@@ -93,6 +93,7 @@ bash scripts/test.sh --integration      # Only integration tests
 - Chunks text into paragraphs, sentences, or fixed length
 - Embeds chunks using **OpenAI**, **NVIDIA**, or custom models
 - Uploads to **IPFS** and stores metadata into **ChromaDB** / **Neo4j** / **Postgres**
+- Logs each operation as a Git commit with the specified author
 
 Configuration: [`config/processor.yml`](config/processor.yml)
 
