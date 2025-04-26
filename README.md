@@ -30,15 +30,6 @@ CoopHive builds RAG framework pipelines for scientific literature by providing a
 - Node.js 18+
 - Access to required APIs (OpenAI, Lighthouse, OpenRouter, etc.)
 
-## 🚀 Quick Start
-
-### Prerequisites
-
-- Python 3.10+
-- Poetry
-- Node.js 18+
-- Access to required APIs (OpenAI, Lighthouse, OpenRouter, etc.)
-
 ### Installation
 
 ```bash
