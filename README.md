@@ -1,118 +1,51 @@
-# CoopHive Markdown Converter
+# 🧠 CoopHive: Modular RAG Pipelines for Scientific Papers
 
-## 📌 Overview
-
-The **CoopHive Markdown Converter** is a sophisticated Python-based pipeline designed for processing, converting, chunking, embedding, querying, and rewarding activities around scientific documents. Primarily tailored for decentralized science (DeSci) applications, it integrates powerful tools such as ChromaDB, Neo4j graph databases, IPFS storage, and blockchain-based reward mechanisms.
+CoopHive builds RAG framework pipelines for scientific literature by providing a modular, reproducible framework. It supports customizable document processing, embedding, querying, and incentivization mechanisms, allowing decentralized and transparent science.
 
 ---
 
-## 🗂️ Project Directory Structure
+## ✨ Features
 
-```bash
-coophive-markdown-converter/
-├── README.md                          # Documentation overview
-├── pyproject.toml                     # Python project metadata and dependencies
-├── pytest.ini                         # Pytest configuration
-├── .env.example                       # Template for environment variables
-├── .flake8                            # Flake8 linting rules
-├── config/                            # Runtime configuration files
-│   ├── db_creator.yml                 # Config for database creation from Neo4j/IPFS
-│   ├── evaluation.yml                 # Config for evaluating query results
-│   ├── processor.yml                  # Config for document processing pipeline
-│   └── token_test.yml                 # Config for blockchain-based token rewards
-├── contracts/                         # Blockchain contract ABIs
-│   ├── CoopHiveV1.json                # Current smart contract ABI
-│   └── old.json                       # Older contract ABI
-├── descidb/                           # Core application modules
-│   ├── core/                          # Main document processing logic
-│   │   ├── chunker.py                 # Text chunking logic
-│   │   ├── converter.py               # PDF to markdown conversion
-│   │   ├── embedder.py                # Text embedding generation
-│   │   ├── processor.py               # Processing pipeline class
-│   │   └── processor_main.py          # Entrypoint for running processing
-│   ├── db/                            # Database management modules
-│   │   ├── chroma_client.py           # ChromaDB client for embeddings
-│   │   ├── db_creator.py              # Populate DBs from Neo4j/IPFS
-│   │   ├── db_creator_main.py         # Entrypoint to run DB creation
-│   │   ├── graph_db.py                # Neo4j Graph DB client
-│   │   └── postgres_db.py             # PostgreSQL DB management
-│   ├── query/                         # Querying and evaluation modules
-│   │   ├── evaluation_agent.py        # Agent-based evaluation logic
-│   │   ├── evaluation_main.py         # Entrypoint for evaluation tasks
-│   │   └── query_db.py                # ChromaDB querying functionality
-│   ├── rewards/                       # Reward mechanisms
-│   │   ├── token_rewarder.py          # Blockchain token reward logic
-│   │   └── token_reward_main.py       # Entrypoint to execute reward logic
-│   └── utils/                         # Utility functions
-│       ├── logging_utils.py           # Logging utilities
-│       └── utils.py                   # File handling and IPFS helpers
-├── docker/                            # Dockerfiles for containerization
-├── erc20-token/                       # ERC20 blockchain token setup
-├── papers/                            # Sample documents and metadata
-├── scripts/                           # Shell scripts for easy task execution
-├── tests/                             # Unit tests for modules
-└── .github/workflows/                 # CI/CD workflows
-```
+- **Modular Architecture**: Customize each stage—conversion, chunking, embedding, storage, querying, and rewards—via configuration files.
+- **Reproducibility**: Deterministic pipelines with version-controlled configurations ensure consistent results.
+- **Multi-Backend Support**:
+  - **Conversion**: Marker, OpenAI, or custom converters.
+  - **Chunking**: Paragraph, sentence, fixed-length, or custom strategies.
+  - **Embedding**: OpenAI, NVIDIA, or your own models.
+  - **Storage**: ChromaDB (vector database), PostgreSQL (metadata), Neo4j (graph database), IPFS (document storage).
+- **Incentivization**: Distribute ERC20 tokens based on user contributions using customizable reward strategies.
+- **Evaluation**: Evaluate and compare database performance using LLMs via OpenRouter.
+
+### Philosophy
+
+CoopHive is designed to be **modular** and **reproducible**:
+
+- Add new conversion, chunking, and embedding strategies without affecting the core logic of the project.
+- Configurable through YAML files.
+- Seperate pipelines for knowledge graph creation, querying, and token incentivization.
+
+### Tech Stack
+
+- **Python** (project core, orchestration)
+- **ChromaDB** (vector database for embeddings)
+- **Neo4j** (graph database for document lineage)
+- **IPFS / Lighthouse** (storage of document versions)
+- **OpenAI / NVIDIA / Custom** (embedders for RAG)
+- **Hardhat, Solidity** (ERC20 contracts for reward distribution)
+- **Docker + Nomad** (optional containerization and deployment)
 
 ---
 
-## ⚙️ Components and What They Do
+## 🚀 Quick Start
 
-### 🔄 Processor (processor_main.py)
+### Prerequisites
 
-This is the main entrypoint to run a full pipeline:
+- Python 3.10+
+- Poetry
+- Node.js 18+
+- Access to required APIs (OpenAI, Lighthouse, OpenRouter, etc.)
 
-1. Converts PDFs to markdown using Marker or OpenAI
-2. Chunks the markdown
-3. Embeds the chunks
-4. Uploads to IPFS and stores metadata in ChromaDB, Neo4j, and Postgres
-
-👉 Controlled by: `config/processor.yml`
-
-**Customize:**
-
-- `converter`: Use `marker` or `openai`, or define your own in `converter.py`
-- `chunker`: Choose between `paragraph`, `sentence`, `fixed_length`, etc.
-- `embedder`: Use `openai`, `nvidia`, or extend `embedder.py` with your own
-
-### 🧠 Evaluation Agent (evaluation_main.py)
-
-Evaluates multiple DBs for a user query, compares results using LLMs (e.g., via OpenRouter), and outputs ranking + reasoning.
-
-👉 Controlled by: `config/evaluation.yml`
-
-**Customize:**
-
-- Modify the evaluation query and model in the config
-- Add your own ranking logic inside `evaluation_agent.py`
-
-### 🧱 DB Creator (db_creator_main.py)
-
-Reconstructs databases using paths from Neo4j that lead from original PDFs to embeddings stored in IPFS.
-
-👉 Controlled by: `config/db_creator.yml`
-
-**Customize:**
-
-- Adjust traversal depth and path in the config
-- Extend `graph_db.py` to support new graph logic
-
-### 🎖️ Token Rewarding (token_reward_main.py)
-
-Reads user job stats (based on Neo4j-authored edges or DB logs), calculates reward scores, and distributes ERC20 tokens using a custom smart contract.
-
-👉 Controlled by: `config/token_test.yml`
-
-**Customize:**
-
-- Choose from strategies: `milestone`, `bonus`, `decay`, or create your own in `token_rewarder.py`
-- Replace the ABI or contract address in `.env` and `contracts/`
-
----
-
-## 🚀 Running the Project
-
-### ⚙️ Initial Setup
+### Installation
 
 ```bash
 git clone https://github.com/your-repo/coophive-markdown-converter.git
@@ -121,50 +54,19 @@ bash scripts/setup.sh
 poetry lock --no-update
 poetry install
 cp .env.example .env
-# Edit the .env file with actual credentials
 ```
 
-### 🛠️ Execute Main Workflows
+### Development Commands
 
 ```bash
-bash scripts/run_processor.sh         # Convert, chunk, embed, store
-bash scripts/run_db_creator.sh        # Recreate DBs from IPFS graph
-bash scripts/run_evaluation.sh        # Compare results across DBs
-bash scripts/run_token_reward.sh      # Distribute token rewards
+poetry shell                          # Open interactive dev environment
+bash scripts/lint.sh                  # Code quality (black, isort, flake8, mypy)
+bash scripts/test.sh --integration    # Integration tests
 ```
 
-### 🔍 Code Quality & Testing
+### 💡 Environment Variables
 
-```bash
-bash scripts/lint.sh                  # Run black, isort, flake8, mypy
-bash scripts/test.sh                  # Run all tests with pytest
-bash scripts/test.sh --unit           # Run only unit tests
-bash scripts/test.sh --integration    # Run only integration tests
-```
-
-### 💻 Poetry Shell (Optional Interactive Mode)
-
-```bash
-poetry shell                          # Drop into a virtualenv shell
-```
-
----
-
-## 🧩 Customization
-
-Each module can be customized via:
-
-- `config/*.yml` to control which converter/embedder/etc. to use
-- `descidb/core` and `descidb/rewards` to add new functionality
-- `.env` for runtime secrets
-
-Add your new embedder in `embedder.py`, and reference its name in `config/processor.yml`. The system will pick it up dynamically.
-
----
-
-## 🔧 Environment Variables
-
-A `.env` file (based on `.env.example`) should include:
+Create a `.env` file (template available in `.env.example`) with the following keys:
 
 ```bash
 OPENAI_API_KEY=
@@ -179,6 +81,122 @@ OPENROUTER_API_KEY=
 
 ---
 
-## 📜 License
+## 🛠️ Running Workflows
+
+Execute the main pipelines using provided shell scripts:
+
+```bash
+bash scripts/run_processor.sh         # Convert, chunk, embed, store documents
+bash scripts/run_db_creator.sh        # Recreate databases from IPFS and Neo4j graph to ChromaDB
+bash scripts/run_evaluation.sh        # Query and evaluate across databases using agents
+bash scripts/run_token_reward.sh      # Distribute blockchain-based token rewards for creation of databases
+```
+
+Or drop into a virtual environment for manual work:
+
+```bash
+poetry shell
+```
+
+---
+
+## 🧬 Module Configuration
+
+### ✨ Processor
+
+- Converts PDF ➔ markdown using **Marker** or **OpenAI**
+- Chunks text into paragraphs, sentences, or fixed length
+- Embeds chunks using **OpenAI**, **NVIDIA**, or custom models
+- Uploads to **IPFS** and stores metadata into **ChromaDB** / **Neo4j** / **Postgres**
+
+Configuration: [`config/processor.yml`](config/processor.yml)
+
+```yaml
+converter: marker # Options: marker, openai, custom
+chunker: paragraph # Options: paragraph, sentence, fixed_length, custom
+embedder: openai # Options: openai, nvidia, custom
+```
+
+Define your custom classes inside `descidb/core/converter.py`, `descidb/core/chunker.py`, or `descidb/core/embedder.py` and reference them in the config.
+
+### 🔁 DB Creator
+
+- Traverses IPFS graph in **Neo4j** to rebuild databases
+- Fetches embeddings + metadata from Lighthouse storage
+- Supports different path traversal depths and relationships
+
+Configuration: [`config/db_creator.yml`](config/db_creator.yml)
+
+```yaml
+components:
+  converter:
+    - marker # Recreates documents from IPFS/Neo4j converted by specified converter
+  chunker:
+    - fixed_length # Recreates chunks from documents converted by specified chunker
+  embedder:
+    - openai # Recreates embeddings from chunks embedded by specified embedder
+```
+
+```yaml
+cids_file_paths:
+  - cids.txt # Path to file containing CIDs of documents to recreate
+```
+
+### 🧐 Evaluation Agent
+
+- Runs a query across different vector DBs that were created by the DB Creator module
+- Uses an LLM (via **OpenRouter**) to **rank results**
+- Outputs structured ranking + analysis JSONs
+
+```yaml
+query: "impact of CRISPR on neuroscience" # Query to run across vector DBs
+model_name: "gpt-4" # Model to use for ranking
+```
+
+Outputs can be found in `temp/evaluation/` folder.
+
+### 🏅 Token Rewarding
+
+- Reads contribution data from Neo4j and creates Postgres database with token contributions
+- Calculates reward based on job count, bonuses, time decay, etc.
+- Issues **ERC20** tokens to contributors via smart contract
+
+```yaml
+databases: # List of databases combinations to reward
+  - converter: openai
+    chunker: paragraph
+    embedder: openai
+```
+
+Extend `descidb/rewards/token_rewarder.py` for new reward calculation methods.
+
+---
+
+## 📦 Reproducibility
+
+- All document uploads are hashed and tracked deterministically on **IPFS**.
+- Stores each object (chunk, embedding, etc.) as seperate git commits to ensure reproducibility and traceability.
+- Runs can be reproduced exactly by using pinned dependency versions (`poetry.lock`) and fixed configs.
+
+---
+
+## Directory Overview
+
+```bash
+coophive-markdown-converter/
+├── config/        # YAML files controlling each pipeline
+├── descidb/        # Core libraries for processing, database, rewards
+├── scripts/       # Bash scripts for setup, linting, running pipelines
+├── contracts/     # Blockchain smart contract ABIs
+├── docker/        # Docker/Nomad job specs (optional deployment)
+├── erc20-token/  # Hardhat config for token contracts
+├── papers/        # Sample document files and metadata
+├── tests/         # Unit + integration tests
+└── .github/       # CI/CD pipelines
+```
+
+---
+
+## 📄 License
 
 This project is open-sourced under the MIT License.
