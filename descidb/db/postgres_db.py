@@ -127,7 +127,7 @@ class PostgresDBManager:
                     markdown TEXT,
                     embedding BYTEA,
                     metadata JSON,
-                    public_key TEXT,
+                    public_key TEXT
                 )
             """
                 )
