@@ -14,6 +14,7 @@ from dotenv import load_dotenv
 from marker.config.parser import ConfigParser  # type: ignore
 from marker.converters.pdf import PdfConverter  # type: ignore
 from marker.models import create_model_dict  # type: ignore
+from markitdown import MarkItDown
 from openai import OpenAI
 
 from descidb.utils.logging_utils import get_logger
@@ -26,7 +27,7 @@ logger = get_logger(__name__)
 load_dotenv(override=True)
 
 
-ConversionType = Literal["marker", "openai"]
+ConversionType = Literal["marker", "openai", "markitdown"]
 
 
 def convert_from_url(conversion_type: ConversionType, input_url: str) -> str:
@@ -46,6 +47,7 @@ def convert(conversion_type: ConversionType, input_path: str) -> str:
     conversion_methods = {
         "marker": marker,
         "openai": openai,
+        "markitdown": markitdown,
     }
 
     return conversion_methods[conversion_type](input_path)
@@ -161,4 +163,38 @@ def openai(input_path: str) -> str:
         return ""
     except Exception as e:
         print(f"An error occurred: {e}")
+        return ""
+
+
+def markitdown(input_path: str) -> str:
+    """Convert PDF to Markdown using the Microsoft MarkItDown library."""
+    try:
+        # Ensure the input_path is a valid file
+        if not os.path.exists(input_path):
+            raise FileNotFoundError(f"Input path not found: {input_path}")
+
+        # Check if the path is a file and a PDF
+        if os.path.isfile(input_path):
+            if input_path.lower().endswith(".pdf"):
+                input_pdf_path = input_path
+            else:
+                raise ValueError(f"File at {input_path} is not a PDF.")
+        elif os.path.isdir(input_path):
+            raise ValueError(
+                "Input path is a directory. Please specify a single PDF file path."
+            )
+        else:
+            raise ValueError(f"Invalid input path: {input_path}")
+
+        md = MarkItDown(enable_plugins=False)
+
+        logger.info(f"Converting {input_pdf_path} using MarkItDown")
+        result = md.convert(input_pdf_path)
+        return result.text_content.strip()
+
+    except FileNotFoundError as e:
+        logger.error(f"File not found: {e}")
+        return ""
+    except Exception as e:
+        logger.error(f"An error occurred with MarkItDown: {e}")
         return ""

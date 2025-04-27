@@ -20,9 +20,9 @@ api_keys:
 
 # Database configurations
 databases:
-  - converter: openai
-    chunker: fixed_length
-    embedder: bge
+  - converter: markitdown
+    chunker: paragraph
+    embedder: openai
 
 # Author configuration
 author:
