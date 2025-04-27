@@ -22,7 +22,7 @@ api_keys:
 databases:
   - converter: openai
     chunker: fixed_length
-    embedder: openai
+    embedder: bge
 
 # Author configuration
 author:
