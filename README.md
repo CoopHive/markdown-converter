@@ -1,23 +1,24 @@
 # 🧠 CoopHive: Modular RAG Pipelines for Scientific Papers
 
-CoopHive builds RAG framework pipelines for scientific literature by providing a modular, reproducible framework. It supports customizable document processing, embedding, querying, and incentivization mechanisms, allowing decentralized and transparent science.
+CoopHive builds modular, reproducible RAG (Retrieval-Augmented Generation) pipelines for scientific literature. It supports customizable document processing, embedding, querying, and incentivization mechanisms, enabling decentralized and transparent scientific collaboration.
 
 ---
 
 ## ✨ Features
 
-- **Modular Architecture**: Swap out converters, chunkers, embedders, and reward strategies easily via configuration files.
+- **Modular Architecture**: Easily swap converters, chunkers, embedders, and reward strategies via configuration files. Each component (conversion, chunking, embedding) is pluggable, allowing you to add your own custom methods or extend existing ones.
 - **Reproducibility**: Deterministic pipelines with version-controlled configs ensure consistent, repeatable results.
-- **Transparency**: All document processing and contributions are traceable via Git commits and IPFS hashes.
+- **Transparency**: All processing and contributions are traceable through Git commits and IPFS hashes.
 - **Built-in Pipelines**:
-  - Document **conversion** to markdown (Marker, OpenAI, or custom)
-  - Text **chunking** (by paragraph, sentence, fixed length, or custom logic)
-  - **Embedding** of chunks (OpenAI, NVIDIA, or custom models)
-  - **Storage** of documents, chunks, and embeddings in Neo4j and IPFS.
-  - **Recreation** of documents, chunks, and embeddings from IPFS/Neo4j to ChromaDB.
-  - **Querying** of documents, chunks, and embeddings using a RAG pipeline.
-  - **Evaluation** of vector DBs using an LLM via OpenRouter.
-  - **Token Rewarding** of contributors based on job count, bonuses, time decay, etc.
+  - Document conversion to markdown
+  - Text chunking
+  - Embedding of chunks
+  - Storage in vector databases and decentralized storage
+  - Database recreation from decentralized storage
+  - Querying and evaluation of vector databases
+  - Token rewarding for contributors
+
+Examples for common methods (like Marker, OpenAI, Lighthouse, etc.) are provided but can be extended with any custom logic by implementing your own classes.
 
 ---
 
@@ -28,7 +29,7 @@ CoopHive builds RAG framework pipelines for scientific literature by providing a
 - Python 3.10+
 - Poetry
 - Node.js 18+
-- Access to required APIs (OpenAI, Lighthouse, OpenRouter, etc.)
+- Access to APIs (e.g., OpenAI, Lighthouse, OpenRouter)
 
 ### Installation
 
@@ -43,7 +44,7 @@ cp .env.example .env
 
 ### 💡 Environment Variables
 
-Create a `.env` file (template available in `.env.example`) with the following keys:
+Create a `.env` file with the following keys:
 
 ```bash
 OPENAI_API_KEY=
@@ -59,13 +60,13 @@ OPENROUTER_API_KEY=
 ### Running Modules
 
 ```bash
-bash scripts/run_processor.sh         # Convert, chunk, embed, store documents
+bash scripts/run_processor.sh         # Convert, chunk, embed, and store documents
 bash scripts/run_db_creator.sh         # Recreate DBs from IPFS graph
 bash scripts/run_evaluation.sh         # Query and evaluate across DBs
 bash scripts/run_token_reward.sh       # Distribute ERC20 token rewards
 ```
 
-Or enter an interactive environment:
+Or launch an interactive session:
 
 ```bash
 poetry shell
@@ -75,20 +76,24 @@ poetry shell
 
 ```bash
 bash scripts/lint.sh                   # Lint (black, isort, flake8, mypy)
-bash scripts/test.sh --integration      # Only integration tests
+bash scripts/test.sh --integration      # Run integration tests
 ```
 
-## 🧬 Module Configuration
+---
+
+## �\uddna Module Configuration
 
 ### ✨ Processor
 
-- Converts PDF ➔ markdown using **Marker** or **OpenAI**
-- Chunks text into paragraphs, sentences, or fixed length
-- Embeds chunks using **OpenAI**, **NVIDIA**, or custom models
-- Uploads to **IPFS** and stores metadata into **ChromaDB** / **Neo4j** / **Postgres**
-- Logs each operation as a Git commit with the specified author
+- Converts PDF to markdown using a configurable converter module
+- Chunks text into paragraphs, sentences, or fixed lengths
+- Embeds text chunks using a configurable embedder
+- Uploads outputs to IPFS and stores metadata in databases
+- Logs all processing as Git commits
 
-Configuration: [`config/processor.yml`](config/processor.yml)
+All core components are modular and can be customized by implementing new classes under `descidb/core/` and specifying them in the config file.
+
+Configurable at [`config/processor.yml`](config/processor.yml):
 
 ```yaml
 converter: marker # Options: marker, openai, custom
@@ -96,90 +101,88 @@ chunker: paragraph # Options: paragraph, sentence, fixed_length, custom
 embedder: openai # Options: openai, nvidia, custom
 ```
 
-Define your custom classes inside `descidb/core/converter.py`, `descidb/core/chunker.py`, or `descidb/core/embedder.py` and reference them in the config.
-
 ### 🔁 DB Creator
 
-- Traverses IPFS graph in **Neo4j** to rebuild databases
-- Fetches embeddings + metadata from Lighthouse storage
-- Supports different path traversal depths and relationships
+- Traverses the IPFS graph in Neo4j
+- Rebuilds documents, chunks, and embeddings
+- Supports depth control and relationship mapping
 
-Configuration: [`config/db_creator.yml`](config/db_creator.yml)
+Configurable at [`config/db_creator.yml`](config/db_creator.yml):
 
 ```yaml
 components:
   converter:
-    - marker # Recreates documents from IPFS/Neo4j converted by specified converter
+    - marker
   chunker:
-    - fixed_length # Recreates chunks from documents converted by specified chunker
+    - fixed_length
   embedder:
-    - openai # Recreates embeddings from chunks embedded by specified embedder
-```
+    - openai
 
-```yaml
 cids_file_paths:
-  - cids.txt # Path to file containing CIDs of documents to recreate
+  - cids.txt
 ```
 
-### 🧐 Evaluation Agent
+### 🔎 Evaluation Agent
 
-- Runs a query across different vector DBs that were created by the DB Creator module
-- Uses an LLM (via **OpenRouter**) to **rank results**
-- Outputs structured ranking + analysis JSONs
+- Runs queries across vector DBs
+- Uses an LLM to rank and analyze retrieval performance
+
+Example snippet:
 
 ```yaml
-query: "impact of CRISPR on neuroscience" # Query to run across vector DBs
-model_name: "gpt-4" # Model to use for ranking
+query: "impact of CRISPR on neuroscience"
+model_name: "gpt-4"
 ```
 
-Outputs can be found in `temp/evaluation/` folder.
+Outputs are saved in `temp/evaluation/`.
 
 ### 🏅 Token Rewarding
 
-- Reads contribution data from Neo4j and creates Postgres database with token contributions
-- Calculates reward based on job count, bonuses, time decay, etc.
-- Issues **ERC20** tokens to contributors via smart contract
+- Analyzes contributions and distributes ERC20 tokens
+- Supports job count, bonuses, and time decay reward models
+
+Configuration example:
 
 ```yaml
-databases: # List of databases combinations to reward
+databases:
   - converter: openai
     chunker: paragraph
     embedder: openai
 ```
 
-Extend `descidb/rewards/token_rewarder.py` for new reward calculation methods.
+Extend `descidb/rewards/token_rewarder.py` to customize reward mechanisms.
 
 ---
 
 ## 🛠️ Tech Stack
 
-- **Python** (main orchestration)
-- **ChromaDB** (vector database)
+- **Python** (workflow orchestration)
+- **ChromaDB** (vector storage)
 - **Neo4j** (graph lineage and job tracking)
 - **IPFS / Lighthouse** (document storage)
-- **OpenAI / NVIDIA / Custom** (embedding backends)
-- **Hardhat + Solidity** (ERC20 reward contracts)
-- **Docker + Nomad** (optional containerization)
+- **Embedding Models** (pluggable, default examples included)
+- **Hardhat + Solidity** (ERC20 token management)
+- **Docker + Nomad** (optional deployment)
 
 ---
 
-## Directory Overview
+## 📄 Directory Overview
 
 ```bash
 coophive-markdown-converter/
-├── config/        # YAML files controlling each pipeline
-├── descidb/        # Core libraries for processing, database, rewards
-├── scripts/       # Bash scripts for setup, linting, running pipelines
-├── contracts/     # Blockchain smart contract ABIs
-├── docker/        # Docker/Nomad job specs (optional deployment)
-├── erc20-token/  # Hardhat config for token contracts
-├── papers/        # Sample document files and metadata
-├── tests/         # Unit + integration tests
-└── .github/       # CI/CD pipelines
+├── config/        # YAML pipeline configs
+├── descidb/       # Core libraries (processing, storage, rewards)
+├── scripts/       # CLI scripts for pipelines
+├── contracts/     # Blockchain contract ABIs
+├── docker/        # Container specs
+├── erc20-token/   # Token contract config
+├── papers/        # Example documents
+├── tests/         # Unit and integration tests
+└── .github/       # CI/CD configurations
 ```
 
 ---
 
-## 📄 License
+## 📅 License
 
 This project is open-sourced under the MIT License.
