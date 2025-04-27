@@ -14,5 +14,5 @@ from descidb.core.chunker import (
     word,
 )
 from descidb.core.converter import convert, convert_from_url
-from descidb.core.embedder import embed, embed_from_url, openai_embed
+from descidb.core.embedder import embed, embed_from_url, openai
 from descidb.core.processor import Processor

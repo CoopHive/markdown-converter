@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from descidb.core.embedder import embed, embed_from_url, openai_embed
+from descidb.core.embedder import embed, embed_from_url, openai
 
 
 class TestEmbedder:
@@ -30,7 +30,7 @@ class TestEmbedder:
         mock_response.data = [mock_data]
 
         # Call the function
-        result = openai_embed("Test text")
+        result = openai("Test text")
 
         # Verify the expected behavior
         mock_openai.assert_called_once()
@@ -39,7 +39,7 @@ class TestEmbedder:
         )
         assert result == mock_embedding
 
-    @patch("descidb.core.embedder.openai_embed")
+    @patch("descidb.core.embedder.openai")
     def test_embed_with_openai(self, mock_openai_func):
         """Test the embed function with OpenAI embedder."""
         # Mock openai function
@@ -111,7 +111,7 @@ class TestEmbedder:
             mock_response.data = [mock_data]
 
             # Call the function
-            openai_embed("Test text")
+            openai("Test text")
 
             # Verify the API key was passed correctly
             mock_openai.assert_called_once_with(api_key=test_api_key)

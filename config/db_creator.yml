@@ -9,7 +9,7 @@ neo4j:
 # Database components
 components:
   converter:
-    - marker
+    - openai
   chunker:
     - fixed_length
   embedder:
@@ -21,7 +21,7 @@ vector_db:
 
 # Relationship paths
 relationships:
-  - CONVERTED_BY_marker
+  - CONVERTED_BY_openai
   - CHUNKED_BY_fixed_length
   - EMBEDDED_BY_openai
 

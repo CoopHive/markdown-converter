@@ -35,12 +35,12 @@ def embed_from_url(embeder_type: EmbederType, input_url: str) -> List[str]:
 def embed(embeder_type: EmbederType, input_text: str) -> List[str]:
     """Chunk based on the specified chunking type."""
 
-    chunking_methods = {"openai": openai_embed, "nvidia": nvidia}
+    chunking_methods = {"openai": openai, "nvidia": nvidia}
 
     return chunking_methods[embeder_type](text=input_text)
 
 
-def openai_embed(text: str) -> list:
+def openai(text: str) -> list:
     """Embed text using the OpenAI embedding API. Returns a list."""
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 

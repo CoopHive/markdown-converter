@@ -10,11 +10,10 @@ import os
 from pathlib import Path
 
 import chromadb
-import chromadb.utils.embedding_functions as embedding_functions
 from dotenv import load_dotenv
-from openai import OpenAI
 
 from descidb.utils.logging_utils import get_logger
+from descidb.core.embedder import embed, EmbederType
 
 # Get module logger
 logger = get_logger(__name__)
@@ -22,28 +21,23 @@ logger = get_logger(__name__)
 load_dotenv()
 
 
-def query_collection(collection_name, user_query, db_path=None):
+def query_collection(collection_name, user_query, db_path=None, embedder_type: EmbederType = "openai"):
     """
     Query a ChromaDB collection with a natural language query.
 
-    This function converts the user query to an embedding using OpenAI's
-    text-embedding model and performs a similarity search in the specified
-    ChromaDB collection.
+    This function converts the user query to an embedding using the embedder module
+    and performs a similarity search in the specified ChromaDB collection.
 
     Args:
         collection_name: Name of the ChromaDB collection to query
         user_query: Natural language query string
         db_path: Optional path to ChromaDB directory. If None, uses default path
+        embedder_type: Type of embedder to use (openai, nvidia)
 
     Returns:
         JSON string containing query results with metadata and similarity scores
     """
     try:
-        openaiClient = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-        if not os.getenv("OPENAI_API_KEY"):
-            logger.error("OpenAI API key is not set in environment variables")
-            return json.dumps({"error": "OpenAI API key not configured"})
-
         # Use the provided db_path or create a default path
         if db_path is None:
             # Get the directory where this module is located and use its database subdirectory
@@ -59,16 +53,13 @@ def query_collection(collection_name, user_query, db_path=None):
             f"Querying collection '{collection_name}' with: '{user_query[:50]}...'"
         )
         client = chromadb.PersistentClient(path=str(db_path))
-        openai_ef = embedding_functions.OpenAIEmbeddingFunction(
-            api_key="", model_name="text-embedding-3-small"
-        )
-        collection = client.get_collection(
-            name=f"{collection_name}", embedding_function=openai_ef
-        )
 
-        model_name = "text-embedding-3-small"
-        response = openaiClient.embeddings.create(model=model_name, input=[user_query])
-        embedding = response.data[0].embedding
+        # Get collection
+        collection = client.get_collection(name=f"{collection_name}")
+
+        # Generate embedding using the embedder module
+        embedding = embed(embeder_type=embedder_type, input_text=user_query)
+
         values = collection.query(
             query_embeddings=[embedding],
             n_results=4,
