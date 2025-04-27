@@ -21,23 +21,34 @@ logger = get_logger(__name__)
 load_dotenv()
 
 
-def query_collection(collection_name, user_query, db_path=None, embedder_type: EmbederType = "openai"):
+def query_collection(collection_name, user_query, db_path=None):
     """
     Query a ChromaDB collection with a natural language query.
 
     This function converts the user query to an embedding using the embedder module
     and performs a similarity search in the specified ChromaDB collection.
 
+    If embedder_type is not specified, it will be extracted from the collection name
+    (the part after the last underscore).
+
     Args:
         collection_name: Name of the ChromaDB collection to query
         user_query: Natural language query string
         db_path: Optional path to ChromaDB directory. If None, uses default path
-        embedder_type: Type of embedder to use (openai, nvidia)
+        embedder_type: Type of embedder to use (openai, nvidia). If None, extracted from collection_name
 
     Returns:
         JSON string containing query results with metadata and similarity scores
     """
     try:
+        parts = collection_name.split('_')
+        if len(parts) > 1:
+            embedder_type = parts[-1]
+            logger.info(f"Using embedder type '{embedder_type}' derived from collection name")
+        else:
+            embedder_type = "openai"
+            logger.info(f"Using default embedder type 'openai' as collection name has no underscore")
+
         # Use the provided db_path or create a default path
         if db_path is None:
             # Get the directory where this module is located and use its database subdirectory
@@ -57,7 +68,7 @@ def query_collection(collection_name, user_query, db_path=None, embedder_type: E
         # Get collection
         collection = client.get_collection(name=f"{collection_name}")
 
-        # Generate embedding using the embedder module
+        # Generate embedding using the embedder module with the determined embedder_type
         embedding = embed(embeder_type=embedder_type, input_text=user_query)
 
         values = collection.query(
