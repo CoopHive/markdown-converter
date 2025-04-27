@@ -12,8 +12,8 @@ from pathlib import Path
 import chromadb
 from dotenv import load_dotenv
 
+from descidb.core.embedder import embed
 from descidb.utils.logging_utils import get_logger
-from descidb.core.embedder import embed, EmbederType
 
 # Get module logger
 logger = get_logger(__name__)
@@ -41,13 +41,17 @@ def query_collection(collection_name, user_query, db_path=None):
         JSON string containing query results with metadata and similarity scores
     """
     try:
-        parts = collection_name.split('_')
+        parts = collection_name.split("_")
         if len(parts) > 1:
             embedder_type = parts[-1]
-            logger.info(f"Using embedder type '{embedder_type}' derived from collection name")
+            logger.info(
+                f"Using embedder type '{embedder_type}' derived from collection name"
+            )
         else:
             embedder_type = "openai"
-            logger.info(f"Using default embedder type 'openai' as collection name has no underscore")
+            logger.info(
+                "Using default embedder type 'openai' as collection name has no underscore"
+            )
 
         # Use the provided db_path or create a default path
         if db_path is None:

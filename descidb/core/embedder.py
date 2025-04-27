@@ -6,15 +6,15 @@ using various embedding models including OpenAI's API.
 """
 
 import os
+from functools import lru_cache
 from typing import List, Literal
 
 from dotenv import load_dotenv
 from openai import OpenAI
+from sentence_transformers import SentenceTransformer  # NEW
 
 from descidb.utils.logging_utils import get_logger
 from descidb.utils.utils import download_from_url
-from sentence_transformers import SentenceTransformer        # NEW
-from functools import lru_cache
 
 # Get module logger
 logger = get_logger(__name__)
