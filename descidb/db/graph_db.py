@@ -137,10 +137,14 @@ class IPFSNeo4jGraph:
 
                 if record:
                     converted_cid = record["converted_cid"]
-                    self.logger.info(f"Found converted CID {converted_cid} for {cid} using {markdown_conversion}")
+                    self.logger.info(
+                        f"Found converted CID {converted_cid} for {cid} using {markdown_conversion}"
+                    )
                     return converted_cid
 
-                self.logger.info(f"No conversion found for {cid} with {markdown_conversion}")
+                self.logger.info(
+                    f"No conversion found for {cid} with {markdown_conversion}"
+                )
                 return None
 
         except Exception as e:

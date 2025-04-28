@@ -243,19 +243,27 @@ class Processor:
 
             # If the conversion already exists, use the existing conversion
             if converted_text_ipfs_cid:
-                self.logger.info(f"Found existing markdown conversion: {converted_text_ipfs_cid}")
+                self.logger.info(
+                    f"Found existing markdown conversion: {converted_text_ipfs_cid}"
+                )
                 # Fetch converted text content from IPFS
-                converted_text = self.graph_db._query_ipfs_content(converted_text_ipfs_cid)
+                converted_text = self.graph_db._query_ipfs_content(
+                    converted_text_ipfs_cid
+                )
                 if converted_text:
                     self.convert_cache[converter_func] = converted_text
-                    self.logger.info(f"Using existing markdown conversion")
+                    self.logger.info("Using existing markdown conversion")
                 else:
-                    self.logger.warning(f"Failed to fetch existing conversion content, performing new conversion")
+                    self.logger.warning(
+                        "Failed to fetch existing conversion content, performing new conversion"
+                    )
                     converted_text_ipfs_cid = None  # Reset to trigger new conversion
 
             # If no existing conversion was found or content could not be fetched, perform conversion
             if not converted_text_ipfs_cid or converter_func not in self.convert_cache:
-                self.logger.info(f"No existing conversion found, performing new conversion")
+                self.logger.info(
+                    "No existing conversion found, performing new conversion"
+                )
                 if converter_func not in self.convert_cache:
                     converted_text = convert(
                         conversion_type=converter_func, input_path=pdf_path
