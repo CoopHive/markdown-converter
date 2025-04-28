@@ -113,6 +113,40 @@ class IPFSNeo4jGraph:
         except Exception as e:
             self.logger.error(f"Failed to query graph: {e}")
 
+    def get_converted_markdown_cid(self, cid, markdown_conversion):
+        """
+        Check if a CID has already been converted using a specific markdown conversion
+        and return the resulting CID if it exists.
+
+        Args:
+            cid: The original IPFS CID to check
+            markdown_conversion: The name of the markdown conversion type
+
+        Returns:
+            The CID of the converted markdown if found, None otherwise
+        """
+        relationship_type = f"CONVERTED_BY_{markdown_conversion}"
+        try:
+            with self.driver.session() as session:
+                query = f"""
+                    MATCH (source:IPFS {{cid: $cid}})-[:{relationship_type}]->(converted:IPFS)
+                    RETURN converted.cid AS converted_cid
+                """
+                result = session.run(query, cid=cid)
+                record = result.single()
+
+                if record:
+                    converted_cid = record["converted_cid"]
+                    self.logger.info(f"Found converted CID {converted_cid} for {cid} using {markdown_conversion}")
+                    return converted_cid
+
+                self.logger.info(f"No conversion found for {cid} with {markdown_conversion}")
+                return None
+
+        except Exception as e:
+            self.logger.error(f"Failed to check for converted markdown: {e}")
+            return None
+
     def recreate_path(self, start_cid, path):
         """
         Given a starting node and an ordered list of relationship steps,
