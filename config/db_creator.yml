@@ -11,20 +11,13 @@ components:
   converter:
     - openai
   chunker:
-    - fixed_length
+    - paragraph
   embedder:
     - openai
 
 # Vector database configuration
 vector_db:
   path: descidb/database
-
-# Relationship paths
-relationships:
-  - CONVERTED_BY_openai
-  - CHUNKED_BY_fixed_length
-  - EMBEDDED_BY_openai
-
 # CIDs file paths to check
 cids_file_paths:
   - cids.txt

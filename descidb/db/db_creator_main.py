@@ -76,8 +76,18 @@ def main():
     vector_db_manager = VectorDatabaseManager(components, db_path=str(db_path))
     create_db = DatabaseCreator(graph, vector_db_manager)
 
-    # Set up relationship path
-    relationship_path = config["relationships"]
+    # Construct relationship paths from components
+    relationship_path = []
+    component_type_mapping = {
+        "converter": "CONVERTED",
+        "chunker": "CHUNKED",
+        "embedder": "EMBEDDED"
+    }
+    
+    for component_type, component_list in components.items():
+        for component in component_list:
+            relationship = f"{component_type_mapping[component_type]}_BY_{component}"
+            relationship_path.append(relationship)
 
     # Define database name
     converter = components["converter"][0]

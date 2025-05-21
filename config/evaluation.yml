@@ -10,8 +10,6 @@ query: "What is MINT-DFC"
 collections:
   - openai_paragraph_openai
   - openai_fixed_length_openai
-  - marker_paragraph_openai
-  - marker_fixed_length_openai
 
 # Database path (null for default)
 db_path: null
