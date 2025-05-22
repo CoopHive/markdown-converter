@@ -7,12 +7,13 @@ using various embedding models including OpenAI's API.
 
 import os
 from functools import lru_cache
-from typing import List, Literal
+from typing import List, Dict
 
 from dotenv import load_dotenv
 from openai import OpenAI
-from sentence_transformers import SentenceTransformer  # NEW
+from sentence_transformers import SentenceTransformer
 
+from descidb.types.embedder import EmbedderType, Embedding, EmbedderFunc
 from descidb.utils.logging_utils import get_logger
 from descidb.utils.utils import download_from_url
 
@@ -21,10 +22,8 @@ logger = get_logger(__name__)
 
 load_dotenv(override=True)
 
-EmbederType = Literal["openai", "nvidia"]
 
-
-def embed_from_url(embeder_type: EmbederType, input_url: str) -> List[str]:
+def embed_from_url(embeder_type: EmbedderType, input_url: str) -> Embedding:
     """Embed based on the specified embedding type."""
     donwload_path = download_from_url(url=input_url)
 
@@ -34,15 +33,19 @@ def embed_from_url(embeder_type: EmbederType, input_url: str) -> List[str]:
     return embed(embeder_type=embeder_type, input_text=input_text)
 
 
-def embed(embeder_type: EmbederType, input_text: str) -> List[str]:
-    """Chunk based on the specified chunking type."""
+def embed(embeder_type: EmbedderType, input_text: str) -> Embedding:
+    """Embed based on the specified embedding type."""
 
-    chunking_methods = {"openai": openai, "nvidia": nvidia, "bge": bge}
+    embedding_methods: Dict[str, EmbedderFunc] = {
+        "openai": openai,
+        "nvidia": nvidia,
+        "bge": bge
+    }
 
-    return chunking_methods[embeder_type](text=input_text)
+    return embedding_methods[embeder_type](text=input_text)
 
 
-def openai(text: str) -> list:
+def openai(text: str) -> Embedding:
     """Embed text using the OpenAI embedding API. Returns a list."""
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
@@ -51,7 +54,7 @@ def openai(text: str) -> list:
     return embedding
 
 
-def nvidia(text: str) -> list:
+def nvidia(text: str) -> Embedding:
     """Embed text using NVIDIA embeddings. Returns a list."""
     # Implementation not available yet
     return []  # Return empty list for now
@@ -63,6 +66,6 @@ def _load_bge() -> SentenceTransformer:
     return SentenceTransformer(model_name, device="cpu")
 
 
-def bge(text: str) -> List[float]:
+def bge(text: str) -> Embedding:
     model = _load_bge()
     return model.encode(text, show_progress_bar=False).tolist()

@@ -7,7 +7,7 @@ using various methods including OpenAI's API and local tools.
 
 import os
 import textwrap
-from typing import Literal
+from typing import List, Optional, Dict
 
 import PyPDF2
 from dotenv import load_dotenv
@@ -17,6 +17,7 @@ from marker.models import create_model_dict  # type: ignore
 from markitdown import MarkItDown
 from openai import OpenAI
 
+from descidb.types.converter import ConverterType, ConverterFunc
 from descidb.utils.logging_utils import get_logger
 from descidb.utils.utils import download_from_url, extract
 
@@ -27,10 +28,7 @@ logger = get_logger(__name__)
 load_dotenv(override=True)
 
 
-ConversionType = Literal["marker", "openai", "markitdown"]
-
-
-def convert_from_url(conversion_type: ConversionType, input_url: str) -> str:
+def convert_from_url(conversion_type: ConverterType, input_url: str) -> str:
     """Convert based on the specified conversion type."""
     download_path = download_from_url(url=input_url)
 
@@ -41,10 +39,10 @@ def convert_from_url(conversion_type: ConversionType, input_url: str) -> str:
     return convert(conversion_type=conversion_type, input_path=output_path)
 
 
-def convert(conversion_type: ConversionType, input_path: str) -> str:
+def convert(conversion_type: ConverterType, input_path: str) -> str:
     """Convert based on the specified conversion type."""
     # Mapping conversion types to functions
-    conversion_methods = {
+    conversion_methods: Dict[str, ConverterFunc] = {
         "marker": marker,
         "openai": openai,
         "markitdown": markitdown,
@@ -53,7 +51,7 @@ def convert(conversion_type: ConversionType, input_path: str) -> str:
     return conversion_methods[conversion_type](input_path)
 
 
-def chunk_text(text: str, chunk_size: int = 4000) -> list:
+def chunk_text(text: str, chunk_size: int = 4000) -> List[str]:
     """Splits text into smaller chunks to fit within token limits."""
     return textwrap.wrap(
         text, width=chunk_size, break_long_words=False, break_on_hyphens=False

@@ -6,19 +6,18 @@ for processing and embedding.
 """
 
 import re
-from typing import List, Literal
+from typing import List, Dict
 
+from descidb.types.chunker import ChunkerType, ChunkerFunc
 from descidb.utils.logging_utils import get_logger
 from descidb.utils.utils import download_from_url
 
 # Get module logger
 logger = get_logger(__name__)
 
-ChunkerType = Literal["paragraph", "sentence", "word", "fixed_length"]
-
 
 def chunk_from_url(
-    chunker_type: ChunkerType, input_url: str, chunk_size: int = 500
+    chunker_type: ChunkerType, input_url: str
 ) -> List[str]:
     """Chunk based on the specified chunking type."""
     download_path = download_from_url(url=input_url)
@@ -27,23 +26,22 @@ def chunk_from_url(
         input_text = file.read()
 
     return chunk(
-        chunker_type=chunker_type, input_text=input_text, chunk_size=chunk_size
+        chunker_type=chunker_type, input_text=input_text
     )
 
 
 def chunk(
-    chunker_type: ChunkerType, input_text: str, chunk_size: int = 500
+    chunker_type: ChunkerType, input_text: str
 ) -> List[str]:
     """Chunk based on the specified chunking type."""
 
     # Mapping chunking types to functions
-    chunking_methods = {
+    chunking_methods: Dict[str, ChunkerFunc] = {
         "paragraph": paragraph,
         "sentence": sentence,
         "word": word,
-        "fixed_length": lambda text: fixed_length(text, chunk_size),
     }
-
+    
     return chunking_methods[chunker_type](text=input_text)
 
 
@@ -65,6 +63,6 @@ def word(text: str) -> List[str]:
     return [w.strip() for w in words if w.strip()]
 
 
-def fixed_length(text: str, chunk_size: int) -> List[str]:
+def fixed_length(text: str) -> List[str]:
     """Chunk the text into fixed-length chunks."""
-    return [text[i : i + chunk_size] for i in range(0, len(text), chunk_size)]
+    return [text[i : i + 300] for i in range(0, len(text), 300)]

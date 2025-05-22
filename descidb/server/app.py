@@ -5,6 +5,7 @@ from typing import List, Optional
 import json
 import os
 import sys
+from fastapi.middleware.cors import CORSMiddleware
 
 # Import your entry points
 from descidb.query.evaluation_agent import EvaluationAgent
@@ -14,6 +15,15 @@ app = FastAPI(
     title="DeSciDB API",
     description="API for DeSciDB - a decentralized RAG database",
     version="0.1.0"
+)
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # Frontend origin
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["*"],
 )
 
 # Define request/response models
@@ -36,10 +46,11 @@ async def evaluate_endpoint(request: EvaluationRequest):
             db_path=request.db_path,
         )
         
-        # Evaluate results
-        evaluation = agent.evaluate_results(results_file)
+        # Read the results from the JSON file
+        with open(results_file, 'r') as f:
+            results = json.load(f)
         
-        return evaluation
+        return results
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
